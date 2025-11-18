@@ -1,0 +1,6 @@
+source;share/chassis_control/hook/pythonpath.ps1
+source;share/chassis_control/hook/pythonpath.dsv
+source;share/chassis_control/hook/pythonpath.sh
+source;share/chassis_control/hook/ament_prefix_path.ps1
+source;share/chassis_control/hook/ament_prefix_path.dsv
+source;share/chassis_control/hook/ament_prefix_path.sh

@@ -24,7 +24,7 @@ sudo apt install ros-jazzy-ros-base
 
 source /opt/ros/jazzy/setup.bash
 
-echo "source /opt/ros/jazzy/setup.bash" > ~/.bashrc
+echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 
 sudo apt install -y git neovim python3-pip terminator
 

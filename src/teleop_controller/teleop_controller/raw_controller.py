@@ -46,7 +46,7 @@ class RawController:
 
 class RawControllerPublisher(Node):
     def __init__(self):
-        super().__init__("controller_publisher")
+        super().__init__("raw_controller")
         # create publishers
         self.dpad_publisher = self.create_publisher(Int32MultiArray, "dpad", 10)
         self.axes_publisher = self.create_publisher(Float32MultiArray, "axes", 10)

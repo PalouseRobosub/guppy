@@ -14,7 +14,7 @@ public:
   ThrottlePublisher()
   : Node("throttle_publisher")
   {
-    publisher_ = this->create_publisher<std_msgs::msg::Float32>("throttle", 10); // creates a publisher for the "throttle" topic
+    publisher_ = this->create_publisher<std_msgs::msg::Float32>("/can/id101", 10); // creates a publisher for the "throttle" topic
     timer_ = this->create_wall_timer(
       500ms, std::bind(&ThrottlePublisher::timer_callback, this)); // runs timer_callback every 500ms
   }

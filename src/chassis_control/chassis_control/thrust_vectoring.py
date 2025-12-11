@@ -86,6 +86,7 @@ class ThrustVectoring(Node):
 
         out_thrusts = Float32MultiArray()
         out_thrusts.data = solutions.tolist()
+        self.thrust_publisher.publish(out_thrusts)
         self.get_logger().info('out: "%s"' % str(out_thrusts))
         o0 = Float32()
         o0.data = out_thrusts.data[0]

@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'thrust_vectoring = chassis_control.thrust_vectoring:main',
+            'sim_publisher = chassis_control.sim_publisher:main',
         ],
     },
 )

@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'controller_translation'
+package_name = 'teleop_controller'
 
 setup(
     name=package_name,
@@ -11,7 +11,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
     ],
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'pygame'],
     zip_safe=True,
     maintainer='robosub',
     maintainer_email='robosub@todo.todo',
@@ -24,7 +24,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'translator = controller_translation.translator:main'
+            'raw_controller = teleop_controller.raw_controller:main',
+            'translator = teleop_controller.translator:main',
         ],
     },
 )

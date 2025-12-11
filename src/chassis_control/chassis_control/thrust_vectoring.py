@@ -54,7 +54,7 @@ class ThrustVectoring(Node):
 
         self.subscription = self.create_subscription(Twist, '/teleop/chassis_twist', self.callback, 10)
         self.thrust_publisher = self.create_publisher(Float32MultiArray, '/chassis_control/motor_outputs', 10)
-        self.m1_pub = self.create_publisher(Float32MultiArray, '/can/101', 10)
+        self.m1_pub = self.create_publisher(Float32MultiArray, '/can/id101', 10)
         self.twist_publisher = self.create_publisher(Twist, '/chassis_control/output_twist', 10)
 
     def callback(self, msg):

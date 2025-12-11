@@ -29,7 +29,7 @@ public:
 
     // subscribe to throttle topic
     subscription_ = this->create_subscription<std_msgs::msg::Float32>(
-      "/can/101", 10,
+      "/can/id101", 10,
       std::bind(&CanThrottleSubscriber::callback, this, std::placeholders::_1)); // run callback whenever a message is received on the throttle topic
   }
 

@@ -22,7 +22,6 @@ sudo apt install ros-jazzy-desktop
 
 sudo apt install ros-jazzy-ros-base
 
-source /opt/ros/jazzy/setup.bash
 
 echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 

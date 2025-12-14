@@ -11,11 +11,11 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: read
-      packages: read
-      # To report GitHub Actions status checks
-      statuses: write
+    # permissions:
+    #   contents: read
+    #   packages: read
+    #   # To report GitHub Actions status checks
+    #   statuses: write
 
     steps:
       - uses: actions/checkout@v5

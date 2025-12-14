@@ -1,12 +1,12 @@
 import rclpy
 from rclpy.node import Node
 
-from std_msgs.msg import String, Float32MultiArray, Float32
+from std_msgs.msg import Float32MultiArray, Float32
 from geometry_msgs.msg import Twist
 
-from math import sin, cos, tan, radians
+from math import sin, cos, radians
 import numpy as np
-from scipy.optimize import lsq_linear, minimize
+from scipy.optimize import minimize
 
 motors = [
     # corners
@@ -69,7 +69,7 @@ class ThrustVectoring(Node):
         ])
         self.get_logger().info('desired: "%s"' % str(desired))
 
-        bounds = ([-1]*len(motors), [1]*len(motors))
+        # bounds = ([-1]*len(motors), [1]*len(motors))
 
         solutions = np.linalg.lstsq(coefficient_matrix, desired, rcond=None)[0]
         def fun(x):
@@ -77,7 +77,7 @@ class ThrustVectoring(Node):
             return s
         try:
             sol = minimize(fun, solutions, method='L-BFGS-B', bounds = [(-1,1) for i in range(len(motors))])
-        except ValueError as e:
+        except ValueError as _:
             sol = {"x":[0]*len(motors)}
         solutions = sol['x']
 

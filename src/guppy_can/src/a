@@ -1,0 +1,94 @@
+#include <chrono>
+#include <cstring>
+#include <iostream>
+#include <memory>
+
+#include "rclcpp/rclcpp.hpp"
+#include "std_msgs/msg/float32.hpp"
+
+#include <linux/can.h>
+#include <linux/can/raw.h>
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+
+using namespace std::chrono_literals;
+
+class CanThrottleSubscriber
+    : public rclcpp::Node // inherits from standard ros node class
+{
+public:
+  CanThrottleSubscriber() : Node("can_throttle_subscriber") {
+    // setup CAN socket
+    if (!setup_can_socket()) {
+      RCLCPP_ERROR(this->get_logger(), "Failed to setup CAN socket");
+      return;
+    }
+
+    // subscribe to throttle topic
+    subscription_ = this->create_subscription<std_msgs::msg::Float32>(
+        "/can/id101", 10,
+        std::bind(&CanThrottleSubscriber::callback, this,
+                  std::placeholders::_1)); // run callback whenever a message is
+                                           // received on the throttle topic
+  }
+
+private:
+  void callback(const std_msgs::msg::Float32::SharedPtr msg) {
+    // create CAN frame
+    struct can_frame frame;
+    frame.can_id = 0x101;          // CAN Frame ID
+    frame.can_dlc = sizeof(float); // frame data length
+
+    float value = static_cast<float>(msg->data);
+    std::memcpy(frame.data, &value, sizeof(float));
+
+    if (write(sock_, &frame, sizeof(struct can_frame)) <
+        0) // send over CAN interface
+    {
+      RCLCPP_ERROR(this->get_logger(), "CAN write failed: %s", strerror(errno));
+    } else {
+      RCLCPP_INFO(this->get_logger(), "Published throttle %.3f to CAN ID 0x101",
+                  value);
+    }
+  }
+
+  bool setup_can_socket() {
+    sock_ = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+    if (sock_ < 0) {
+      std::perror("Socket creation failed");
+      return false;
+    }
+
+    struct ifreq ifr;
+    const char *can_net = "can0"; // name of CAN interface
+    std::strcpy(ifr.ifr_name, can_net);
+    if (ioctl(sock_, SIOCGIFINDEX, &ifr) < 0) {
+      std::perror("SIOCGIFINDEX failed");
+      return false;
+    }
+
+    struct sockaddr_can addr{};
+    addr.can_family = AF_CAN;
+    addr.can_ifindex = ifr.ifr_ifindex;
+
+    if (bind(sock_, reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr)) <
+        0) {
+      std::perror("CAN bind failed");
+      return false;
+    }
+
+    return true;
+  }
+
+  rclcpp::Subscription<std_msgs::msg::Float32>::SharedPtr subscription_;
+  int sock_ = -1;
+};
+
+int main(int argc, char *argv[]) {
+  rclcpp::init(argc, argv);
+  auto node = std::make_shared<CanThrottleSubscriber>();
+  rclcpp::spin(node);
+  rclcpp::shutdown();
+  return 0;
+}

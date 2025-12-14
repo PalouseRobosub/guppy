@@ -18,9 +18,19 @@ jobs:
       statuses: write
 
     steps:
+      - uses: actions/checkout@v5
       - name: lint-cpp
-        uses: ZedThree/clang-tidy-review@v0.17.0
+        uses: cpp-linter/cpp-linter-action@v2
+        id: linter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          build_dir: build
+          style: 'file'  # Use .clang-format config file
+          tidy-checks: '' # Use .clang-tidy config file
+          # only 'update' a single comment in a pull request thread.
+          thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
+      - name: lint-failfast
+        if: steps.linter.outputs.checks-failed > 0
+        run: exit 1
       - name: lint-python
         uses: chartboost/ruff-action@v1

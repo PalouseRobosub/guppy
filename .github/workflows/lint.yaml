@@ -9,18 +9,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - name: checkout
+        uses: actions/checkout@v5
       - name: lint-cpp
-        uses: cpp-linter/cpp-linter-action@v2
-        id: linter
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: RafikFarhad/clang-format-github-action@v3
         with:
-          style: 'file'  # Use .clang-format config file
-          tidy-checks: '' # Use .clang-tidy config file
-          thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
-      - name: lint-failfast
-        if: steps.linter.outputs.checks-failed > 0
-        run: exit 1
+          style: "file"
       - name: lint-python
-        uses: chartboost/ruff-action@v1
+        uses: benny123tw/action-ruff@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review # Change reporter.

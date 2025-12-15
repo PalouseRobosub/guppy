@@ -15,6 +15,8 @@ jobs:
         uses: RafikFarhad/clang-format-github-action@v3
         with:
           style: "file"
+          excludes: ""
+          sources: "src/**/*.c,src/**/*.cpp,src/**/*.h,src/**/*.hpp,src/**/*.hh,src/**/*.cc"
       - name: lint-python
         uses: benny123tw/action-ruff@v1
         with:

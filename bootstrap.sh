@@ -18,9 +18,9 @@ sudo dpkg -i /tmp/ros2-apt-source.deb
 
 
 
-sudo apt install ros-dev-tools
-sudo apt install ros-jazzy-desktop
-sudo apt install ros-jazzy-ros-base
+sudo apt install -y ros-dev-tools
+sudo apt install -y ros-jazzy-desktop
+sudo apt install -y ros-jazzy-ros-base
 
 echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 

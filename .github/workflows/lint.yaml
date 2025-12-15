@@ -12,11 +12,10 @@ jobs:
       - name: checkout
         uses: actions/checkout@v5
       - name: lint-cpp
-        uses: RafikFarhad/clang-format-github-action@v3
+        uses: jidicula/clang-format-action@v4.16.0
         with:
-          style: "file"
-          excludes: ""
-          sources: "src/**/*.c,src/**/*.cpp,src/**/*.h,src/**/*.hpp,src/**/*.hh,src/**/*.cc"
+          clang-format-version: '16'
+          check-path: 'src'
       - name: lint-python
         uses: benny123tw/action-ruff@v1
         with:

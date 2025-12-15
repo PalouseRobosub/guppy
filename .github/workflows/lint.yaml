@@ -1,22 +1,16 @@
 ---
 name: Lint
 
-on: # yamllint disable-line rule:truthy
+on:
   pull_request: null
-
-# permissions: {}
-
+  
 jobs:
   build:
     name: Lint
     runs-on: ubuntu-latest
-
-    # permissions:
-    #   contents: read
-    #   packages: read
-    #   # To report GitHub Actions status checks
-    #   statuses: write
-
+    container:
+      image: rostooling/setup-ros-docker:ubuntu-noble-latest
+      
     steps:
       - uses: actions/checkout@v5
       - name: lint-cpp
@@ -27,7 +21,6 @@ jobs:
         with:
           style: 'file'  # Use .clang-format config file
           tidy-checks: '' # Use .clang-tidy config file
-          # only 'update' a single comment in a pull request thread.
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
       - name: lint-failfast
         if: steps.linter.outputs.checks-failed > 0

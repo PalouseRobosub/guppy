@@ -14,9 +14,11 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(dvl_msgs REQUIRED)
 
 add_executable(barometer_pub src/barometer_pub.cpp)
-ament_target_dependencies(barometer_pub rclcpp geometry_msgs std_msgs)
+add_executable(dvl_a50_pub src/dvl_a50_pub.cpp)
+ament_target_dependencies(barometer_pub dvl_a50_pub rclcpp geometry_msgs std_msgs dvl_msgs)
 
 install(TARGETS
   barometer_pub

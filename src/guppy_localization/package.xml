@@ -15,6 +15,8 @@
 
 
   <exec_depend>robot_localization</exec_depend>
+  <exec_depend>vectornav</exec_depend>
+  <exec_depend>waterlinked_dvl</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

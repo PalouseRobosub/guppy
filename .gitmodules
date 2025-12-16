@@ -2,9 +2,9 @@
 	path = vendor/vectornav
 	url = https://github.com/dawonn/vectornav.git
 	branch = ros2
-[submodule "vendor/dvl-a50"]
-	path = vendor/dvl-a50
-	url = https://github.com/paagutie/dvl-a50
-[submodule "vendor/dvl_msgs"]
-	path = vendor/dvl_msgs
-	url = https://github.com/paagutie/dvl_msgs
+[submodule "waterlinked_dvl"]
+	path = waterlinked_dvl
+	url = https://github.com/Robotic-Decision-Making-Lab/waterlinked_dvl
+[submodule "vendor/waterlinked_dvl"]
+	path = vendor/waterlinked_dvl
+	url = https://github.com/Robotic-Decision-Making-Lab/waterlinked_dvl

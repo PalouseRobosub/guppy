@@ -23,10 +23,15 @@ if(NOT CMAKE_CXX_STANDARD)
     add_executable(can_throttle_subscriber src/can_throttle_subscriber.cpp)
     ament_target_dependencies(can_throttle_subscriber rclcpp std_msgs)
     
+    # CAN RX publisher executable
+    add_executable(can_rx_publisher src/can_rx_publisher.cpp)
+    ament_target_dependencies(can_rx_publisher rclcpp std_msgs)
+    
     install(TARGETS
       throttle_publisher
         can_throttle_subscriber
-          DESTINATION lib/${PROJECT_NAME})
-          
-          ament_package()
+            can_rx_publisher
+                DESTINATION lib/${PROJECT_NAME})
+                
+                ament_package()
           

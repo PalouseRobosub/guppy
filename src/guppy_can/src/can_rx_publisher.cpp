@@ -1,0 +1,132 @@
+#include <chrono>
+#include <cstddef>
+#include <cstdio>
+#include <string>
+#include <iostream>
+#include <format>
+
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <linux/can.h>
+#include <linux/can/raw.h>
+
+#include "rclcpp/rclcpp.hpp"
+#include "std_msgs/msg/byte_multi_array.hpp"
+
+using namespace std::chrono_literals;
+
+class CanRxPublisher : public rclcpp::Node {
+    
+    public:    
+    CanRxPublisher(): Node("can_rx_publisher") {
+        if (!setup_can_socket()) {
+            RCLCPP_ERROR(this->get_logger(), "Failed to setup CAN socket");
+            return;
+        }
+        timer_ = this->create_wall_timer(
+            10ms,
+            std::bind(&CanRxPublisher::listen, this)
+        );
+    }
+    
+    private:
+    int sock_ = -1;
+    int ids_[100] = { 0 };
+    rclcpp::TimerBase::SharedPtr timer_;
+    rclcpp::Publisher<std_msgs::msg::ByteMultiArray>::SharedPtr publishers_[100];
+    
+    bool setup_can_socket() {
+        sock_ = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+        if (sock_ < 0) {
+          std::perror("Socket creation failed");
+          return false;
+        }
+    
+        struct ifreq ifr;
+        const char *can_net = "vcan0"; // name of CAN interface
+        std::strcpy(ifr.ifr_name, can_net);
+        if (ioctl(sock_, SIOCGIFINDEX, &ifr) < 0) {
+          std::perror("SIOCGIFINDEX failed");
+          return false;
+        }
+    
+        struct sockaddr_can addr{};
+        addr.can_family = AF_CAN;
+        addr.can_ifindex = ifr.ifr_ifindex;
+    
+        if (bind(sock_, reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr)) < 0) {
+          std::perror("CAN bind failed");
+          return false;
+        }
+    
+        return true;
+    }
+    
+    void listen() {
+        int nbytes;
+        struct can_frame frame;
+        
+        nbytes = read(sock_, &frame, sizeof(struct can_frame));
+        
+        if (nbytes < 0) {
+            RCLCPP_ERROR(this->get_logger(), "Reading from CAN frame failed");
+           return;
+        }
+        
+        int idx = check_id(frame.can_id);
+        
+        if (idx != -1) {
+            publish_bytes(idx, frame.data, frame.can_dlc);
+        } else {
+            idx = create_id_publisher(frame.can_id);
+            publish_bytes(idx, frame.data, frame.can_dlc);
+        }
+    }
+    
+    int check_id(int id) {
+        for (int i = 0; i < 100; i++) {
+            if (ids_[i] == id) return i;
+        }
+        return -1;
+    }
+    
+    void publish_bytes(int idx, __u8 data[], int len) {
+        std_msgs::msg::ByteMultiArray msg;
+        msg.data.assign(data, data + len);
+        publishers_[idx]->publish(msg);
+        printf("0x%03X [%d] ", ids_[idx], len);
+        for (int i = 0; i < len; i++)
+           printf("%02X ",data[i]);
+        
+        printf("\r\n");
+    }
+    
+    int create_id_publisher(int id) {
+        for (int i = 0; i < 100; i++) {
+            if (ids_[i] == 0) {
+                ids_[i] = id;
+                std::string id_str = int_to_hex_str(id);
+                std::string base = "/can/id";
+                std::string topic_str = base + id_str;  
+                publishers_[i] = this->create_publisher<std_msgs::msg::ByteMultiArray>(topic_str, 10);
+                printf("created publisher %s\r\n", topic_str.c_str());
+                return i;
+            }
+        }
+    }
+    
+    std::string int_to_hex_str(int value) {
+        char buffer[20];
+        sprintf(buffer, "%x", value);
+        return std::string(buffer);
+    }
+};
+
+int main(int argc, char* argv[]) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<CanRxPublisher>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}

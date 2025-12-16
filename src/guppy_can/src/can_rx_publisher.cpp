@@ -1,15 +1,14 @@
-#include <chrono>
-#include <cstddef>
 #include <cstdio>
 #include <string>
-#include <iostream>
-#include <format>
+#include <thread>
+#include <atomic>
 
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <linux/can.h>
 #include <linux/can/raw.h>
+#include <unistd.h>
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/byte_multi_array.hpp"
@@ -24,10 +23,14 @@ class CanRxPublisher : public rclcpp::Node {
             RCLCPP_ERROR(this->get_logger(), "Failed to setup CAN socket");
             return;
         }
-        timer_ = this->create_wall_timer(
-            10ms,
-            std::bind(&CanRxPublisher::listen, this)
-        );
+        running_.store(true);
+        can_thread_ = std::thread(&CanRxPublisher::can_loop, this);
+    }
+    
+    ~CanRxPublisher() {
+        running_.store(false);
+        if (sock_ >= 0) close(sock_);
+        if (can_thread_.joinable()) can_thread_.join();
     }
     
     private:
@@ -35,6 +38,8 @@ class CanRxPublisher : public rclcpp::Node {
     int ids_[100] = { 0 };
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<std_msgs::msg::ByteMultiArray>::SharedPtr publishers_[100];
+    std::thread can_thread_;
+    std::atomic<bool> running_{false};
     
     bool setup_can_socket() {
         sock_ = socket(PF_CAN, SOCK_RAW, CAN_RAW);
@@ -61,27 +66,6 @@ class CanRxPublisher : public rclcpp::Node {
         }
     
         return true;
-    }
-    
-    void listen() {
-        int nbytes;
-        struct can_frame frame;
-        
-        nbytes = read(sock_, &frame, sizeof(struct can_frame));
-        
-        if (nbytes < 0) {
-            RCLCPP_ERROR(this->get_logger(), "Reading from CAN frame failed");
-           return;
-        }
-        
-        int idx = check_id(frame.can_id);
-        
-        if (idx != -1) {
-            publish_bytes(idx, frame.data, frame.can_dlc);
-        } else {
-            idx = create_id_publisher(frame.can_id);
-            publish_bytes(idx, frame.data, frame.can_dlc);
-        }
     }
     
     int check_id(int id) {
@@ -120,6 +104,29 @@ class CanRxPublisher : public rclcpp::Node {
         char buffer[20];
         sprintf(buffer, "%x", value);
         return std::string(buffer);
+    }
+    
+    void can_loop() {
+        while (running_) {
+            int nbytes;
+            struct can_frame frame;
+            
+            nbytes = read(sock_, &frame, sizeof(struct can_frame));
+            
+            if (nbytes < 0) {
+                RCLCPP_ERROR(this->get_logger(), "Reading from CAN frame failed");
+                return;
+            }
+            
+            int idx = check_id(frame.can_id);
+            
+            if (idx != -1) {
+                publish_bytes(idx, frame.data, frame.can_dlc);
+            } else {
+                idx = create_id_publisher(frame.can_id);
+                publish_bytes(idx, frame.data, frame.can_dlc);
+            }
+        }
     }
 };
 

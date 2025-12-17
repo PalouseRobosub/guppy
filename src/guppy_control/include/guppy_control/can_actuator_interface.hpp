@@ -31,14 +31,14 @@ public:
     virtual std::vector<hardware_interface::StateInterface> export_state_interfaces() = 0;
     virtual std::vector<hardware_interface::CommandInterface> export_command_interfaces() = 0;
 
-    virtual hardware_interface::return_type read(const rclcpp::Time & time, const rclcpp::Duration & period) = 0;
+    hardware_interface::return_type read(const rclcpp::Time & time, const rclcpp::Duration & period);
     virtual hardware_interface::return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) = 0;
 
     // template definitions go in the header file
     template <typename T>
     bool send_over_can(int id, T value) {
         if (sizeof(T) > 8) {
-            RCLCPP_ERROR(this->get_logger(), "type length (%d) is too large for CAN", sizeof(T));
+            RCLCPP_ERROR(this->get_logger(), "type length (%ld) is too large for CAN", sizeof(T));
         }
 
         struct can_frame frame;

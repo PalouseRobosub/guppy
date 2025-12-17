@@ -1,0 +1,9 @@
+<library path="guppy_control">
+  <class name="guppy_control/T200Interface"
+         type="t200_interface::T200Interface::RRBotActuatorWithoutFeedback"
+         base_class_type="hardware_interface::ActuatorInterface">
+    <description>
+      A ROS2 hardware interface for CAN control of the Blue Robotics T200 thrusters.
+    </description>
+  </class>
+</library>

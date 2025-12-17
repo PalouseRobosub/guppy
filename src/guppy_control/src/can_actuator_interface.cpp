@@ -47,4 +47,10 @@ hardware_interface::CallbackReturn CANActuatorInterface::on_cleanup(const rclcpp
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
+hardware_interface::return_type CANActuatorInterface::read(const rclcpp::Time & time, const rclcpp::Duration & period) {
+    RCLCPP_DEBUG_ONCE(this->get_logger(), "write() called: time: %ld, duration: %ld", time.nanoseconds(), period.nanoseconds());
+    return hardware_interface::return_type::OK;
+}
+
+
 }

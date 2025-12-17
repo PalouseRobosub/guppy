@@ -2,6 +2,7 @@
 #define GUPPY_T200_INTERFACE_H
 
 #include "can_actuator_interface.hpp"
+
 namespace t200_interface
 {
 class T200Interface : public can_actuator_interface::CANActuatorInterface {

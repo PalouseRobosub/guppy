@@ -1,10 +1,9 @@
-#include "guppy_control_chassis/t200_interface.hpp"
-#include "t200_interface.hpp"
+#include "guppy_control/t200_interface.hpp"
 
 namespace t200_interface {
 
 hardware_interface::CallbackReturn T200Interface::on_shutdown(const rclcpp_lifecycle::State& previous_state) {
-    RCLCPP_INFO(this->get_logger(), "shutting down all t200 actuators: stopping motors");
+    RCLCPP_INFO(this->get_logger(), "shutting down all t200 actuators: stopping motors (from state %s)", previous_state.label().c_str());
 
     if (!send_over_can_all(0.0)) {
         return hardware_interface::CallbackReturn::ERROR;
@@ -14,7 +13,7 @@ hardware_interface::CallbackReturn T200Interface::on_shutdown(const rclcpp_lifec
 
 
 hardware_interface::CallbackReturn T200Interface::on_activate(const rclcpp_lifecycle::State &previous_state) {
-    RCLCPP_INFO(this->get_logger(), "Activating all t200 actuators with zero speed");
+    RCLCPP_INFO(this->get_logger(), "Activating all t200 actuators with zero speed (from state %s)", previous_state.label().c_str());
 
     if (!send_over_can_all(0.0)) {
         return hardware_interface::CallbackReturn::ERROR;
@@ -23,7 +22,7 @@ hardware_interface::CallbackReturn T200Interface::on_activate(const rclcpp_lifec
 }
 
 hardware_interface::CallbackReturn T200Interface::on_deactivate(const rclcpp_lifecycle::State &previous_state) {
-    RCLCPP_INFO(this->get_logger(), "Deactivating all t200 actuators: stopping motors");
+    RCLCPP_INFO(this->get_logger(), "deactivating all t200 actuators: stopping motors (from state %s)", previous_state.label().c_str());
 
     if (!send_over_can_all(0.0)) {
         return hardware_interface::CallbackReturn::ERROR;
@@ -32,7 +31,7 @@ hardware_interface::CallbackReturn T200Interface::on_deactivate(const rclcpp_lif
 }
 
 hardware_interface::CallbackReturn T200Interface::on_error(const rclcpp_lifecycle::State& previous_state) {
-    RCLCPP_ERROR(this->get_logger(), "error!");
+    RCLCPP_ERROR(this->get_logger(), "error from previour state %s", previous_state.label().c_str());
     return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -56,6 +55,8 @@ std::vector<hardware_interface::CommandInterface> T200Interface::export_command_
 }
 
 hardware_interface::return_type T200Interface::write(const rclcpp::Time& time, const rclcpp::Duration& period) {
+    RCLCPP_DEBUG_ONCE(this->get_logger(), "write() called: time: %ld, duration: %ld", time.nanoseconds(), period.nanoseconds());
+
     for (size_t i = 0; i < info_.joints.size(); i++) {
         int id = can_ids_.at(i);
         double v = velocity_commanded_.at(i);

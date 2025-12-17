@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="guppytest1">
+
+  <material name="opaque_red">
+    <color rgba="1 0 0 0.6"/>
+  </material>
+    <material name="blue">
+    <color rgba="0 0 1 0.5"/>
+  </material>
+
+  <link name="base_link">
+    <inertial>
+      <origin xyz="5.0383E-06 0.042158 0.00054643" rpy="0 0 -1.5708"/>
+      <mass value="12.294"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 -1.5708"/>
+      <geometry>
+        <mesh filename="package://auv_description/meshes/base_link.STL"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 -1.5708"/>
+      <geometry>
+        <mesh filename="package://auv_description/meshes/base_link.STL"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="thruster0C_link">
+    <inertial>
+      <origin xyz="-0.006048 6.5742E-06 -0.00061572" rpy="0 0 0"/>
+      <mass value="0.17277"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://auv_description/meshes/thruster0C_link.STL"/>
+      </geometry>
+      <material name="opaque_red"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://auv_description/meshes/thruster0C_link.STL"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="thruster0C_joint" type="fixed">
+    <origin xyz="0.27819 0.24536 -0.019075" rpy="1.5708 0 -3.9270"/>
+    <parent link="base_link"/>
+    <child link="thruster0C_link"/>
+  </joint>
+
+  <link name="thruster0M_link">
+    <inertial>
+      <origin xyz="-0.0060486 6.6279E-06 -0.0006157" rpy="0 0 0"/>
+      <mass value="0.17279"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://auv_description/meshes/thruster0M_link.STL"/>
+      </geometry>
+      <material name="opaque_red"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://auv_description/meshes/thruster0M_link.STL"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="thruster0M_joint" type="fixed">
+    <origin xyz="0.2903 -2.5E-05 -0.013798" rpy="1.5708 1.5708 -1.5708"/>
+    <parent link="base_link"/>
+    <child link="thruster0M_link"/>
+  </joint>
+
+  <link name="thruster1C_link">
+    <inertial>
+      <origin xyz="-0.006048 6.5742E-06 -0.00061572" rpy="0 0 0"/>
+      <mass value="0.17277"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://auv_description/meshes/thruster1C_link.STL"/>
+      </geometry>
+      <material name="opaque_red"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://auv_description/meshes/thruster1C_link.STL"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="thruster1C_joint" type="fixed">
+    <origin xyz="0.27819 -0.24536 -0.019025" rpy="-1.5708 0 -2.3562"/>
+    <parent link="base_link"/>
+    <child link="thruster1C_link"/>
+  </joint>
+
+  <link name="thruster1M_link">
+    <inertial>
+      <origin xyz="-0.0060486 6.628E-06 -0.0006157" rpy="0 0 0"/>
+      <mass value="0.17279"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://auv_description/meshes/thruster1M_link.STL"/>
+      </geometry>
+      <material name="opaque_red"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://auv_description/meshes/thruster1M_link.STL"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="thruster1M_joint" type="fixed">
+    <origin xyz="-2.5E-05 -0.2649 -0.013798" rpy="0 1.5708 -1.5708"/>
+    <parent link="base_link"/>
+    <child link="thruster1M_link"/>
+  </joint>
+
+  <link name="thruster2C_link">
+    <inertial>
+      <origin xyz="-0.006048 6.6362E-06 -0.00061575" rpy="0 0 0"/>
+      <mass value="0.17277"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://auv_description/meshes/thruster2C_link.STL"/>
+      </geometry>
+      <material name="opaque_red"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://auv_description/meshes/thruster2C_link.STL"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="thruster2C_joint" type="fixed">
+    <origin xyz="-0.27819 -0.24536 -0.019075" rpy="1.5708 0 -0.7854"/>
+    <parent link="base_link"/>
+    <child link="thruster2C_link"/>
+  </joint>
+
+  <link name="thruster2M_link">
+    <inertial>
+      <origin xyz="-0.0060486 6.628E-06 -0.0006157" rpy="0 0 0"/>
+      <mass value="0.17279"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://auv_description/meshes/thruster2M_link.STL"/>
+      </geometry>
+      <material name="opaque_red"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://auv_description/meshes/thruster2M_link.STL"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="thruster2M_joint" type="fixed">
+    <origin xyz="-0.2903 2.5E-05 -0.013798" rpy="1.5708 1.5708 -1.5708"/>
+    <parent link="base_link"/>
+    <child link="thruster2M_link"/>
+  </joint>
+
+  <link name="thruster3C_link">
+    <inertial>
+      <origin xyz="-0.006048 6.5742E-06 -0.00061572" rpy="0 0 0"/>
+      <mass value="0.17277"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://auv_description/meshes/thruster3C_link.STL"/>
+      </geometry>
+      <material name="opaque_red"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://auv_description/meshes/thruster3C_link.STL"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="thruster3C_joint" type="fixed">
+    <origin xyz="-0.27819 0.24536 -0.019075" rpy="-1.5708 0 0.7854"/>
+    <parent link="base_link"/>
+    <child link="thruster3C_link"/>
+  </joint>
+
+  <link name="thruster3M_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.17277"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://auv_description/meshes/thruster3M_link.STL"/>
+      </geometry>
+      <material name="opaque_red"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://auv_description/meshes/thruster3M_link.STL"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="thruster3M_joint" type="fixed">
+    <origin xyz="2.5E-05 0.2649 -0.013798" rpy="3.1416 1.5708 -1.5708"/>
+    <parent link="base_link"/>
+    <child link="thruster3M_link"/>
+  </joint>
+</robot>

@@ -9,7 +9,6 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <exec_depend>guppy_bringup</exec_depend>
   <exec_depend>guppy_can</exec_depend>
   <exec_depend>guppy_control_chassis</exec_depend>
   <exec_depend>guppy_control_arm</exec_depend>

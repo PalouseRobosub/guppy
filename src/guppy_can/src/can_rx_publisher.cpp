@@ -11,7 +11,6 @@
 #include <unistd.h>
 
 #include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/byte_multi_array.hpp"
 #include "guppy_msgs/msg/can_frame.hpp"
 
 using namespace std::chrono_literals;

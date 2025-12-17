@@ -98,6 +98,7 @@ class CanRxPublisher : public rclcpp::Node {
                 return i;
             }
         }
+        return -1;
     }
     
     std::string int_to_hex_str(int value) {
@@ -124,7 +125,11 @@ class CanRxPublisher : public rclcpp::Node {
                 publish_bytes(idx, frame.data, frame.can_dlc);
             } else {
                 idx = create_id_publisher(frame.can_id);
-                publish_bytes(idx, frame.data, frame.can_dlc);
+                if (idx != -1) {
+                    publish_bytes(idx, frame.data, frame.can_dlc);
+                } else {
+                    RCLCPP_ERROR(this->get_logger(), "Failed to create publisher for CAN ID %x", frame.can_id);
+                }
             }
         }
     }

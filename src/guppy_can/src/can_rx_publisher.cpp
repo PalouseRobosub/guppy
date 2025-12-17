@@ -12,6 +12,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/byte_multi_array.hpp"
+#include "guppy_msgs/msg/can_frame.hpp"
 
 using namespace std::chrono_literals;
 
@@ -37,7 +38,7 @@ class CanRxPublisher : public rclcpp::Node {
     int sock_ = -1;
     int ids_[100] = { 0 };
     rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Publisher<std_msgs::msg::ByteMultiArray>::SharedPtr publishers_[100];
+    rclcpp::Publisher<guppy_msgs::msg::CanFrame>::SharedPtr publishers_[100];
     std::thread can_thread_;
     std::atomic<bool> running_{false};
     
@@ -76,9 +77,12 @@ class CanRxPublisher : public rclcpp::Node {
     }
     
     void publish_bytes(int idx, __u8 data[], int len) {
-        std_msgs::msg::ByteMultiArray msg;
-        msg.data.assign(data, data + len);
-        publishers_[idx]->publish(msg);
+        guppy_msgs::msg::CanFrame frame;
+        frame.can_id = ids_[idx];
+        frame.can_dlc = len;
+        frame.data.assign(data, data + len);
+        frame.stamp = this->now();
+        publishers_[idx]->publish(frame);
         printf("0x%03X [%d] ", ids_[idx], len);
         for (int i = 0; i < len; i++)
            printf("%02X ",data[i]);
@@ -93,7 +97,7 @@ class CanRxPublisher : public rclcpp::Node {
                 std::string id_str = int_to_hex_str(id);
                 std::string base = "/can/id";
                 std::string topic_str = base + id_str;  
-                publishers_[i] = this->create_publisher<std_msgs::msg::ByteMultiArray>(topic_str, 10);
+                publishers_[i] = this->create_publisher<guppy_msgs::msg::CanFrame>(topic_str, 10);
                 printf("created publisher %s\r\n", topic_str.c_str());
                 return i;
             }

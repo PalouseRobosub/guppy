@@ -14,6 +14,7 @@ if(NOT CMAKE_CXX_STANDARD)
     find_package(ament_cmake REQUIRED)
     find_package(rclcpp REQUIRED)
     find_package(std_msgs REQUIRED)
+    find_package(guppy_msgs REQUIRED)
     
     # Throttle publisher executable
     add_executable(throttle_publisher src/throttle_publisher.cpp)
@@ -25,7 +26,7 @@ if(NOT CMAKE_CXX_STANDARD)
     
     # CAN RX publisher executable
     add_executable(can_rx_publisher src/can_rx_publisher.cpp)
-    ament_target_dependencies(can_rx_publisher rclcpp std_msgs)
+    ament_target_dependencies(can_rx_publisher rclcpp std_msgs guppy_msgs)
     
     install(TARGETS
       throttle_publisher

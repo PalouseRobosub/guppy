@@ -26,13 +26,22 @@ if(NOT CMAKE_CXX_STANDARD)
     
     # CAN RX publisher executable
     add_executable(can_rx_publisher src/can_rx_publisher.cpp)
-    ament_target_dependencies(can_rx_publisher rclcpp std_msgs guppy_msgs)
-    
+    ament_target_dependencies(can_rx_publisher rclcpp guppy_msgs)
+
+    # CAN TX service executable
+    add_executable(can_tx_server src/can_tx_server.cpp)
+    ament_target_dependencies(can_tx_server rclcpp guppy_msgs)
+
+    add_executable(can_tx_client src/can_tx_client.cpp)
+    ament_target_dependencies(can_tx_client rclcpp guppy_msgs)
+
     install(TARGETS
       throttle_publisher
         can_throttle_subscriber
-            can_rx_publisher
-                DESTINATION lib/${PROJECT_NAME})
-                
-                ament_package()
-          
+          can_rx_publisher
+            can_tx_server
+              can_tx_client
+
+              DESTINATION lib/${PROJECT_NAME})
+
+              ament_package()

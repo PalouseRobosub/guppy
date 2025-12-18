@@ -1,4 +1,4 @@
 uint16 can_id
-uint8 can_dlc
+uint8 len
 builtin_interfaces/Time stamp
 byte[] data

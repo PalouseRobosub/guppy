@@ -77,7 +77,7 @@ class CanRxPublisher : public rclcpp::Node {
     void publish_bytes(int idx, __u8 data[], int len) {
         guppy_msgs::msg::CanFrame frame;
         frame.can_id = ids_[idx];
-        frame.can_dlc = len;
+        frame.len = len;
         frame.data.assign(data, data + len);
         frame.stamp = this->now();
         publishers_[idx]->publish(frame);

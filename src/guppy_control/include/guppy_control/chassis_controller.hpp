@@ -1,38 +1,54 @@
-// #ifndef GUPPY_CHASSIS_HPP_
-// #define GUPPY_CHASSIS_HPP_
+// from proxsuite examples
+#include <iostream>
+#include <Eigen/Core>
+#include <proxsuite/proxqp/dense/dense.hpp>
+#include <chrono>
 
-// #include "controller_interface/controller_interface.hpp"
-// #include "rclcpp_lifecycle/state.hpp"
+using namespace proxsuite::proxqp;
+using namespace std::chrono;
 
 
-// namespace GUPPY_CHASSIS
-// {
+int main() {
+	dense::isize motors = 8;
 
-// using CmdType = control_msgs::msg::DynamicInterfaceGroupValues;
-// using StateType = control_msgs::msg::DynamicInterfaceGroupValues;
-// using CallbackReturn = controller_interface::CallbackReturn;
-// using InterfacesNames = std::vector<std::string>;
+	Eigen::MatrixXd A = Eigen::MatrixXd(6, motors);
+	A << 1, 1, 1, 1.5, 1, 2, 3, 4, \
+		 4, 0, 0, 2,1, 2, 3, 4, \
+		 4, 0, 0, 2,1, 2, 3, 4, \
+		 4, 0, 0, 2, 3, 4, 5,\
+		 4, 0, 0, 2,6, 7, 8, 9, \
+		 3.5, 3, 3, 2.5, 1, 1, 1, 1;
 
-// class ControllerName : public controller_interface::ControllerInterface
-// {
-// public:
-//   GpioCommandController();
+	Eigen::MatrixXd b = Eigen::MatrixXd(6, 1);
+	b << 10,
+		 1,
+		 0,
+		 2,
+		 3,
+		 4;
 
-//   controller_interface::InterfaceConfiguration command_interface_configuration() const override;
+	Eigen::MatrixXd H = A.transpose() * A;
 
-//   controller_interface::InterfaceConfiguration state_interface_configuration() const override;
+	Eigen::VectorXd g = - ( A.transpose() * b );
 
-//   CallbackReturn on_init() override;
+	Eigen::MatrixXd C = Eigen::MatrixXd::Identity(motors, motors);
+	Eigen::VectorXd l = Eigen::VectorXd(motors); l << -1, -1, -1, -1, -1, -1, -1, -1;
+	Eigen::VectorXd u = Eigen::VectorXd(motors); u << 1, 1, 1, 1, 1, 1, 1, 1;
+	dense::QP<double> qp(motors, 0, motors);
 
-//   CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
+	qp.settings.eps_abs = 1e-2; // convergence amount
+	qp.settings.initial_guess = InitialGuessStatus::NO_INITIAL_GUESS;
+	qp.settings.verbose = false;
 
-//   CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
+	qp.init(H, g, std::nullopt, std::nullopt, C, l, u);
+	auto start = high_resolution_clock::now();
+	qp.solve();
+	auto stop = high_resolution_clock::now();
 
-//   CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
+	auto duration = duration_cast<microseconds>(stop - start);
+	std::cout << duration.count() << " us" << std::endl;
 
-//   controller_interface::return_type update(
-//     const rclcpp::Time & time, const rclcpp::Duration & period) override;};
-
-// }  // namespace GUPPY_CHASSIS
-
-// #endif  // GUPPY_CHASSIS_HPP_
+	std::cout << qp.results.x << std::endl;
+	std::cout << "optimal z: " << qp.results.z << std::endl;
+	return 0;
+}

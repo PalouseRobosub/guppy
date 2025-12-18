@@ -50,10 +50,11 @@
     </collision>
   </link>
 
-  <joint name="thruster0C_joint" type="fixed">
+  <joint name="thruster0C_joint" type="revolute">
     <origin xyz="0.27819 0.24536 -0.019075" rpy="1.5708 0 -3.9270"/>
     <parent link="base_link"/>
     <child link="thruster0C_link"/>
+    <limit lower="0" upper="0" effort="0" velocity="9999"/>
   </joint>
 
   <link name="thruster0M_link">
@@ -77,10 +78,11 @@
     </collision>
   </link>
 
-  <joint name="thruster0M_joint" type="fixed">
+  <joint name="thruster0M_joint" type="revolute">
     <origin xyz="0.2903 -2.5E-05 -0.013798" rpy="1.5708 1.5708 -1.5708"/>
     <parent link="base_link"/>
     <child link="thruster0M_link"/>
+    <limit lower="0" upper="0" effort="0" velocity="9999"/>
   </joint>
 
   <link name="thruster1C_link">

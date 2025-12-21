@@ -8,6 +8,3 @@
 [submodule "vendor/json"]
 	path = vendor/json
 	url = https://github.com/nlohmann/json
-[submodule "vendor/proxsuite"]
-	path = vendor/proxsuite
-	url = https://github.com/Simple-Robotics/proxsuite.git

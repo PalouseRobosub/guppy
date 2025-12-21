@@ -1,27 +1,35 @@
 #ifndef GUPPY_T200_INTERFACE_H
 #define GUPPY_T200_INTERFACE_H
 
-#include "can_actuator_interface.hpp"
+#include <string>
+#include <vector>
+#include <Eigen/Core>
+
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <linux/can.h>
+#include <linux/can/raw.h>
+#include <unistd.h>
 
 namespace t200_interface
 {
-class T200Interface : public can_actuator_interface::CANActuatorInterface {
+class T200Interface {
+    std::vector<unsigned int> can_ids;
+    int sock_;
+    std::string can_interface_;
+
 public:
-    T200Interface() {};
-    ~T200Interface() {};
+    T200Interface(std::string can_interface, std::vector<unsigned int> can_ids) : can_interface_(can_interface), can_ids(can_ids) {};
 
-    hardware_interface::CallbackReturn on_shutdown (const rclcpp_lifecycle::State &previous_state);
-    hardware_interface::CallbackReturn on_activate (const rclcpp_lifecycle::State &previous_state);
-    hardware_interface::CallbackReturn on_deactivate (const rclcpp_lifecycle::State &previous_state);
-    hardware_interface::CallbackReturn on_error (const rclcpp_lifecycle::State &previous_state);
- 
-    std::vector<hardware_interface::StateInterface> export_state_interfaces();
-    std::vector<hardware_interface::CommandInterface> export_command_interfaces();
+    bool setup_can();
 
-    hardware_interface::return_type write(const rclcpp::Time & time, const rclcpp::Duration & period);
+    bool send_to_can(unsigned int id, double value);
 
-private:
-    std::vector<double> velocity_commanded_;
+    bool write(Eigen::VectorXd throttles);
+
+    bool initialize();
+    bool shutdown();
 };
 }
 

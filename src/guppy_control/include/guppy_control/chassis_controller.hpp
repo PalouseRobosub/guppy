@@ -1,54 +1,93 @@
-// from proxsuite examples
-#include <iostream>
+#ifndef GUPPY_CHASSIS_CONTROLLER_H
+#define GUPPY_CHASSIS_CONTROLLER_H
+
+#define GRAVITY 9.80665
+#define N_MOTORS 8
+
+#include <chrono>
+#include <memory>
+#include <string>
+#include <thread>
+#include <vector>
+#include <atomic>
+
 #include <Eigen/Core>
 #include <proxsuite/proxqp/dense/dense.hpp>
-#include <chrono>
+#include <control_toolbox/control_toolbox/pid.hpp>
+#include "geometry_msgs/msg/twist.hpp"
+#include "nav_msgs/msg/odometry.hpp"
+
+#include "guppy_control/t200_interface.hpp"
+
+namespace chassis_controller {
 
 using namespace proxsuite::proxqp;
+using namespace t200_interface;
+using namespace std::chrono_literals;
 using namespace std::chrono;
 
+class ChassisController {
+    typedef struct chassis_controller_params_ {
+        // motor setup
+        Eigen::Matrix<double, 6, N_MOTORS> motor_coefficients;
+        Eigen::Vector<double, N_MOTORS> motor_lower_bounds;
+        Eigen::Vector<double, N_MOTORS> motor_upper_bounds;
 
-int main() {
-	dense::isize motors = 8;
+        // control parameters
+        Eigen::Matrix<double, 6, 6> axis_weights = Eigen::Matrix<double, 6, 6>::Identity();
+        control_toolbox::Pid::Gains pid_gains_vel_linear;
+        control_toolbox::Pid::Gains pid_gains_vel_angular;
 
-	Eigen::MatrixXd A = Eigen::MatrixXd(6, motors);
-	A << 1, 1, 1, 1.5, 1, 2, 3, 4, \
-		 4, 0, 0, 2,1, 2, 3, 4, \
-		 4, 0, 0, 2,1, 2, 3, 4, \
-		 4, 0, 0, 2, 3, 4, 5,\
-		 4, 0, 0, 2,6, 7, 8, 9, \
-		 3.5, 3, 3, 2.5, 1, 1, 1, 1;
+        // robot setup
+        Eigen::Vector<double, 6> drag_coefficients;
+        Eigen::Vector<double, 6> drag_areas;
+        Eigen::Matrix<double, 6, 6> drag_effect_matrix;
+        double water_density = 1000; // kg/m^3
+        double robot_volume; // m^3
+        Eigen::Vector3<double> center_of_buoyancy;
 
-	Eigen::MatrixXd b = Eigen::MatrixXd(6, 1);
-	b << 10,
-		 1,
-		 0,
-		 2,
-		 3,
-		 4;
+        // qp solver
+        double qp_epsilon = 1e-2;
+    } ChassisControllerParams;
 
-	Eigen::MatrixXd H = A.transpose() * A;
 
-	Eigen::VectorXd g = - ( A.transpose() * b );
+    T200Interface interface_;
 
-	Eigen::MatrixXd C = Eigen::MatrixXd::Identity(motors, motors);
-	Eigen::VectorXd l = Eigen::VectorXd(motors); l << -1, -1, -1, -1, -1, -1, -1, -1;
-	Eigen::VectorXd u = Eigen::VectorXd(motors); u << 1, 1, 1, 1, 1, 1, 1, 1;
-	dense::QP<double> qp(motors, 0, motors);
+    Eigen::Vector<double, 6> current_velocity_state_;
+    Eigen::Vector<double, 6> desired_velocity_state_;
+    Eigen::Quaternion<double> current_orientation_state_;
+    Eigen::Vector3d current_position_state_;
 
-	qp.settings.eps_abs = 1e-2; // convergence amount
-	qp.settings.initial_guess = InitialGuessStatus::NO_INITIAL_GUESS;
-	qp.settings.verbose = false;
+    Eigen::Vector<double, N_MOTORS> motor_forces_;
 
-	qp.init(H, g, std::nullopt, std::nullopt, C, l, u);
-	auto start = high_resolution_clock::now();
-	qp.solve();
-	auto stop = high_resolution_clock::now();
+    ChassisControllerParams params_;
+    control_toolbox::Pid velocity_pid[6];
 
-	auto duration = duration_cast<microseconds>(stop - start);
-	std::cout << duration.count() << " us" << std::endl;
+    dense::QP<double> qp_;
 
-	std::cout << qp.results.x << std::endl;
-	std::cout << "optimal z: " << qp.results.z << std::endl;
-	return 0;
+    int dt_ms_;
+    std::atomic<bool> THREAD_RUNNING_;
+    std::thread control_thread_;
+
+    // private methods
+    Eigen::Vector<double, N_MOTORS> allocate_thrust(Eigen::Vector<double, 6> local_wrench);
+    bool control_loop();
+    void loop_runner();
+
+public:
+    ChassisController(ChassisControllerParams parameters, T200Interface hw_interface, int dt_ms=10);
+    ~ChassisController();
+
+    void update_current_state(nav_msgs::msg::Odometry::SharedPtr msg);
+    void update_desired_state(geometry_msgs::msg::Twist::SharedPtr msg);
+    void update_parameters(ChassisControllerParams parameters);
+
+    void start();
+    void stop();
+
+    Eigen::Vector<double, N_MOTORS> get_motor_thrusts();
+};
+
 }
+
+#endif

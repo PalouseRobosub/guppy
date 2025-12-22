@@ -1,7 +1,7 @@
 // WRITTEN BY CHATGPT FOR TESTING
 
-#include "rclcpp/rclcpp.hpp"
 #include "guppy_msgs/srv/send_can.hpp"
+#include "rclcpp/rclcpp.hpp"
 
 #include <chrono>
 #include <cstdlib>
@@ -10,15 +10,11 @@
 
 using namespace std::chrono_literals;
 
-int main(int argc, char ** argv)
-{
+int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
 
   if (argc < 3) {
-    RCLCPP_INFO(
-      rclcpp::get_logger("can_tx_client"),
-      "Usage: can_tx_client <can_id> <byte0> [byte1 byte2 ...]"
-    );
+    RCLCPP_INFO(rclcpp::get_logger("can_tx_client"), "Usage: can_tx_client <can_id> <byte0> [byte1 byte2 ...]");
     return 1;
   }
 
@@ -41,9 +37,7 @@ int main(int argc, char ** argv)
 
   // Data bytes
   for (int i = 2; i < argc; ++i) {
-    request->data.push_back(
-      static_cast<uint8_t>(std::stoul(argv[i], nullptr, 0))
-    );
+    request->data.push_back(static_cast<uint8_t>(std::stoul(argv[i], nullptr, 0)));
   }
 
   auto future = client->async_send_request(request);
@@ -53,11 +47,7 @@ int main(int argc, char ** argv)
 
   if (result == rclcpp::FutureReturnCode::SUCCESS) {
     auto response = future.get();
-    RCLCPP_INFO(
-      node->get_logger(),
-      "CAN TX %s",
-      response->written != -1 ? "SUCCESS" : "FAILED"
-    );
+    RCLCPP_INFO(node->get_logger(), "CAN TX %s", response->written != -1 ? "SUCCESS" : "FAILED");
   } else {
     RCLCPP_ERROR(node->get_logger(), "Service call failed");
   }

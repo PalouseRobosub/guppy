@@ -1,146 +1,162 @@
+#include <atomic>
 #include <cstdio>
 #include <string>
 #include <thread>
-#include <atomic>
 
+#include <linux/can.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <linux/can.h>
 #include <unistd.h>
 
-#include "rclcpp/rclcpp.hpp"
 #include "guppy_msgs/msg/can_frame.hpp"
+#include "rclcpp/rclcpp.hpp"
+
+#define MAX_PUBLISHERS 100
 
 using namespace std::chrono_literals;
 
 class CanRxPublisher : public rclcpp::Node {
-    
-    public:    
-    CanRxPublisher(): Node("can_rx_publisher") {
-        if (!setup_can_socket()) {
-            RCLCPP_ERROR(this->get_logger(), "Failed to setup CAN socket");
-            return;
+ public:
+  CanRxPublisher() : Node("can_rx_publisher") {
+    this->declare_parameter("interface", "vcan0");  // name of CAN interface
+    if (!setup_can_socket()) {
+      RCLCPP_ERROR(this->get_logger(), "Failed to setup CAN socket");
+      return;
+    }
+    param_subscriber_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
+
+    auto cb = [this](const rclcpp::Parameter& p) {
+      if (!setup_can_socket()) {
+        RCLCPP_ERROR(this->get_logger(), "Failed to setup CAN socket");
+        return;
+      }
+
+      RCLCPP_INFO(this->get_logger(), "cb: Received an update to parameter \"%s\" of type %s: \"%s\"", p.get_name().c_str(), p.get_type_name().c_str(), p.as_string().c_str());
+    };
+    cb_handle_ = param_subscriber_->add_parameter_callback("interface", cb);
+    running_.store(true);
+    can_thread_ = std::thread(&CanRxPublisher::can_loop, this);
+  }
+
+  ~CanRxPublisher() override {
+    running_.store(false);
+    if (sock_ >= 0)
+      close(sock_);
+    if (can_thread_.joinable())
+      can_thread_.join();
+  }
+
+ private:
+  int sock_ = -1;
+  int ids_[MAX_PUBLISHERS] = {0};
+  rclcpp::TimerBase::SharedPtr timer_;
+  rclcpp::Publisher<guppy_msgs::msg::CanFrame>::SharedPtr publishers_[MAX_PUBLISHERS];
+  std::thread can_thread_;
+  std::atomic<bool> running_{false};
+
+  std::shared_ptr<rclcpp::ParameterEventHandler> param_subscriber_;
+  std::shared_ptr<rclcpp::ParameterCallbackHandle> cb_handle_;
+
+  bool setup_can_socket() {
+    sock_ = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+    if (sock_ < 0) {
+      std::perror("Socket creation failed");
+      return false;
+    }
+
+    ifreq ifr{};
+    const char* can_net = this->get_parameter("interface").as_string().c_str();
+    std::strcpy(ifr.ifr_name, can_net);
+    if (ioctl(sock_, SIOCGIFINDEX, &ifr) < 0) {
+      std::perror("SIOCGIFINDEX failed");
+      return false;
+    }
+
+    sockaddr_can addr{};
+    addr.can_family = AF_CAN;
+    addr.can_ifindex = ifr.ifr_ifindex;
+
+    if (bind(sock_, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
+      std::perror("CAN bind failed");
+      return false;
+    }
+
+    return true;
+  }
+
+  int check_id(const int id) const {
+    for (int i = 0; i < MAX_PUBLISHERS; i++) {
+      if (ids_[i] == id)
+        return i;
+    }
+    return -1;
+  }
+
+  void publish_bytes(const int idx, __u8 data[], const int len) const {
+    guppy_msgs::msg::CanFrame frame;
+    frame.can_id = ids_[idx];
+    frame.len = len;
+    frame.data.assign(data, data + len);
+    frame.stamp = this->now();
+    publishers_[idx]->publish(frame);
+    printf("0x%03X [%d] ", ids_[idx], len);
+    for (int i = 0; i < len; i++)
+      printf("%02X ", data[i]);
+
+    printf("\r\n");
+  }
+
+  int create_id_publisher(int id) {
+    for (int i = 0; i < MAX_PUBLISHERS; i++) {
+      if (ids_[i] == 0) {
+        ids_[i] = id;
+        std::string id_str = int_to_hex_str(id);
+        std::string base = "/can/id";
+        std::string topic_str = base + id_str;
+        publishers_[i] = this->create_publisher<guppy_msgs::msg::CanFrame>(topic_str, 10);
+        printf("created publisher %s\r\n", topic_str.c_str());
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  static std::string int_to_hex_str(int value) {
+    char buffer[20];
+    sprintf(buffer, "%x", value);
+    return std::string(buffer);
+  }
+
+  void can_loop() {
+    while (running_) {
+      can_frame frame{};
+
+      const int nbytes = read(sock_, &frame, sizeof(can_frame));
+
+      if (nbytes < 0) {
+        RCLCPP_ERROR(this->get_logger(), "Reading from CAN frame failed");
+        return;
+      }
+
+      if (int idx = check_id(frame.can_id); idx != -1) {
+        publish_bytes(idx, frame.data, frame.can_dlc);
+      } else {
+        idx = create_id_publisher(frame.can_id);
+        if (idx != -1) {
+          publish_bytes(idx, frame.data, frame.can_dlc);
+        } else {
+          RCLCPP_ERROR(this->get_logger(), "Failed to create publisher for CAN ID %x", frame.can_id);
         }
-        running_.store(true);
-        can_thread_ = std::thread(&CanRxPublisher::can_loop, this);
+      }
     }
-    
-    ~CanRxPublisher() {
-        running_.store(false);
-        if (sock_ >= 0) close(sock_);
-        if (can_thread_.joinable()) can_thread_.join();
-    }
-    
-    private:
-    int sock_ = -1;
-    int ids_[100] = { 0 };
-    rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Publisher<guppy_msgs::msg::CanFrame>::SharedPtr publishers_[100];
-    std::thread can_thread_;
-    std::atomic<bool> running_{false};
-    
-    bool setup_can_socket() {
-        sock_ = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-        if (sock_ < 0) {
-          std::perror("Socket creation failed");
-          return false;
-        }
-    
-        struct ifreq ifr;
-        const char *can_net = "vcan0"; // name of CAN interface
-        std::strcpy(ifr.ifr_name, can_net);
-        if (ioctl(sock_, SIOCGIFINDEX, &ifr) < 0) {
-          std::perror("SIOCGIFINDEX failed");
-          return false;
-        }
-    
-        struct sockaddr_can addr{};
-        addr.can_family = AF_CAN;
-        addr.can_ifindex = ifr.ifr_ifindex;
-    
-        if (bind(sock_, reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr)) < 0) {
-          std::perror("CAN bind failed");
-          return false;
-        }
-    
-        return true;
-    }
-    
-    int check_id(int id) {
-        for (int i = 0; i < 100; i++) {
-            if (ids_[i] == id) return i;
-        }
-        return -1;
-    }
-    
-    void publish_bytes(int idx, __u8 data[], int len) {
-        guppy_msgs::msg::CanFrame frame;
-        frame.can_id = ids_[idx];
-        frame.len = len;
-        frame.data.assign(data, data + len);
-        frame.stamp = this->now();
-        publishers_[idx]->publish(frame);
-        printf("0x%03X [%d] ", ids_[idx], len);
-        for (int i = 0; i < len; i++)
-           printf("%02X ",data[i]);
-        
-        printf("\r\n");
-    }
-    
-    int create_id_publisher(int id) {
-        for (int i = 0; i < 100; i++) {
-            if (ids_[i] == 0) {
-                ids_[i] = id;
-                std::string id_str = int_to_hex_str(id);
-                std::string base = "/can/id";
-                std::string topic_str = base + id_str;  
-                publishers_[i] = this->create_publisher<guppy_msgs::msg::CanFrame>(topic_str, 10);
-                printf("created publisher %s\r\n", topic_str.c_str());
-                return i;
-            }
-        }
-        return -1;
-    }
-    
-    std::string int_to_hex_str(int value) {
-        char buffer[20];
-        sprintf(buffer, "%x", value);
-        return std::string(buffer);
-    }
-    
-    void can_loop() {
-        while (running_) {
-            int nbytes;
-            struct can_frame frame;
-            
-            nbytes = read(sock_, &frame, sizeof(struct can_frame));
-            
-            if (nbytes < 0) {
-                RCLCPP_ERROR(this->get_logger(), "Reading from CAN frame failed");
-                return;
-            }
-            
-            int idx = check_id(frame.can_id);
-            
-            if (idx != -1) {
-                publish_bytes(idx, frame.data, frame.can_dlc);
-            } else {
-                idx = create_id_publisher(frame.can_id);
-                if (idx != -1) {
-                    publish_bytes(idx, frame.data, frame.can_dlc);
-                } else {
-                    RCLCPP_ERROR(this->get_logger(), "Failed to create publisher for CAN ID %x", frame.can_id);
-                }
-            }
-        }
-    }
+  }
 };
 
-int main(int argc, char* argv[]) {
-    rclcpp::init(argc, argv);
-    auto node = std::make_shared<CanRxPublisher>();
-    rclcpp::spin(node);
-    rclcpp::shutdown();
-    return 0;
+int main(const int argc, char* argv[]) {
+  rclcpp::init(argc, argv);
+  const auto node = std::make_shared<CanRxPublisher>();
+  rclcpp::spin(node);
+  rclcpp::shutdown();
+  return 0;
 }

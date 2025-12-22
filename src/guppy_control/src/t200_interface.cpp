@@ -35,7 +35,7 @@ bool T200Interface::write(Eigen::VectorXd throttles) {
     if (can_ids.size() < n) return false;
 
     bool okay = true;
-    for (size_t i; i < n; i++) {
+    for (size_t i=0; i < n; i++) {
         okay = okay && send_to_can(can_ids[i], throttles[i]);
         // std::cout << can_ids[i] << "\t" << throttles[i] << "\t" << okay << std::endl;
     }

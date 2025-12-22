@@ -28,6 +28,14 @@ using namespace std::chrono;
 
 class ChassisController {
 public:
+    // strange chatgpt magic to bypass the deprecated constructor... 
+    inline static const control_toolbox::AntiWindupStrategy antiwindup_strat = [] {
+        control_toolbox::AntiWindupStrategy a;
+        a.set_type("back_calculation");
+        return a;
+    }();
+    // end weird magic
+
     typedef enum orientation_lock_state_struct_ {
         ALL_LOCKED          = 0b111,
         ROLL_PITCH_LOCK     = 0b110,
@@ -47,10 +55,10 @@ public:
 
         // control parameters
         Eigen::Matrix<double, 6, 6> axis_weight_matrix = Eigen::Matrix<double, 6, 6>::Identity();
-        control_toolbox::Pid::Gains pid_gains_vel_linear;
-        control_toolbox::Pid::Gains pid_gains_vel_angular;
-        control_toolbox::Pid::Gains pid_gains_pose_linear;
-        control_toolbox::Pid::Gains pid_gains_pose_angular;
+        control_toolbox::Pid::Gains pid_gains_vel_linear   = control_toolbox::Pid::Gains(1, 0, 0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
+        control_toolbox::Pid::Gains pid_gains_vel_angular  = control_toolbox::Pid::Gains(1, 0, 0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
+        control_toolbox::Pid::Gains pid_gains_pose_linear  = control_toolbox::Pid::Gains(1, 0, 0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
+        control_toolbox::Pid::Gains pid_gains_pose_angular = control_toolbox::Pid::Gains(1, 0, 0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
         Eigen::Vector<double, 6> pose_lock_deadband;
 
         // robot setup
@@ -92,8 +100,8 @@ private:
     Eigen::Vector<double, N_MOTORS> motor_forces_;
 
     ChassisControllerParams params_;
-    control_toolbox::Pid velocity_pid[6];
-    control_toolbox::Pid pose_pid[6];
+    std::vector<control_toolbox::Pid> velocity_pid;
+    std::vector<control_toolbox::Pid> pose_pid;
 
     dense::QP<double> qp_;
 

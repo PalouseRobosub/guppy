@@ -25,9 +25,13 @@ class T200Interface {
     bool send_to_can(unsigned int id, double value);
 
 public:
-    T200Interface(std::string can_interface, std::vector<unsigned int> can_ids) : can_interface_(can_interface), can_ids(can_ids) {
+    T200Interface(std::string can_interface, std::vector<unsigned int> can_ids) : can_ids(can_ids), can_interface_(can_interface) {
         setup_can();
     };
+    ~T200Interface() {
+        if (sock_ >= 0)
+            close(sock_);
+    }
 
     bool write(Eigen::VectorXd throttles);
 

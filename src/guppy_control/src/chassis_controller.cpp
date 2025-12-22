@@ -114,8 +114,14 @@ Eigen::Vector3d ChassisController::calculate_rotational_nudge() {
 }
 
 ChassisController::ChassisController(ChassisControllerParams parameters, T200Interface* hw_interface, int dt_us)
-  : params_(parameters), qp_(N_MOTORS, 0, N_MOTORS), interface_(hw_interface), dt_us_(dt_us),\
-    THREAD_RUNNING_(false), desired_orientation_state_(1, 0, 0, 0), current_orientation_state_(1, 0, 0, 0) {
+  : interface_(hw_interface), current_orientation_state_(1, 0, 0, 0), desired_orientation_state_(1, 0, 0, 0),\
+    params_(parameters), qp_(N_MOTORS, 0, N_MOTORS), dt_us_(dt_us), THREAD_RUNNING_(false) {
+
+  for (int i=0;i<6;i++) {
+    this->velocity_pid.push_back(control_toolbox::Pid(1, 0, 0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(),ChassisController::antiwindup_strat));
+    this->pose_pid.push_back(control_toolbox::Pid(1, 0, 0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(),ChassisController::antiwindup_strat));
+  }
+
   update_parameters(parameters);
 }
 

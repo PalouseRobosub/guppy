@@ -18,18 +18,18 @@ public:
 
     ChassisController::ChassisControllerParams parameters;
     parameters.motor_coefficients <<\
-     1, 1, 1, 1.5, 1, 2, 3, 4, \
-		 4, 0, 0, 2,1, 2, 3, 4, \
-		 4, 0, 0, 2,1, 2, 3, 4, \
-		 4, 0, 0, 2, 3, 4, 5,\
-		 4, 0, 0, 2,6, 7, 8, 9, \
-		 3.5, 3, 3, 2.5, 1, 1, 1, 1;
+     1,   1,    1,    1.5,    1,    2,    3,    4, \
+		 4,   0,    0,    2,      1,    2,    3,    4, \
+		 4,   0,    0,    2,      1,    2,    3,    4, \
+		 4,   0,    0,    2,      3,    4,    5,    6, \
+		 4,   0,    0,    2,      6,    7,    8,    9, \
+		 3.5, 3,    3,    2.5,    1,    1,    1,    1;
     parameters.motor_lower_bounds << -1, -1, -1, -1, -1, -1, -1, -1;
     parameters.motor_upper_bounds << 1, 1, 1, 1, 1, 1, 1, 1;
-    parameters.pid_gains_vel_linear   = control_toolbox::Pid::Gains(10000, 0, 0, 100, 0);
-    parameters.pid_gains_vel_angular  = control_toolbox::Pid::Gains(10000, 0, 0, 100, 0);
-    parameters.pid_gains_pose_linear   = control_toolbox::Pid::Gains(10000, 0, 0, 100, 0);
-    parameters.pid_gains_pose_angular  = control_toolbox::Pid::Gains(10000, 0, 0, 100, 0);
+    parameters.pid_gains_vel_linear = control_toolbox::Pid::Gains(10000, 0, 0, 100, -100, ChassisController::antiwindup_strat);
+    parameters.pid_gains_vel_angular = control_toolbox::Pid::Gains(10000, 0, 0, 100, -100, ChassisController::antiwindup_strat);
+    parameters.pid_gains_pose_linear = control_toolbox::Pid::Gains(10000, 0, 0, 100, -100, ChassisController::antiwindup_strat);
+    parameters.pid_gains_pose_angular = control_toolbox::Pid::Gains(10000, 0, 0, 100, -100, ChassisController::antiwindup_strat);
     parameters.drag_coefficients << 1, 1, 1, 1, 1, 1;
     parameters.drag_areas<< 1, 1, 1, 1, 1, 1;
     parameters.drag_effect_matrix = Eigen::Matrix<double, 6, 6>::Identity();
@@ -39,7 +39,7 @@ public:
     parameters.qp_epsilon = 1e-3;
     parameters.pose_lock_deadband << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1;
 
-    controller = new ChassisController(parameters, thruster_interface, 500);
+    controller = new ChassisController(parameters, thruster_interface, 1000);
     controller->start();
 
     // setup pub/sub/timer

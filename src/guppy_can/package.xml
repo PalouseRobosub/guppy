@@ -3,8 +3,8 @@
 <package format="3">
   <name>guppy_can</name>
   <version>0.0.0</version>
-  <description>Takes a float between -1 and 1, then publishes it over CAN.</description>
-  <maintainer email="124544413+asorge29@users.noreply.github.com">asorge29</maintainer>
+  <description>CAN Bus nodes and services for Guppy</description>
+  <maintainer email="asorge29@gmail.com">Andy Sorge</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

@@ -5,6 +5,8 @@
 #include <vector>
 #include <Eigen/Core>
 
+#include <iostream>
+
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -19,12 +21,13 @@ class T200Interface {
     int sock_;
     std::string can_interface_;
 
-public:
-    T200Interface(std::string can_interface, std::vector<unsigned int> can_ids) : can_interface_(can_interface), can_ids(can_ids) {};
-
     bool setup_can();
-
     bool send_to_can(unsigned int id, double value);
+
+public:
+    T200Interface(std::string can_interface, std::vector<unsigned int> can_ids) : can_interface_(can_interface), can_ids(can_ids) {
+        setup_can();
+    };
 
     bool write(Eigen::VectorXd throttles);
 

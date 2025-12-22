@@ -1,17 +1,121 @@
 #include "guppy_control/chassis_controller.hpp"
-#include "chassis_controller.hpp"
 
 
 namespace chassis_controller {
 
-ChassisController::ChassisController(ChassisControllerParams parameters, T200Interface hw_interface, int dt_ms)
-  : qp_(N_MOTORS, 0, N_MOTORS), interface_(hw_interface), dt_ms_(dt_ms), THREAD_RUNNING_(false) {
+void ChassisController::control_loop() {
+  Eigen::Vector<double, 6> desired_squared = desired_velocity_state_.cwiseAbs().array() * desired_velocity_state_.array();
   
-  qp_.settings.initial_guess = InitialGuessStatus::NO_INITIAL_GUESS;
-  qp_.settings.verbose = false;
+  // calculate drag effect on sub
+  Eigen::Vector<double, 6> drag_plain = params_.drag_coefficients.array() * params_.water_density * desired_squared.array() * params_.drag_areas.array();
+  auto drag_wrench = params_.drag_effect_matrix * drag_plain;
 
-  qp_.init(std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt);
+  // calculate gravity effect on sub
+  Eigen::Vector3d gravity_force;
+  gravity_force << 0, 0, -GRAVITY;
+  gravity_force = current_orientation_state_ * gravity_force;
+  Eigen::Vector<double, 6> gravity_wrench;
+  gravity_wrench << gravity_force, 0, 0, 0;
 
+  // calculate buoyant effect on sub
+  Eigen::Vector3d buoyancy_force; buoyancy_force << 0, 0, params_.water_density * params_.robot_volume * GRAVITY;
+  Eigen::Vector3d r_vec = current_orientation_state_ * params_.center_of_buoyancy;
+  Eigen::Vector3d buoyancy_torque = r_vec.cross(buoyancy_force);
+  Eigen::Vector3d buoyancy_force_rotated = current_orientation_state_.inverse() * buoyancy_force;
+  Eigen::Vector<double, 6> buoyancy_wrench; buoyancy_wrench << buoyancy_force_rotated, buoyancy_torque;
+
+  // std::cout << "buoyancy_wrench: " << buoyancy_wrench.transpose() << std::endl;
+  // std::cout << "gravity_wrench: " << gravity_wrench.transpose() << std::endl;
+  // std::cout << "drag_wrench: " << drag_wrench.transpose() << std::endl;
+
+  // calculate total feedforward
+  Eigen::Vector<double, 6> feedforward = -(drag_wrench + buoyancy_wrench + gravity_wrench);
+
+  // calculate PID of current velocity error
+  Eigen::Vector<double, 6> velocity_feedback;
+  for (int i=0; i<6; i++) {
+    velocity_feedback[i] = velocity_pid[i].compute_command(desired_velocity_state_[i] - current_velocity_state_[i], (dt_us_ / 1000000.0));
+  }
+
+  // std::cout << "velocity_feedback: " << velocity_feedback.transpose() << std::endl;
+
+
+  // calculate position and orientation pid
+
+  Eigen::Vector<double, 6> added_pose_nudge;
+  Eigen::Vector3d position_nudge = Eigen::Vector3d::Zero();
+
+  // positions...
+  for (int i=0; i<3; i++) {
+    if (abs(desired_velocity_state_[i]) < params_.pose_lock_deadband[i]) {
+      position_nudge[i] = pose_pid[i].compute_command(desired_position_state_[i] - current_position_state_[i], (dt_us_ / 1000000.0));
+    } else {
+      desired_position_state_[i] = current_position_state_[i];
+    }
+  }
+
+  // orientation...
+  Eigen::Vector3d rotational_nudge = calculate_rotational_nudge();
+  added_pose_nudge << position_nudge, rotational_nudge;
+
+  // std::cout << "pose_nudge: " << added_pose_nudge.transpose() << std::endl;
+  // std::cout << std::endl;
+
+  // write total wrench to the sub
+  auto local_wrench = feedforward + velocity_feedback + added_pose_nudge;
+  // std::cout << "local_wrench: " << local_wrench.transpose() << std::endl;
+  motor_forces_ = allocate_thrust(local_wrench);
+  // std::cout << std::endl;
+
+  Eigen::Vector<double, N_MOTORS> motor_throttles;
+
+  for (int i=0; i<N_MOTORS; i++) {
+    double max_in_dir = motor_forces_[i] < 0 ? params_.motor_lower_bounds[0] : params_.motor_upper_bounds[0];
+    motor_throttles[i] = motor_forces_[i] / max_in_dir;
+  }
+
+  // bool success = 
+  interface_->write(motor_throttles);
+
+  // return success;
+}
+
+Eigen::Vector3d ChassisController::calculate_rotational_nudge() {
+  int new_orientation_lock = ALL_FREE;
+
+  if (abs(desired_velocity_state_[3]) < params_.pose_lock_deadband[3]) new_orientation_lock |= ROLL_LOCK;
+  if (abs(desired_velocity_state_[4]) < params_.pose_lock_deadband[4]) new_orientation_lock |= PITCH_LOCK;
+  if (abs(desired_velocity_state_[5]) < params_.pose_lock_deadband[5]) new_orientation_lock |= YAW_LOCK;
+  
+  if ((int)current_orientation_lock_ != new_orientation_lock) {
+    desired_orientation_state_ = current_orientation_state_;
+    current_orientation_lock_ = (OrientationLockState)new_orientation_lock;
+  }
+
+  // std::cout << "lock_state: " << (int)new_orientation_lock << std::endl;
+  // std::cout << "old_state: " << (int)current_orientation_lock_ << std::endl;
+
+  Eigen::Quaternion q_err = current_orientation_state_.inverse() * desired_orientation_state_;
+  Eigen::Vector3d axis_err = q_err.vec();
+
+  if (q_err.w() < 0) axis_err = -axis_err;
+
+  // std::cout << "c: " << current_orientation_state_.vec().transpose() << std::endl;
+  // std::cout << "d: " << "w: " << desired_orientation_state_.w() << " " << desired_orientation_state_.vec().transpose() << std::endl;
+  // std::cout << "axis_err: " << axis_err.transpose() << std::endl;
+
+  Eigen::Vector3d output_nudge = Eigen::Vector3d::Zero();
+
+  if (ROLL_LOCK & current_orientation_lock_) output_nudge[0] = -1 * pose_pid[3].compute_command(axis_err[0], (dt_us_ / 1000000.0));
+  if (PITCH_LOCK & current_orientation_lock_) output_nudge[1] = -1 * pose_pid[4].compute_command(axis_err[1], (dt_us_ / 1000000.0));
+  if (YAW_LOCK & current_orientation_lock_) output_nudge[2] = -1 * pose_pid[5].compute_command(axis_err[2], (dt_us_ / 1000000.0));
+
+  return output_nudge;
+}
+
+ChassisController::ChassisController(ChassisControllerParams parameters, T200Interface* hw_interface, int dt_us)
+  : params_(parameters), qp_(N_MOTORS, 0, N_MOTORS), interface_(hw_interface), dt_us_(dt_us),\
+    THREAD_RUNNING_(false), desired_orientation_state_(1, 0, 0, 0), current_orientation_state_(1, 0, 0, 0) {
   update_parameters(parameters);
 }
 
@@ -24,54 +128,13 @@ ChassisController::~ChassisController() {
   }
 }
 
-bool ChassisController::control_loop() {
-  auto desired_squared = desired_velocity_state_.cwiseAbs() * desired_velocity_state_;
-  
-  // calculate drag effect on sub
-  auto drag_plain = params_.drag_coefficients * params_.water_density * desired_squared * params_.drag_areas;
-  auto drag_wrench = params_.drag_effect_matrix * drag_plain;
+Eigen::Vector<double, N_MOTORS> ChassisController::allocate_thrust(Eigen::Vector<double, 6> local_wrench) { 
+  Eigen::VectorXd qp_g = - ( params_.motor_coefficients.transpose() * local_wrench );
 
-  // calculate gravity effect on sub
-  Eigen::Vector3d gravity_force;
-  gravity_force << 0, 0, -GRAVITY;
-  gravity_force = current_orientation_state_ * gravity_force;
-  Eigen::Vector<double, 6> gravity_wrench;
-  gravity_wrench << gravity_force, 0, 0, 0;
-
-  // calculate buoyant effect on sub
-  Eigen::Vector3d buoyancy_force;
-  buoyancy_force << 0, 0, (params_.water_density * params_.robot_volume * GRAVITY);
-  buoyancy_force = current_orientation_state_ * buoyancy_force;
-
-  Eigen::Vector3d buoyancy_torque;
-  buoyancy_torque << 0, 0, 0;
-
-  Eigen::Vector<double, 6> buoyancy_wrench;
-  gravity_wrench << buoyancy_force, buoyancy_torque;
-
-  // calculate total feedforward
-  Eigen::Vector<double, 6> feedforward = (drag_wrench + buoyancy_wrench + gravity_wrench) * -1;
-
-  // calculate PID of current error
-  Eigen::Vector<double, 6> feedback;
-  for (int i=0; i<6; i++) {
-    feedback[i] = velocity_pid[i].compute_command(desired_velocity_state_[i] - current_velocity_state_[i], (dt_ms_ / 1000.0));
-  }
-
-  // write total wrench to the sub
-  auto local_wrench = feedforward + feedback;
-  motor_forces_ = allocate_thrust(local_wrench);
-  bool success = interface_.write(motor_forces_);
-
-  return success;
-}
-
-Eigen::Vector<double, N_MOTORS> ChassisController::allocate_thrust(Eigen::Vector<double, 6> local_wrench) {  
-  Eigen::VectorXd g = - ( params_.motor_coefficients.transpose() * local_wrench );
-
-  qp_.update(std::nullopt, g, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt);
+  qp_.update(std::nullopt, qp_g, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt);
   qp_.solve();
 
+  qp_.settings.initial_guess = proxsuite::proxqp::InitialGuessStatus::WARM_START_WITH_PREVIOUS_RESULT;
   return qp_.results.x;
 }
 
@@ -124,11 +187,14 @@ void ChassisController::update_parameters(ChassisControllerParams parameters) {
 
   Eigen::MatrixXd qp_A = params_.motor_coefficients;
   Eigen::MatrixXd qp_H = qp_A.transpose() * qp_A;
-
   Eigen::MatrixXd qp_C = Eigen::MatrixXd::Identity(N_MOTORS, N_MOTORS);
 
   qp_.settings.eps_abs = params_.qp_epsilon; // convergence amount
-  qp_.update(qp_H, std::nullopt, std::nullopt, std::nullopt, qp_C, params_.motor_lower_bounds, params_.motor_upper_bounds);
+  qp_.settings.initial_guess = InitialGuessStatus::NO_INITIAL_GUESS;
+  qp_.settings.verbose = false;
+  qp_.settings.compute_timings = true;
+
+  qp_.init(qp_H, std::nullopt, std::nullopt, std::nullopt, qp_C, params_.motor_lower_bounds, params_.motor_upper_bounds);
 
   this->velocity_pid[0].set_gains(params_.pid_gains_vel_linear);
   this->velocity_pid[1].set_gains(params_.pid_gains_vel_linear);
@@ -136,6 +202,13 @@ void ChassisController::update_parameters(ChassisControllerParams parameters) {
   this->velocity_pid[3].set_gains(params_.pid_gains_vel_angular);
   this->velocity_pid[4].set_gains(params_.pid_gains_vel_angular);
   this->velocity_pid[5].set_gains(params_.pid_gains_vel_angular);
+
+  this->pose_pid[0].set_gains(params_.pid_gains_pose_linear);
+  this->pose_pid[1].set_gains(params_.pid_gains_pose_linear);
+  this->pose_pid[2].set_gains(params_.pid_gains_pose_linear);
+  this->pose_pid[3].set_gains(params_.pid_gains_pose_angular);
+  this->pose_pid[4].set_gains(params_.pid_gains_pose_angular);
+  this->pose_pid[5].set_gains(params_.pid_gains_pose_angular);
 }
 
 Eigen::Vector<double, N_MOTORS> ChassisController::get_motor_thrusts() {
@@ -143,26 +216,32 @@ Eigen::Vector<double, N_MOTORS> ChassisController::get_motor_thrusts() {
 }
 
 void ChassisController::loop_runner() {
-  interface_.initialize();
+  interface_->initialize();
+
+  int min_us = 99999;
+  int max_us = 0;
   while (THREAD_RUNNING_.load()) {
-    system_clock::time_point next_wake = high_resolution_clock::now() + milliseconds(dt_ms_);
+    auto next_wake = steady_clock::now() + microseconds(dt_us_);
     auto start = high_resolution_clock::now();
 
     control_loop();
 
     auto stop = high_resolution_clock::now();
-    microseconds duration_us = duration_cast<microseconds>(stop - start);
-
-    std::cout << duration_us.count() << " us" << std::endl;
+    int duration_us = duration_cast<microseconds>(stop - start).count();
+    std::cout << duration_us << " us total loop time" << std::endl;
+    if (duration_us < min_us) min_us = duration_us;
+    if (duration_us > max_us) max_us = duration_us;
 
     std::this_thread::sleep_until(next_wake);
   }
-  interface_.shutdown();
+  interface_->shutdown();
+
+  std::cout << "\t\t min_us:" << min_us << "\tmax_us: " << max_us << std::endl;
 }
 
 void ChassisController::start() {
   THREAD_RUNNING_.store(true);
-  std::thread(&ChassisController::loop_runner, this);
+  control_thread_ = std::thread(&ChassisController::loop_runner, this);
 }
 
 void ChassisController::stop() {

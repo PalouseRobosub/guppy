@@ -13,16 +13,22 @@ if(NOT CMAKE_CXX_STANDARD)
     
     find_package(ament_cmake REQUIRED)
     find_package(proxsuite REQUIRED)
+    find_package(control_toolbox REQUIRED)
+    find_package(geometry_msgs REQUIRED)
+    find_package(nav_msgs REQUIRED)
     find_package(eigen3_cmake_module REQUIRED)
     find_package(Eigen3)    
 
-    # Throttle publisher executable
-    add_executable(prox_test src/prox_test.cpp)
-    ament_target_dependencies(prox_test Eigen3 proxsuite)
+    include_directories(include)
 
+    add_executable(control_chassis src/control_chassis_node.cpp src/chassis_controller.cpp src/t200_interface.cpp)
+    ament_target_dependencies(control_chassis control_toolbox geometry_msgs nav_msgs Eigen3 proxsuite)
+    set_source_files_properties(src/chassis_controller.cpp PROPERTIES
+      COMPILE_OPTIONS "-O3;-DNDEBUG;-DPROXSUITE_VECTORIZE`"
+    )
 
     install(TARGETS
-      prox_test
+      control_chassis
 
       DESTINATION lib/${PROJECT_NAME}
     )

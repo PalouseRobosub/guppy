@@ -70,8 +70,8 @@ void ChassisController::control_loop() {
   Eigen::Vector<double, N_MOTORS> motor_throttles;
 
   for (int i=0; i<N_MOTORS; i++) {
-    double max_in_dir = motor_forces_[i] < 0 ? params_.motor_lower_bounds[0] : params_.motor_upper_bounds[0];
-    motor_throttles[i] = motor_forces_[i] / max_in_dir;
+    double max_in_dir = motor_forces_[i] < 0 ? params_.motor_lower_bounds[i] : params_.motor_upper_bounds[i];
+    motor_throttles[i] = motor_forces_[i] / abs(max_in_dir);
   }
 
   // bool success = 
@@ -81,7 +81,7 @@ void ChassisController::control_loop() {
 }
 
 Eigen::Vector3d ChassisController::calculate_rotational_nudge() {
-  int new_orientation_lock = ALL_FREE;
+  int new_orientation_lock = ALL_FREE; // == 0
 
   if (abs(desired_velocity_state_[3]) < params_.pose_lock_deadband[3]) new_orientation_lock |= ROLL_LOCK;
   if (abs(desired_velocity_state_[4]) < params_.pose_lock_deadband[4]) new_orientation_lock |= PITCH_LOCK;
@@ -129,7 +129,7 @@ ChassisController::~ChassisController() {
 }
 
 Eigen::Vector<double, N_MOTORS> ChassisController::allocate_thrust(Eigen::Vector<double, 6> local_wrench) { 
-  Eigen::VectorXd qp_g = - ( params_.motor_coefficients.transpose() * local_wrench );
+  Eigen::VectorXd qp_g = - ( params_.motor_coefficients.transpose() * params_.axis_weight_matrix * local_wrench );
 
   qp_.update(std::nullopt, qp_g, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt);
   qp_.solve();
@@ -186,7 +186,7 @@ void ChassisController::update_parameters(ChassisControllerParams parameters) {
   this->params_ = parameters;
 
   Eigen::MatrixXd qp_A = params_.motor_coefficients;
-  Eigen::MatrixXd qp_H = qp_A.transpose() * qp_A;
+  Eigen::MatrixXd qp_H = qp_A.transpose() * params_.axis_weight_matrix * qp_A;
   Eigen::MatrixXd qp_C = Eigen::MatrixXd::Identity(N_MOTORS, N_MOTORS);
 
   qp_.settings.eps_abs = params_.qp_epsilon; // convergence amount

@@ -46,7 +46,7 @@ public:
         Eigen::Vector<double, N_MOTORS> motor_upper_bounds;
 
         // control parameters
-        // Eigen::Matrix<double, 6, 6> axis_weights = Eigen::Matrix<double, 6, 6>::Identity();
+        Eigen::Matrix<double, 6, 6> axis_weight_matrix = Eigen::Matrix<double, 6, 6>::Identity();
         control_toolbox::Pid::Gains pid_gains_vel_linear;
         control_toolbox::Pid::Gains pid_gains_vel_angular;
         control_toolbox::Pid::Gains pid_gains_pose_linear;

@@ -55,10 +55,10 @@ public:
 
         // control parameters
         Eigen::Matrix<double, 6, 6> axis_weight_matrix = Eigen::Matrix<double, 6, 6>::Identity();
-        control_toolbox::Pid::Gains pid_gains_vel_linear   = control_toolbox::Pid::Gains(1, 0, 0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
-        control_toolbox::Pid::Gains pid_gains_vel_angular  = control_toolbox::Pid::Gains(1, 0, 0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
-        control_toolbox::Pid::Gains pid_gains_pose_linear  = control_toolbox::Pid::Gains(1, 0, 0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
-        control_toolbox::Pid::Gains pid_gains_pose_angular = control_toolbox::Pid::Gains(1, 0, 0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
+        std::vector<double> pid_gains_vel_linear   = {1, 0, 0};
+        std::vector<double> pid_gains_vel_angular  = {1, 0, 0};
+        std::vector<double> pid_gains_pose_linear  = {1, 0, 0};
+        std::vector<double> pid_gains_pose_angular = {1, 0, 0};
         Eigen::Vector<double, 6> pose_lock_deadband;
 
         // robot setup
@@ -67,6 +67,7 @@ public:
         Eigen::Matrix<double, 6, 6> drag_effect_matrix;
         double water_density = 1000; // kg/m^3
         double robot_volume; // m^3
+        double robot_mass; // kg
         Eigen::Vector3<double> center_of_buoyancy;
 
         // qp solver
@@ -112,7 +113,7 @@ private:
     // private methods
     Eigen::Vector<double, N_MOTORS> allocate_thrust(Eigen::Vector<double, 6> local_wrench);
     Eigen::Vector3d calculate_rotational_nudge();
-    void control_loop();
+    bool control_loop();
     void loop_runner();
 };
 

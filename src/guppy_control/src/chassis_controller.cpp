@@ -3,7 +3,7 @@
 
 namespace chassis_controller {
 
-void ChassisController::control_loop() {
+bool ChassisController::control_loop() {
   Eigen::Vector<double, 6> desired_squared = desired_velocity_state_.cwiseAbs().array() * desired_velocity_state_.array();
   
   // calculate drag effect on sub
@@ -12,7 +12,7 @@ void ChassisController::control_loop() {
 
   // calculate gravity effect on sub
   Eigen::Vector3d gravity_force;
-  gravity_force << 0, 0, -GRAVITY;
+  gravity_force << 0, 0, -(GRAVITY * params_.robot_mass);
   gravity_force = current_orientation_state_ * gravity_force;
   Eigen::Vector<double, 6> gravity_wrench;
   gravity_wrench << gravity_force, 0, 0, 0;
@@ -24,9 +24,9 @@ void ChassisController::control_loop() {
   Eigen::Vector3d buoyancy_force_rotated = current_orientation_state_.inverse() * buoyancy_force;
   Eigen::Vector<double, 6> buoyancy_wrench; buoyancy_wrench << buoyancy_force_rotated, buoyancy_torque;
 
-  // std::cout << "buoyancy_wrench: " << buoyancy_wrench.transpose() << std::endl;
-  // std::cout << "gravity_wrench: " << gravity_wrench.transpose() << std::endl;
-  // std::cout << "drag_wrench: " << drag_wrench.transpose() << std::endl;
+  std::cout << "buoyancy_wrench: " << buoyancy_wrench.transpose() << std::endl;
+  std::cout << "gravity_wrench: " << gravity_wrench.transpose() << std::endl;
+  std::cout << "drag_wrench: " << drag_wrench.transpose() << std::endl;
 
   // calculate total feedforward
   Eigen::Vector<double, 6> feedforward = -(drag_wrench + buoyancy_wrench + gravity_wrench);
@@ -37,7 +37,7 @@ void ChassisController::control_loop() {
     velocity_feedback[i] = velocity_pid[i].compute_command(desired_velocity_state_[i] - current_velocity_state_[i], (dt_us_ / 1000000.0));
   }
 
-  // std::cout << "velocity_feedback: " << velocity_feedback.transpose() << std::endl;
+  std::cout << "velocity_feedback: " << velocity_feedback.transpose() << std::endl;
 
 
   // calculate position and orientation pid
@@ -58,14 +58,14 @@ void ChassisController::control_loop() {
   Eigen::Vector3d rotational_nudge = calculate_rotational_nudge();
   added_pose_nudge << position_nudge, rotational_nudge;
 
-  // std::cout << "pose_nudge: " << added_pose_nudge.transpose() << std::endl;
-  // std::cout << std::endl;
+  std::cout << "pose_nudge: " << added_pose_nudge.transpose() << std::endl;
+  std::cout << std::endl;
 
   // write total wrench to the sub
   auto local_wrench = feedforward + velocity_feedback + added_pose_nudge;
-  // std::cout << "local_wrench: " << local_wrench.transpose() << std::endl;
+  std::cout << "local_wrench: " << local_wrench.transpose() << std::endl;
   motor_forces_ = allocate_thrust(local_wrench);
-  // std::cout << std::endl;
+  std::cout << std::endl;
 
   Eigen::Vector<double, N_MOTORS> motor_throttles;
 
@@ -74,10 +74,9 @@ void ChassisController::control_loop() {
     motor_throttles[i] = motor_forces_[i] / abs(max_in_dir);
   }
 
-  // bool success = 
-  interface_->write(motor_throttles);
+  bool success = interface_->write(motor_throttles);
 
-  // return success;
+  return success;
 }
 
 Eigen::Vector3d ChassisController::calculate_rotational_nudge() {
@@ -92,17 +91,17 @@ Eigen::Vector3d ChassisController::calculate_rotational_nudge() {
     current_orientation_lock_ = (OrientationLockState)new_orientation_lock;
   }
 
-  // std::cout << "lock_state: " << (int)new_orientation_lock << std::endl;
-  // std::cout << "old_state: " << (int)current_orientation_lock_ << std::endl;
+  std::cout << "lock_state: " << (int)new_orientation_lock << std::endl;
+  std::cout << "old_state: " << (int)current_orientation_lock_ << std::endl;
 
   Eigen::Quaternion q_err = current_orientation_state_.inverse() * desired_orientation_state_;
   Eigen::Vector3d axis_err = q_err.vec();
 
   if (q_err.w() < 0) axis_err = -axis_err;
 
-  // std::cout << "c: " << current_orientation_state_.vec().transpose() << std::endl;
-  // std::cout << "d: " << "w: " << desired_orientation_state_.w() << " " << desired_orientation_state_.vec().transpose() << std::endl;
-  // std::cout << "axis_err: " << axis_err.transpose() << std::endl;
+  std::cout << "c: " << current_orientation_state_.w() << " " << current_orientation_state_.vec().transpose() << std::endl;
+  std::cout << "d: " << desired_orientation_state_.w() << " " << desired_orientation_state_.vec().transpose() << std::endl;
+  std::cout << "axis_err: " << axis_err.transpose() << std::endl;
 
   Eigen::Vector3d output_nudge = Eigen::Vector3d::Zero();
 
@@ -202,19 +201,19 @@ void ChassisController::update_parameters(ChassisControllerParams parameters) {
 
   qp_.init(qp_H, std::nullopt, std::nullopt, std::nullopt, qp_C, params_.motor_lower_bounds, params_.motor_upper_bounds);
 
-  this->velocity_pid[0].set_gains(params_.pid_gains_vel_linear);
-  this->velocity_pid[1].set_gains(params_.pid_gains_vel_linear);
-  this->velocity_pid[2].set_gains(params_.pid_gains_vel_linear);
-  this->velocity_pid[3].set_gains(params_.pid_gains_vel_angular);
-  this->velocity_pid[4].set_gains(params_.pid_gains_vel_angular);
-  this->velocity_pid[5].set_gains(params_.pid_gains_vel_angular);
+  this->velocity_pid[0].set_gains(params_.pid_gains_vel_linear[0], params_.pid_gains_vel_linear[1], params_.pid_gains_vel_linear[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
+  this->velocity_pid[1].set_gains(params_.pid_gains_vel_linear[0], params_.pid_gains_vel_linear[1], params_.pid_gains_vel_linear[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
+  this->velocity_pid[2].set_gains(params_.pid_gains_vel_linear[0], params_.pid_gains_vel_linear[1], params_.pid_gains_vel_linear[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
+  this->velocity_pid[3].set_gains(params_.pid_gains_vel_angular[0], params_.pid_gains_vel_angular[1], params_.pid_gains_vel_angular[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
+  this->velocity_pid[4].set_gains(params_.pid_gains_vel_angular[0], params_.pid_gains_vel_angular[1], params_.pid_gains_vel_angular[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
+  this->velocity_pid[5].set_gains(params_.pid_gains_vel_angular[0], params_.pid_gains_vel_angular[1], params_.pid_gains_vel_angular[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
 
-  this->pose_pid[0].set_gains(params_.pid_gains_pose_linear);
-  this->pose_pid[1].set_gains(params_.pid_gains_pose_linear);
-  this->pose_pid[2].set_gains(params_.pid_gains_pose_linear);
-  this->pose_pid[3].set_gains(params_.pid_gains_pose_angular);
-  this->pose_pid[4].set_gains(params_.pid_gains_pose_angular);
-  this->pose_pid[5].set_gains(params_.pid_gains_pose_angular);
+  this->pose_pid[0].set_gains(params_.pid_gains_pose_linear[0], params_.pid_gains_pose_linear[1], params_.pid_gains_pose_linear[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
+  this->pose_pid[1].set_gains(params_.pid_gains_pose_linear[0], params_.pid_gains_pose_linear[1], params_.pid_gains_pose_linear[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
+  this->pose_pid[2].set_gains(params_.pid_gains_pose_linear[0], params_.pid_gains_pose_linear[1], params_.pid_gains_pose_linear[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
+  this->pose_pid[3].set_gains(params_.pid_gains_pose_angular[0], params_.pid_gains_pose_angular[1], params_.pid_gains_pose_angular[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
+  this->pose_pid[4].set_gains(params_.pid_gains_pose_angular[0], params_.pid_gains_pose_angular[1], params_.pid_gains_pose_angular[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
+  this->pose_pid[5].set_gains(params_.pid_gains_pose_angular[0], params_.pid_gains_pose_angular[1], params_.pid_gains_pose_angular[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
 }
 
 Eigen::Vector<double, N_MOTORS> ChassisController::get_motor_thrusts() {
@@ -230,13 +229,16 @@ void ChassisController::loop_runner() {
     auto next_wake = steady_clock::now() + microseconds(dt_us_);
     auto start = high_resolution_clock::now();
 
-    control_loop();
+    bool okay = control_loop();
 
     auto stop = high_resolution_clock::now();
     int duration_us = duration_cast<microseconds>(stop - start).count();
     std::cout << duration_us << " us total loop time" << std::endl;
+
     if (duration_us < min_us) min_us = duration_us;
     if (duration_us > max_us) max_us = duration_us;
+
+    if (!okay) std::cerr << "ERROR WRITING TO HARDWARE INTERFACE" << std::endl;
 
     std::this_thread::sleep_until(next_wake);
   }

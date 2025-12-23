@@ -61,7 +61,7 @@ class CanRxPublisher : public rclcpp::Node {
   bool setup_can_socket() {
     sock_ = socket(PF_CAN, SOCK_RAW, CAN_RAW);
     if (sock_ < 0) {
-      std::perror("Socket creation failed");
+      RCLCPP_ERROR(this->get_logger(), "Socket creation failed.");
       return false;
     }
 
@@ -69,7 +69,7 @@ class CanRxPublisher : public rclcpp::Node {
     const char* can_net = this->get_parameter("interface").as_string().c_str();
     std::strcpy(ifr.ifr_name, can_net);
     if (ioctl(sock_, SIOCGIFINDEX, &ifr) < 0) {
-      std::perror("SIOCGIFINDEX failed");
+      RCLCPP_ERROR(this->get_logger(), "SIOCGIFINDEX failed.");
       return false;
     }
 
@@ -78,7 +78,7 @@ class CanRxPublisher : public rclcpp::Node {
     addr.can_ifindex = ifr.ifr_ifindex;
 
     if (bind(sock_, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
-      std::perror("CAN bind failed");
+      RCLCPP_ERROR(this->get_logger(), "CAN bind failed.");
       return false;
     }
 
@@ -100,22 +100,22 @@ class CanRxPublisher : public rclcpp::Node {
     frame.data.assign(data, data + len);
     frame.stamp = this->now();
     publishers_[idx]->publish(frame);
-    printf("0x%03X [%d] ", ids_[idx], len);
-    for (int i = 0; i < len; i++)
-      printf("%02X ", data[i]);
 
-    printf("\r\n");
+    RCLCPP_DEBUG(this->get_logger(), "0x%03X [%d] ", ids_[idx], len);
+    for (int i = 0; i < len; i++)
+      RCLCPP_DEBUG(this->get_logger(), "%02X ", data[i]);
+    RCLCPP_DEBUG(this->get_logger(), "\r\n");
   }
 
-  int create_id_publisher(int id) {
+  int create_id_publisher(const int id) {
     for (int i = 0; i < MAX_PUBLISHERS; i++) {
       if (ids_[i] == 0) {
         ids_[i] = id;
-        std::string id_str = int_to_hex_str(id);
-        std::string base = "/can/id";
-        std::string topic_str = base + id_str;
+        const std::string id_str = int_to_hex_str(id);
+        const std::string base = "/can/id";
+        const std::string topic_str = base + id_str;
         publishers_[i] = this->create_publisher<guppy_msgs::msg::CanFrame>(topic_str, 10);
-        printf("created publisher %s\r\n", topic_str.c_str());
+        RCLCPP_INFO(this->get_logger(), "created publisher %s\r\n", topic_str.c_str());
         return i;
       }
     }
@@ -125,11 +125,11 @@ class CanRxPublisher : public rclcpp::Node {
   static std::string int_to_hex_str(int value) {
     char buffer[20];
     sprintf(buffer, "%x", value);
-    return std::string(buffer);
+    return {buffer};
   }
 
   void can_loop() {
-    while (running_) {
+    while (running_.load()) {
       can_frame frame{};
 
       const int nbytes = read(sock_, &frame, sizeof(can_frame));

@@ -1,7 +1,7 @@
-# Guppy 2026 AUV Code
+# Guppy!
 
 <p align="center">
-  <img src="./guppy.png" width="200">
+  <img src="./guppy.png" width="400">
 </p>
 
 Home to the ros2 code that runs Guppy: [Palouse RoboSub](https://robosub.eecs.wsu.edu/)'s 2026 AUV for the international RoboSub competition.

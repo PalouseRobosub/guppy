@@ -1,85 +1,59 @@
-# WIP - NOT UP TO DATE
+# guppy_can
 
-# can_motor_control
-Publishes and sends throttle values over CAN bus in ROS2 Jazzy Jalisco
+Nodes and services to interface with CAN bus through ROS.
 
-## Prerequisites
-- ROS2 Jazzy Jalisco installed on Ubuntu 24.04LTS
-- `can-utils` installed
-- CAN or VCAN network interface configured
-- Correct CAN or VCAN network set in [src/can_throttle_subscriber.cpp](src/can_throttle_subscriber.cpp) (Line 67)
+## Contents
 
-## Getting Started
+- `can_rx`: Node that publishes all CAN frames to topics.
+- `can_tx`: Service that writes data to CAN bus.
 
-Open a new terminal and source the ROS2 environment:
-```bash
-source /opt/ros/jazzy/setup.bash
+## CAN RX
+
+The `can_rx` node publishes every frame read from the CAN bus to a topic corresponding to its CAN ID.
+Topics follow the naming convention `/can/id_<can_id_hex>`, so frames with CAN ID `0x102`
+will be published to the topic `/can/id_0x102`. 
+
+### Message Type
+
+Each CAN ID topic is created with the following `CanFrame` message type:
+```
+uint16 can_id
+uint8 len
+builtin_interfaces/Time stamp
+byte[] data
 ```
 
-### Create a ROS2 Workspace
+It is imported from `guppy_msgs` and can be found at [guppy_msgs/msg/CanFrame.msg](../guppy_msgs/msg/CanFrame.msg)
 
-Create a workspace directory and navigate into it:
-```bash
-mkdir -p ~/ros2_ws/src
-cd ~/ros2_ws/src
+### Interface Selection
+
+The CAN interface that `can_rx` listens on is controlled by the `interface` parameter.
+By default, it is set to `vcan0`. The interface can be hot-swapped without restarting the
+node using the following command:
+```shell
+ros2 param set can_rx interface <can_interface_name>
+# eg. ros2 param set can_rx interface can1
 ```
 
-### Clone the Repository
+## CAN TX
 
-Clone the repository into the workspace:
-```bash
-git clone https://github.com/asorge29/ros2_can_motor_control.git
+The `can_tx` service writes data to CAN bus. Nodes will interface with this service directly
+rather than publishing values to send data over CAN.
+
+### Message Type
+
+The service accepts a CAN ID and an array of up to 8 bytes. It returns the number of
+bytes written to CAN bus as a conformation that the frame was sent. The `SendCan`
+definition is the following:
+```
+uint8 id
+byte[] data
+---
+uint8 written
 ```
 
-### Install Dependencies
+It is imported from `guppy_msgs` and can be found at [guppy_msgs/srv/SendCan.srv](../guppy_msgs/srv/SendCan.srv)
 
-Install the required dependencies:
-```bash
-cd ~/ros2_ws
-rosdep install -i --from-path src --rosdistro jazzy -y
-```
+### Interface Selection
 
-### Build the Package
-
-This will build *only* the `can_motor_control` package:
-```bash
-colcon build --packages-select can_motor_control
-```
-
-### Run the Publisher Node
-
-First, source the setup file:
-```bash
-source ~/ros2_ws/install/setup.bash
-```
-
-Then, run the publisher node:
-```bash
-ros2 run can_motor_control throttle_publisher
-```
-
-### Run the Subscriber Node
-
-Open a new terminal and source the ROS2 environment:
-```bash
-source /opt/ros/jazzy/setup.bash
-```
-
-Source the setup file:
-```bash
-source ~/ros2_ws/install/setup.bash
-```
-
-Then, run the subscriber node:
-```bash
-ros2 run can_motor_control can_throttle_subscriber
-```
-
-## Usage
-
-The publisher node will take user input for a float between `-1.0` and `1.0`.
-It will immediately publish it, and the subscriber will send it over CAN with the id `0x101`.
-
-To verify that the frames are correctly being sent over CAN, run in a seperate terminal:
-```bash
-candump can0 # replace can0 with your CAN interface
+Currently, the interface is hard-coded. It can be changed at [`src/can_tx.cpp:24`](src/can_tx.cpp#24).

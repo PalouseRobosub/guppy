@@ -14,7 +14,7 @@ using namespace chassis_controller;
 class ControlChassis : public rclcpp::Node {
 public:
   ControlChassis() : Node("control_chassis") {
-    thruster_interface = new T200Interface("can0", {0, 1, 2, 3, 4, 5, 6, 7});
+    thruster_interface = new T200Interface("can0", {101, 102, 103, 104, 105, 106, 107, 108});
 
     // setup parameters...
 

@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  auto node = rclcpp::Node::make_shared("can_tx_server");
+  auto node = rclcpp::Node::make_shared("can_tx");
 
   auto service = node->create_service<guppy_msgs::srv::SendCan>(
       "can_tx", [](const std::shared_ptr<guppy_msgs::srv::SendCan::Request> request, std::shared_ptr<guppy_msgs::srv::SendCan::Response> response) { send(request, response); }, 10);

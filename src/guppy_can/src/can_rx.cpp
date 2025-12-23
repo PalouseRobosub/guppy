@@ -16,9 +16,9 @@
 
 using namespace std::chrono_literals;
 
-class CanRxPublisher : public rclcpp::Node {
+class CanRx : public rclcpp::Node {
  public:
-  CanRxPublisher() : Node("can_rx_publisher") {
+  CanRx() : Node("can_rx") {
     this->declare_parameter("interface", "vcan0");  // name of CAN interface
     if (!setup_can_socket()) {
       RCLCPP_ERROR(this->get_logger(), "Failed to setup CAN socket");
@@ -36,10 +36,10 @@ class CanRxPublisher : public rclcpp::Node {
     };
     cb_handle_ = param_subscriber_->add_parameter_callback("interface", cb);
     running_.store(true);
-    can_thread_ = std::thread(&CanRxPublisher::can_loop, this);
+    can_thread_ = std::thread(&CanRx::can_loop, this);
   }
 
-  ~CanRxPublisher() override {
+  ~CanRx() override {
     running_.store(false);
     if (sock_ >= 0)
       close(sock_);
@@ -155,7 +155,7 @@ class CanRxPublisher : public rclcpp::Node {
 
 int main(const int argc, char* argv[]) {
   rclcpp::init(argc, argv);
-  const auto node = std::make_shared<CanRxPublisher>();
+  const auto node = std::make_shared<CanRx>();
   rclcpp::spin(node);
   rclcpp::shutdown();
   return 0;

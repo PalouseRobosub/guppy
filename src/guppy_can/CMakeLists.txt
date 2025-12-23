@@ -16,16 +16,16 @@ find_package(rclcpp REQUIRED)
 find_package(guppy_msgs REQUIRED)
 
 # CAN RX publisher executable
-add_executable(can_rx_publisher src/can_rx_publisher.cpp)
-ament_target_dependencies(can_rx_publisher rclcpp guppy_msgs)
+add_executable(can_rx src/can_rx.cpp)
+ament_target_dependencies(can_rx rclcpp guppy_msgs)
 
 # CAN TX service executable
-add_executable(can_tx_server src/can_tx_server.cpp)
-ament_target_dependencies(can_tx_server rclcpp guppy_msgs)
+add_executable(can_tx src/can_tx.cpp)
+ament_target_dependencies(can_tx rclcpp guppy_msgs)
 
 install(TARGETS
-        can_rx_publisher
-        can_tx_server
+        can_rx
+        can_tx
 
         DESTINATION lib/${PROJECT_NAME})
 

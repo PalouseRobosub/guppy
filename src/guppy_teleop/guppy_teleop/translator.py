@@ -18,7 +18,7 @@ class Translator(Node):
             Int32MultiArray, "buttons", self.button_callback, 10
         )
 
-        self.publisher = self.create_publisher(Twist, "/teleop/chassis_twist", 10)
+        self.publisher = self.create_publisher(Twist, "/cmd_vel", 10)
 
         self.controller_state = {"dpad": None, "axes": None, "buttons": None}
 

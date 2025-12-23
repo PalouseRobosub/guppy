@@ -52,14 +52,4 @@ We are sponsored by many generous companies and people, including:
 - Tektronix
 - And many many other personal supporters through their generous donations!
 
-<img src="https://robosub.eecs.wsu.edu/sponsor-logos/osh-park.png" width="200">
-<img src="https://robosub.eecs.wsu.edu/sponsor-logos/blue-robotics.png" width="200">
-<img src="https://robosub.eecs.wsu.edu/sponsor-logos/real-digital.svg" width="200">
-<img src="https://robosub.eecs.wsu.edu/sponsor-logos/solidworks.png" width="200">
-<img src="https://robosub.eecs.wsu.edu/sponsor-logos/vectornav.png" width="200">
-<img src="https://robosub.eecs.wsu.edu/sponsor-logos/joescan.jpg" width="200">
-<img src="https://robosub.eecs.wsu.edu/sponsor-logos/waterlinked.png" width="200">
-<img src="https://robosub.eecs.wsu.edu/sponsor-logos/lattepanda.jpg" width="200">
-<img src="https://robosub.eecs.wsu.edu/sponsor-logos/tektronix.png" width="200">
-
 Do you like our work? Consider [sponsoring](https://foundation.wsu.edu/give/?fund=ffdf2195-2497-4361-b697-44e5024bf0b0) our team!

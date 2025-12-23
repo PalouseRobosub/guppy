@@ -1,6 +1,11 @@
 <p align="center">
     <img src="./guppy.png" width="400">
-    <h1 align="center">Guppy!</h1>
+</p>
+<h1 align="center">Guppy!</h1>
+<p align="center">
+    <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/palouserobosub/guppy">
+    <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/palouserobosub/guppy/ros.yaml">
+    <img alt="ROS2 version" src="https://img.shields.io/badge/ros2-jazzy-red?logo=ros">
 </p>
 
 Home to the ros2 code that runs Guppy: [Palouse RoboSub](https://robosub.eecs.wsu.edu/)'s 2026 AUV for the international RoboSub competition.
@@ -46,5 +51,15 @@ We are sponsored by many generous companies and people, including:
 - LattePanda
 - Tektronix
 - And many many other personal supporters through their generous donations!
+
+<img src="https://robosub.eecs.wsu.edu/sponsor-logos/osh-park.png" width="200">
+<img src="https://robosub.eecs.wsu.edu/sponsor-logos/blue-robotics.png" width="200">
+<img src="https://robosub.eecs.wsu.edu/sponsor-logos/real-digital.svg" width="200">
+<img src="https://robosub.eecs.wsu.edu/sponsor-logos/solidworks.png" width="200">
+<img src="https://robosub.eecs.wsu.edu/sponsor-logos/vectornav.png" width="200">
+<img src="https://robosub.eecs.wsu.edu/sponsor-logos/joescan.jpg" width="200">
+<img src="https://robosub.eecs.wsu.edu/sponsor-logos/waterlinked.png" width="200">
+<img src="https://robosub.eecs.wsu.edu/sponsor-logos/lattepanda.jpg" width="200">
+<img src="https://robosub.eecs.wsu.edu/sponsor-logos/tektronix.png" width="200">
 
 Do you like our work? Consider [sponsoring](https://foundation.wsu.edu/give/?fund=ffdf2195-2497-4361-b697-44e5024bf0b0) our team!

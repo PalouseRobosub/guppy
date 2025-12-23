@@ -16,6 +16,8 @@ public:
   ControlChassis() : Node("control_chassis") {
     thruster_interface = new T200Interface("can0", {0, 1, 2, 3, 4, 5, 6, 7});
 
+    // setup parameters...
+
     ChassisController::ChassisControllerParams parameters;
     Eigen::Matrix<double, 6, 8> temp_motor_coeff_matrix;
     //                               X    Y    Z  PHI   THETA
@@ -85,12 +87,22 @@ public:
     controller->update_desired_state(msg);
   }
 
+  /*
+    @brief get the motor coefficients from a thruster's pose
+    @param x the x loctaion in meters of the thruster
+    @param y the y loctaion in meters of the thruster
+    @param z the z loctaion in meters of the thruster
+    @param phi the phi of the thruster in spherical coordinates (degrees, positive up)
+    @param theta the theta of the thruster in spherical coordinates (degrees)
+  */
   Eigen::Vector<double, 6> get_single_motor_coefficients(double x, double y, double z, double phi, double theta) {
     Eigen::Vector<double, 6> out;
 
+    // convert to rads
     double p = (90 - phi) * (M_PI / 180);
     double t = (270 + theta) * (M_PI / 180);
 
+    // calculate to reuse
     double sinp = sin(p);
     double sint = sin(t);
     double cost = cos(t);

@@ -24,7 +24,7 @@ if(NOT CMAKE_CXX_STANDARD)
     add_executable(control_chassis src/control_chassis_node.cpp src/chassis_controller.cpp src/t200_interface.cpp)
     ament_target_dependencies(control_chassis control_toolbox geometry_msgs nav_msgs Eigen3 proxsuite)
     set_source_files_properties(src/chassis_controller.cpp PROPERTIES
-      COMPILE_OPTIONS "-O3;-DNDEBUG;-DPROXSUITE_VECTORIZE`"
+      COMPILE_OPTIONS "-O3;-DNDEBUG;-DPROXSUITE_VECTORIZE"
     )
 
     install(TARGETS

@@ -4,10 +4,13 @@
 namespace chassis_controller {
 
 bool ChassisController::control_loop() {
+  // helper to square the magnitude while maintaining direction
   Eigen::Vector<double, 6> desired_squared = desired_velocity_state_.cwiseAbs().array() * desired_velocity_state_.array();
   
   // calculate drag effect on sub
   Eigen::Vector<double, 6> drag_plain = params_.drag_coefficients.array() * params_.water_density * desired_squared.array() * params_.drag_areas.array();
+  
+  // apply the drag effect matrix
   auto drag_wrench = params_.drag_effect_matrix * drag_plain;
 
   // calculate gravity effect on sub
@@ -24,9 +27,9 @@ bool ChassisController::control_loop() {
   Eigen::Vector3d buoyancy_force_rotated = current_orientation_state_.inverse() * buoyancy_force;
   Eigen::Vector<double, 6> buoyancy_wrench; buoyancy_wrench << buoyancy_force_rotated, buoyancy_torque;
 
-  std::cout << "buoyancy_wrench: " << buoyancy_wrench.transpose() << std::endl;
-  std::cout << "gravity_wrench: " << gravity_wrench.transpose() << std::endl;
-  std::cout << "drag_wrench: " << drag_wrench.transpose() << std::endl;
+  // std::cout << "buoyancy_wrench: " << buoyancy_wrench.transpose() << std::endl;
+  // std::cout << "gravity_wrench: " << gravity_wrench.transpose() << std::endl;
+  // std::cout << "drag_wrench: " << drag_wrench.transpose() << std::endl;
 
   // calculate total feedforward
   Eigen::Vector<double, 6> feedforward = -(drag_wrench + buoyancy_wrench + gravity_wrench);
@@ -37,7 +40,7 @@ bool ChassisController::control_loop() {
     velocity_feedback[i] = velocity_pid[i].compute_command(desired_velocity_state_[i] - current_velocity_state_[i], (dt_us_ / 1000000.0));
   }
 
-  std::cout << "velocity_feedback: " << velocity_feedback.transpose() << std::endl;
+  // std::cout << "velocity_feedback: " << velocity_feedback.transpose() << std::endl;
 
 
   // calculate position and orientation pid
@@ -58,53 +61,59 @@ bool ChassisController::control_loop() {
   Eigen::Vector3d rotational_nudge = calculate_rotational_nudge();
   added_pose_nudge << position_nudge, rotational_nudge;
 
-  std::cout << "pose_nudge: " << added_pose_nudge.transpose() << std::endl;
-  std::cout << std::endl;
+  // std::cout << "pose_nudge: " << added_pose_nudge.transpose() << std::endl;
+  // std::cout << std::endl;
 
-  // write total wrench to the sub
+  // allocate thrust
   auto local_wrench = feedforward + velocity_feedback + added_pose_nudge;
-  std::cout << "local_wrench: " << local_wrench.transpose() << std::endl;
+  // std::cout << "local_wrench: " << local_wrench.transpose() << std::endl;
+  // std::cout << std::endl;
   motor_forces_ = allocate_thrust(local_wrench);
-  std::cout << std::endl;
 
+  // convert the Newtons of thrust to -1/1 throttle values
   Eigen::Vector<double, N_MOTORS> motor_throttles;
-
   for (int i=0; i<N_MOTORS; i++) {
     double max_in_dir = motor_forces_[i] < 0 ? params_.motor_lower_bounds[i] : params_.motor_upper_bounds[i];
     motor_throttles[i] = motor_forces_[i] / abs(max_in_dir);
   }
 
+  // write to hardware interface
   bool success = interface_->write(motor_throttles);
 
   return success;
 }
 
 Eigen::Vector3d ChassisController::calculate_rotational_nudge() {
+  // the new state flags of the rotational locks
   int new_orientation_lock = ALL_FREE; // == 0
 
+  // update state flags
   if (abs(desired_velocity_state_[3]) < params_.pose_lock_deadband[3]) new_orientation_lock |= ROLL_LOCK;
   if (abs(desired_velocity_state_[4]) < params_.pose_lock_deadband[4]) new_orientation_lock |= PITCH_LOCK;
   if (abs(desired_velocity_state_[5]) < params_.pose_lock_deadband[5]) new_orientation_lock |= YAW_LOCK;
   
+  // make sure to update the desired orientation if needed
   if ((int)current_orientation_lock_ != new_orientation_lock) {
     desired_orientation_state_ = current_orientation_state_;
     current_orientation_lock_ = (OrientationLockState)new_orientation_lock;
   }
 
-  std::cout << "lock_state: " << (int)new_orientation_lock << std::endl;
-  std::cout << "old_state: " << (int)current_orientation_lock_ << std::endl;
+  // std::cout << "lock_state: " << (int)new_orientation_lock << std::endl;
+  // std::cout << "old_state: " << (int)current_orientation_lock_ << std::endl;
 
+  // calculate the error quaternion
   Eigen::Quaternion q_err = current_orientation_state_.inverse() * desired_orientation_state_;
   Eigen::Vector3d axis_err = q_err.vec();
 
+  // flip to achieve shortest rotation
   if (q_err.w() < 0) axis_err = -axis_err;
 
-  std::cout << "c: " << current_orientation_state_.w() << " " << current_orientation_state_.vec().transpose() << std::endl;
-  std::cout << "d: " << desired_orientation_state_.w() << " " << desired_orientation_state_.vec().transpose() << std::endl;
-  std::cout << "axis_err: " << axis_err.transpose() << std::endl;
+  // std::cout << "c: " << current_orientation_state_.w() << " " << current_orientation_state_.vec().transpose() << std::endl;
+  // std::cout << "d: " << desired_orientation_state_.w() << " " << desired_orientation_state_.vec().transpose() << std::endl;
+  // std::cout << "axis_err: " << axis_err.transpose() << std::endl;
 
+  // calculate the output nudge with PID
   Eigen::Vector3d output_nudge = Eigen::Vector3d::Zero();
-
   if (ROLL_LOCK & current_orientation_lock_) output_nudge[0] = -1 * pose_pid[3].compute_command(axis_err[0], (dt_us_ / 1000000.0));
   if (PITCH_LOCK & current_orientation_lock_) output_nudge[1] = -1 * pose_pid[4].compute_command(axis_err[1], (dt_us_ / 1000000.0));
   if (YAW_LOCK & current_orientation_lock_) output_nudge[2] = -1 * pose_pid[5].compute_command(axis_err[2], (dt_us_ / 1000000.0));
@@ -126,6 +135,7 @@ ChassisController::ChassisController(ChassisControllerParams parameters, T200Int
 
 ChassisController::~ChassisController() {
   if (THREAD_RUNNING_.load()) {
+    // join thread and end it
     THREAD_RUNNING_.store(false);
     if (control_thread_.joinable()) {
       control_thread_.join();
@@ -133,22 +143,27 @@ ChassisController::~ChassisController() {
   }
 }
 
-Eigen::Vector<double, N_MOTORS> ChassisController::allocate_thrust(Eigen::Vector<double, 6> local_wrench) { 
+Eigen::Vector<double, N_MOTORS> ChassisController::allocate_thrust(Eigen::Vector<double, 6> local_wrench) {
+  // turn the least squares problem solution set into a QP program
   Eigen::VectorXd qp_g = - ( params_.motor_coefficients.transpose() * params_.axis_weight_matrix * local_wrench );
 
+  // update solver and solve
   qp_.update(std::nullopt, qp_g, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt);
   qp_.solve();
 
+  // warm start drastically decreases execution time
   qp_.settings.initial_guess = proxsuite::proxqp::InitialGuessStatus::WARM_START_WITH_PREVIOUS_RESULT;
   return qp_.results.x;
 }
 
 void ChassisController::update_current_state(nav_msgs::msg::Odometry::SharedPtr msg) {
+  // get message parts from the SharedPointer
   auto ros_odom = msg.get();
   auto ros_quat = ros_odom->pose.pose.orientation;
   auto ros_pos = ros_odom->pose.pose.position;
   auto ros_twist = ros_odom->twist.twist;
 
+  // update current velocity
   Eigen::Vector<double, 6> new_current_vel;
   new_current_vel << \
     ros_twist.linear.x, \
@@ -159,9 +174,11 @@ void ChassisController::update_current_state(nav_msgs::msg::Odometry::SharedPtr 
     ros_twist.angular.z;
   this->current_velocity_state_ = new_current_vel;
 
+  // update current orientation
   Eigen::Quaterniond quat(ros_quat.w, ros_quat.x, ros_quat.y, ros_quat.z);
   this->current_orientation_state_ = quat;
 
+  // update current linear position
   Eigen::Vector3d new_current_pos;
   new_current_pos << \
     ros_pos.x, \
@@ -174,6 +191,7 @@ void ChassisController::update_current_state(nav_msgs::msg::Odometry::SharedPtr 
 void ChassisController::update_desired_state(geometry_msgs::msg::Twist::SharedPtr msg) {
   auto ros_twist = msg.get();
 
+  // update desired state from ros2 message
   Eigen::Vector<double, 6> new_desired_state;
   new_desired_state << \
     ros_twist->linear.x, \
@@ -188,19 +206,27 @@ void ChassisController::update_desired_state(geometry_msgs::msg::Twist::SharedPt
 
 
 void ChassisController::update_parameters(ChassisControllerParams parameters) {
+  // set parameter object
   this->params_ = parameters;
 
+  // recalculate the motor coefficients into a QP problem
   Eigen::MatrixXd qp_A = params_.motor_coefficients;
   Eigen::MatrixXd qp_H = qp_A.transpose() * params_.axis_weight_matrix * qp_A;
+
+  // no equality constraints
   Eigen::MatrixXd qp_C = Eigen::MatrixXd::Identity(N_MOTORS, N_MOTORS);
 
+  // update QP settings from params
   qp_.settings.eps_abs = params_.qp_epsilon; // convergence amount
   qp_.settings.initial_guess = InitialGuessStatus::NO_INITIAL_GUESS;
   qp_.settings.verbose = false;
   qp_.settings.compute_timings = true;
 
+  // update QP vars again
   qp_.init(qp_H, std::nullopt, std::nullopt, std::nullopt, qp_C, params_.motor_lower_bounds, params_.motor_upper_bounds);
 
+  // set all PID gains
+  // this is slightly annoying, but the library requires a format like this
   this->velocity_pid[0].set_gains(params_.pid_gains_vel_linear[0], params_.pid_gains_vel_linear[1], params_.pid_gains_vel_linear[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
   this->velocity_pid[1].set_gains(params_.pid_gains_vel_linear[0], params_.pid_gains_vel_linear[1], params_.pid_gains_vel_linear[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
   this->velocity_pid[2].set_gains(params_.pid_gains_vel_linear[0], params_.pid_gains_vel_linear[1], params_.pid_gains_vel_linear[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
@@ -217,42 +243,57 @@ void ChassisController::update_parameters(ChassisControllerParams parameters) {
 }
 
 Eigen::Vector<double, N_MOTORS> ChassisController::get_motor_thrusts() {
+  // simple getter
   return this->motor_forces_;
 }
 
 void ChassisController::loop_runner() {
+  // init interface (send 0 to all...)
   interface_->initialize();
 
-  int min_us = 99999;
+  // keep track of min and max loop times
+  int min_us = 99999; // arbitraily large value...
   int max_us = 0;
+
+  // loop until atomic shutdown flag
   while (THREAD_RUNNING_.load()) {
+    // calculate next wake given dt_us
     auto next_wake = steady_clock::now() + microseconds(dt_us_);
     auto start = high_resolution_clock::now();
 
+    // actually run the control code here
     bool okay = control_loop();
 
+    // time the loop
     auto stop = high_resolution_clock::now();
     int duration_us = duration_cast<microseconds>(stop - start).count();
-    std::cout << duration_us << " us total loop time" << std::endl;
+    // std::cout << duration_us << " us total loop time" << std::endl;
 
+    // update min/max
     if (duration_us < min_us) min_us = duration_us;
     if (duration_us > max_us) max_us = duration_us;
 
+    // warn if error?
     if (!okay) std::cerr << "ERROR WRITING TO HARDWARE INTERFACE" << std::endl;
 
+    // wait until next loop to maintain dt_us consistency
     std::this_thread::sleep_until(next_wake);
   }
+
+  // shutdown interface (send 0 to all...)
   interface_->shutdown();
 
   std::cout << "\t\t min_us:" << min_us << "\tmax_us: " << max_us << std::endl;
 }
 
 void ChassisController::start() {
+  // startup the thread
   THREAD_RUNNING_.store(true);
   control_thread_ = std::thread(&ChassisController::loop_runner, this);
 }
 
 void ChassisController::stop() {
+  // end the thread (prefered over the destructor)
   THREAD_RUNNING_.store(false);
   if (control_thread_.joinable()) {
     control_thread_.join();

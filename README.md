@@ -1,7 +1,6 @@
-# Guppy!
-
 <p align="center">
-  <img src="./guppy.png" width="400">
+    <img src="./guppy.png" width="400">
+    <h1>Guppy!</h1>
 </p>
 
 Home to the ros2 code that runs Guppy: [Palouse RoboSub](https://robosub.eecs.wsu.edu/)'s 2026 AUV for the international RoboSub competition.

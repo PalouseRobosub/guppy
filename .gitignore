@@ -322,3 +322,4 @@ __marimo__/
 
 # debug information files
 *.dwo
+compile_commands.json

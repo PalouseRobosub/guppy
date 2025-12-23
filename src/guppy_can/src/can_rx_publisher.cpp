@@ -112,7 +112,7 @@ class CanRxPublisher : public rclcpp::Node {
       if (ids_[i] == 0) {
         ids_[i] = id;
         const std::string id_str = int_to_hex_str(id);
-        const std::string base = "/can/id";
+        const std::string base = "/can/id_0x";
         const std::string topic_str = base + id_str;
         publishers_[i] = this->create_publisher<guppy_msgs::msg::CanFrame>(topic_str, 10);
         RCLCPP_INFO(this->get_logger(), "created publisher %s\r\n", topic_str.c_str());

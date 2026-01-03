@@ -20,9 +20,13 @@ sudo apt install -y \
     ros-jazzy-desktop \
     ros-jazzy-ros-base \
     ros-jazzy-ros-gz-sim \
+    ros-jazzy-ros-gz-harmonic \
     ros-jazzy-ros-gz-bridge \
+    ros-jazzy-joint-state-publisher-gui \
+    ros-jazzy-robot-localization \
+    ros-jazzy-ros2-control \
+    ros-jazzy-pluginlib \
     ros-jazzy-xacro \
-    ros-jazzy
     python3-colcon-common-extensions \
     python3-rosdep \
 

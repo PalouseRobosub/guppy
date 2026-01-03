@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="./guppy.png" width="400">
+    <img src="./.github/guppy.png" width="400">
 </p>
 <h1 align="center">Guppy!</h1>
 <p align="center">

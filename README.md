@@ -8,7 +8,7 @@
     <img alt="ROS2 version" src="https://img.shields.io/badge/ros2-jazzy-red?logo=ros">
 </p>
 
-Home to the ROS2 code that runs Guppy: [Palouse RoboSub](https://robosub.eecs.wsu.edu/)'s 2026 AUV for the international RoboSub competition.
+Home to the ROS 2 code that runs Guppy: [Palouse RoboSub](https://robosub.eecs.wsu.edu/)'s 2026 AUV for the international RoboSub competition.
 
 ## Organization
 The code is broken up into several ros2 packages, in the [`src/`](./src/) directory:

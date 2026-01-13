@@ -1,6 +1,5 @@
-
-sudo apt upgrade
 sudo apt update
+sudo apt upgrade -y
 
 sudo apt install locales -y
 sudo locale-gen en_US en_US.UTF-8
@@ -20,13 +19,16 @@ sudo apt install -y \
     ros-jazzy-desktop \
     ros-jazzy-ros-base \
     ros-jazzy-ros-gz-sim \
-    ros-jazzy-ros-gz-harmonic \
+    ros-jazzy-ros-gz \
     ros-jazzy-ros-gz-bridge \
     ros-jazzy-joint-state-publisher-gui \
     ros-jazzy-robot-localization \
     ros-jazzy-ros2-control \
     ros-jazzy-pluginlib \
     ros-jazzy-xacro \
+    ros-jazzy-control-toolbox \
+    ros-jazzy-proxsuite \
+    ros-jazzy-marine-acoustic-msgs \
     python3-colcon-common-extensions \
     python3-rosdep \
 

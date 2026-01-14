@@ -31,10 +31,6 @@ class RawController:
 
             controllers.append(joystick)
 
-        print("Found controllers:")
-        for i in controllers:
-            print(i.get_name())
-
         for i in controllers:
             if i.get_name() == "Logitech Gamepad F310":
                 self._joystick = i
@@ -98,10 +94,10 @@ class RawControllerPublisher(Node):
             name_msg = String()
             name_msg.data = state["name"]
             self.name_publisher.publish(name_msg)
-            print(f"Published dpad: {dpad_msg.data}")
-            print(f"Published axes: {axes_msg.data}")
-            print(f"Published buttons: {button_msg.data}")
-            print(f"Published name: {name_msg.data}")
+            self.get_logger().debug("Published dpad: %s" % str(dpad_msg.data))
+            self.get_logger().debug("Published axes: %s" % str(axes_msg.data))
+            self.get_logger().debug("Published buttons: %s" % str(button_msg.data))
+            self.get_logger().debug("Published name: %s" % str(name_msg.data))
         except Exception as e:
             self.get_logger().error(f"Controller read failed: {e}")
 

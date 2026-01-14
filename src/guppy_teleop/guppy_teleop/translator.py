@@ -26,17 +26,17 @@ class Translator(Node):
         self.controller_name = None
 
     def dpad_callback(self, msg):
-        self.get_logger().info("Received dpad message: %s" % msg.data)
+        self.get_logger().debug("Received dpad message: %s" % msg.data)
         self.controller_state["dpad"] = msg.data
         self.update_controller_state()
 
     def axes_callback(self, msg):
-        self.get_logger().info("Received axes message: %s" % msg.data)
+        self.get_logger().debug("Received axes message: %s" % msg.data)
         self.controller_state["axes"] = msg.data
         self.update_controller_state()
 
     def button_callback(self, msg):
-        self.get_logger().info("Received button message: %s" % msg.data)
+        self.get_logger().debug("Received button message: %s" % msg.data)
         self.controller_state["buttons"] = msg.data
         self.update_controller_state()
 

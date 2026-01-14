@@ -87,8 +87,8 @@ def logitech_twist(controller_state):
 
 def series_x_twist(controller_state):
     twist = Twist()
-    twist.linear.x = controller_state["axes"][3] # right stick
-    twist.linear.y = -controller_state["axes"][4] # right stick
+    twist.linear.x = -controller_state["axes"][4] # right stick vertical
+    twist.linear.y = controller_state["axes"][3] # right stick horizontal
     twist.linear.z = -controller_state["axes"][1] # left stick
     twist.angular.x = float(controller_state["dpad"][1]) # pitch
     twist.angular.y = float(controller_state["dpad"][0]) # roll

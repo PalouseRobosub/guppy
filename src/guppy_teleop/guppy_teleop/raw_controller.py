@@ -1,12 +1,14 @@
-#!/usr/bin/env python3
-
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import pygame
+from pygame.joystick import JoystickType
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Float32MultiArray, Int32MultiArray
+from std_msgs.msg import Float32MultiArray, Int32MultiArray, String
 
+class ControllerModeError(Exception):
+    """Please ensure the Logitech Gamepad is in XInput mode using the switch on the bottom"""
+    pass
 
 class RawController:
     def __init__(self) -> None:
@@ -14,17 +16,35 @@ class RawController:
         pygame.joystick.init()
         self._joystick = None
 
+        controllers: List[JoystickType] = []
+
         # search for controllers
         for i in range(pygame.joystick.get_count()):
             joystick = pygame.joystick.Joystick(i)
             joystick.init()
 
-            if joystick:
-                self._joystick = joystick
-                break
+            controllers.append(joystick)
+
+        print("Found controllers:")
+        for i in controllers:
+            print(i.get_name())
+
+        for i in controllers:
+            if i.get_name() == "Logitech Gamepad F310":
+                self._joystick = i
+            elif i.get_name() == "Logitech Dual Action":
+                raise ControllerModeError()
+
+        if not self._joystick:
+            for i in controllers:
+                if i:
+                    self._joystick = i
+                    break
 
         if self._joystick is None:
             raise ValueError("No controller found")
+
+        self.gamepad_name = self._joystick.get_name()
 
         # get controller layout
         self.numaxes = self._joystick.get_numaxes()
@@ -41,6 +61,7 @@ class RawController:
             self._joystick.get_button(i) for i in range(self.numbuttons)
         ]
         state["hats"] = [self._joystick.get_hat(i) for i in range(self.numhats)]
+        state["name"] = self.gamepad_name
         return state
 
 
@@ -51,6 +72,7 @@ class RawControllerPublisher(Node):
         self.dpad_publisher = self.create_publisher(Int32MultiArray, "dpad", 10)
         self.axes_publisher = self.create_publisher(Float32MultiArray, "axes", 10)
         self.button_publisher = self.create_publisher(Int32MultiArray, "buttons", 10)
+        self.name_publisher = self.create_publisher(String, "gamepad_name", 10)
         
         self.controller = RawController()
         self.timer = self.create_timer(0.05, self.publish_controller)  # 20 Hz
@@ -67,9 +89,13 @@ class RawControllerPublisher(Node):
             button_msg = Int32MultiArray()
             button_msg.data = state["buttons"]
             self.button_publisher.publish(button_msg)
+            name_msg = String()
+            name_msg.data = state["name"]
+            self.name_publisher.publish(name_msg)
             print(f"Published dpad: {dpad_msg.data}")
             print(f"Published axes: {axes_msg.data}")
             print(f"Published buttons: {button_msg.data}")
+            print(f"Published name: {name_msg.data}")
         except Exception as e:
             self.get_logger().error(f"Controller read failed: {e}")
 

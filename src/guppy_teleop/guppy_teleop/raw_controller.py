@@ -1,14 +1,20 @@
 from typing import Any, Dict, List
 
 import pygame
-from pygame.joystick import JoystickType
 import rclpy
+from pygame.joystick import JoystickType
 from rclpy.node import Node
 from std_msgs.msg import Float32MultiArray, Int32MultiArray, String
 
+
 class ControllerModeError(Exception):
-    """Please ensure the Logitech Gamepad is in XInput mode using the switch on the bottom"""
-    pass
+    """Raised when the Logitech Gamepad is not in XInput mode."""
+
+    def __init__(self, msg=None):
+        if msg is None:
+            msg = "Please ensure the Logitech Gamepad is in XInput mode using the switch on the bottom."
+        super().__init__(msg)
+
 
 class RawController:
     def __init__(self) -> None:
@@ -73,7 +79,7 @@ class RawControllerPublisher(Node):
         self.axes_publisher = self.create_publisher(Float32MultiArray, "axes", 10)
         self.button_publisher = self.create_publisher(Int32MultiArray, "buttons", 10)
         self.name_publisher = self.create_publisher(String, "gamepad_name", 10)
-        
+
         self.controller = RawController()
         self.timer = self.create_timer(0.05, self.publish_controller)  # 20 Hz
 

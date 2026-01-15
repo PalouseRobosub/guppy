@@ -16,6 +16,7 @@
 #include <control_toolbox/control_toolbox/pid.hpp>
 #include "geometry_msgs/msg/twist.hpp"
 #include "nav_msgs/msg/odometry.hpp"
+#include "sensor_msgs/msg/imu.hpp"
 
 #include "guppy_control/t200_interface.hpp"
 

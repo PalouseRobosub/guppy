@@ -34,10 +34,10 @@ public:
     parameters.motor_coefficients = temp_motor_coeff_matrix;
     parameters.motor_lower_bounds << -49.42552, -49.42552, -49.42552, -49.42552, -49.42552, -49.42552, -49.42552, -49.42552;
     parameters.motor_upper_bounds << 64.23356, 64.23356, 64.23356, 64.23356, 64.23356, 64.23356, 64.23356, 64.23356;
-    parameters.pid_gains_vel_linear = {400, 0, 0};
-    parameters.pid_gains_vel_angular = {400, 0, 0};
-    parameters.pid_gains_pose_linear = {400, 0, 0};
-    parameters.pid_gains_pose_angular = {400, 0, 0};
+    parameters.pid_gains_vel_linear = {1, 0, 0};
+    parameters.pid_gains_vel_angular = {100000, 0, 0};
+    parameters.pid_gains_pose_linear = {1, 0, 0};
+    parameters.pid_gains_pose_angular = {1, 0, 0};
     parameters.drag_coefficients << 0,0,0,0,0,0;
     parameters.drag_areas<< 1, 1, 1, 1, 1, 1;
     parameters.drag_effect_matrix = Eigen::Matrix<double, 6, 6>::Identity();
@@ -80,9 +80,12 @@ public:
   }
 
   void odom_callback(sensor_msgs::msg::Imu::SharedPtr msg) {
-    nav_msgs::msg::Odometry::SharedPtr msg2;
-    msg2.get().pose.pose.orientation = msg.get()->orientation;
-    msg2.get().twist.twist.angular = msg.get()->angular_velocity;
+    nav_msgs::msg::Odometry msg2;
+    msg2.pose.pose.orientation = msg.get()->orientation;
+    msg2.twist.twist.angular = msg.get()->angular_velocity;
+
+    msg2;
+
     controller->update_current_state(msg2);
   }
 

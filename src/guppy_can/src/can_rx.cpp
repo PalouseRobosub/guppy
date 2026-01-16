@@ -14,12 +14,14 @@
 
 #define MAX_PUBLISHERS 100
 
+constexpr uint32_t CAN_ID_BIT_MASK = 1u << 10;
+
 using namespace std::chrono_literals;
 
 class CanRx : public rclcpp::Node {
  public:
   CanRx() : Node("can_rx") {
-    this->declare_parameter("interface", "vcan0");  // name of CAN interface
+    this->declare_parameter("interface", "can0");  // name of CAN interface
     if (!setup_can_socket()) {
       RCLCPP_ERROR(this->get_logger(), "Failed to setup CAN socket");
       return;
@@ -85,6 +87,7 @@ class CanRx : public rclcpp::Node {
     return true;
   }
 
+  // checks if a publisher has been created
   int check_id(const int id) const {
     for (int i = 0; i < MAX_PUBLISHERS; i++) {
       if (ids_[i] == id)
@@ -92,7 +95,8 @@ class CanRx : public rclcpp::Node {
     }
     return -1;
   }
-
+  
+  // publishes data from can frame to ros topic
   void publish_bytes(const int idx, __u8 data[], const int len) const {
     guppy_msgs::msg::CanFrame frame;
     frame.can_id = ids_[idx];
@@ -107,6 +111,7 @@ class CanRx : public rclcpp::Node {
     RCLCPP_DEBUG(this->get_logger(), "\r\n");
   }
 
+  // creates a ros publisher for a given can id
   int create_id_publisher(const int id) {
     for (int i = 0; i < MAX_PUBLISHERS; i++) {
       if (ids_[i] == 0) {
@@ -134,8 +139,14 @@ class CanRx : public rclcpp::Node {
 
       const int nbytes = read(sock_, &frame, sizeof(can_frame));
 
+      // checks for read error
       if (nbytes < 0) {
         RCLCPP_ERROR(this->get_logger(), "Reading from CAN frame failed");
+        return;
+      }
+      
+      // do not publish to ros if msb is 1
+      if (frame.can_id & CAN_ID_BIT_MASK) {
         return;
       }
 

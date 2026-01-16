@@ -134,7 +134,7 @@ public:
         @brief update the current robot position/orientation/velocity state from a Odometry message
         @param msg a SharedPointer to an Odometry ROS2 message object
     */
-    void update_current_state(nav_msgs::msg::Odometry msg);
+    void update_current_state(nav_msgs::msg::Odometry::SharedPtr msg);
 
     /*
         @brief update the desired robot velocity target state from a Twist message

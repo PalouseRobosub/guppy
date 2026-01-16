@@ -34,10 +34,10 @@ public:
     parameters.motor_coefficients = temp_motor_coeff_matrix;
     parameters.motor_lower_bounds << -49.42552, -49.42552, -49.42552, -49.42552, -49.42552, -49.42552, -49.42552, -49.42552;
     parameters.motor_upper_bounds << 64.23356, 64.23356, 64.23356, 64.23356, 64.23356, 64.23356, 64.23356, 64.23356;
-    parameters.pid_gains_vel_linear = {1, 0, 0};
-    parameters.pid_gains_vel_angular = {100000, 0, 0};
-    parameters.pid_gains_pose_linear = {1, 0, 0};
-    parameters.pid_gains_pose_angular = {1, 0, 0};
+    parameters.pid_gains_vel_linear = {400000000000, 0, 0};
+    parameters.pid_gains_vel_angular = {400000000000, 0, 0};
+    parameters.pid_gains_pose_linear = {0, 0, 0};
+    parameters.pid_gains_pose_angular = {0, 0, 0};
     parameters.drag_coefficients << 0,0,0,0,0,0;
     parameters.drag_areas<< 1, 1, 1, 1, 1, 1;
     parameters.drag_effect_matrix = Eigen::Matrix<double, 6, 6>::Identity();
@@ -55,7 +55,7 @@ public:
     for (int i=0; i<8; i++) {
       sim_motor_publishers_[i] = this->create_publisher<std_msgs::msg::Float32>("/sim/motor_forces/m_"+std::to_string(i), 10);
     }
-    odom_subscription_ = this->create_subscription<sensor_msgs::msg::Imu>("/imu",10,std::bind(&ControlChassis::odom_callback, this, std::placeholders::_1));
+    odom_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("/odom",10,std::bind(&ControlChassis::odom_callback, this, std::placeholders::_1));
     cmd_vel_subscription_ = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel",10,std::bind(&ControlChassis::cmdvel_callback, this, std::placeholders::_1));
 
 
@@ -79,14 +79,8 @@ public:
     delete thruster_interface;
   }
 
-  void odom_callback(sensor_msgs::msg::Imu::SharedPtr msg) {
-    nav_msgs::msg::Odometry msg2;
-    msg2.pose.pose.orientation = msg.get()->orientation;
-    msg2.twist.twist.angular = msg.get()->angular_velocity;
-
-    msg2;
-
-    controller->update_current_state(msg2);
+  void odom_callback(nav_msgs::msg::Odometry::SharedPtr msg) {
+    controller->update_current_state(msg);
   }
 
   void cmdvel_callback(geometry_msgs::msg::Twist::SharedPtr msg) {
@@ -126,7 +120,7 @@ public:
 
 private:
   rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr sim_motor_publishers_[8];
-  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr odom_subscription_;
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_subscription_;
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_subscription_;
   rclcpp::TimerBase::SharedPtr timer_;
 

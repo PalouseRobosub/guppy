@@ -38,9 +38,7 @@ bool ChassisController::control_loop() {
   Eigen::Vector<double, 6> velocity_feedback;
   for (int i=0; i<6; i++) {
     velocity_feedback[i] = -1 * velocity_pid[i].compute_command(desired_velocity_state_[i] - current_velocity_state_[i], (dt_us_ / 1000000.0));
-    if (i == 5) {
-      velocity_feedback[i] *= -1;
-    }
+    if (i == 5 || i == 2) velocity_feedback[i] *= -1;
   }
 
   std::cout << "velocity_feedback: " << velocity_feedback.transpose() << std::endl;
@@ -54,7 +52,8 @@ bool ChassisController::control_loop() {
   // positions...
   for (int i=0; i<3; i++) {
     if (abs(desired_velocity_state_[i]) < params_.pose_lock_deadband[i]) {
-      position_nudge[i] = pose_pid[i].compute_command(desired_position_state_[i] - current_position_state_[i], (dt_us_ / 1000000.0));
+      position_nudge[i] = -1 * pose_pid[i].compute_command(desired_position_state_[i] - current_position_state_[i], (dt_us_ / 1000000.0));
+      if (i == 2) position_nudge[i] *= -1;
     } else {
       desired_position_state_[i] = current_position_state_[i];
     }
@@ -63,6 +62,10 @@ bool ChassisController::control_loop() {
   // orientation...
   Eigen::Vector3d rotational_nudge = calculate_rotational_nudge();
   added_pose_nudge << position_nudge, rotational_nudge;
+
+  std::cout << "c pos: " << current_position_state_.transpose() << std::endl;
+  std::cout << "d pos: " << desired_position_state_.transpose() << std::endl;
+
 
   std::cout << "pose_nudge: " << added_pose_nudge.transpose() << std::endl;
   std::cout << std::endl;
@@ -119,7 +122,7 @@ Eigen::Vector3d ChassisController::calculate_rotational_nudge() {
   Eigen::Vector3d output_nudge = Eigen::Vector3d::Zero();
   if (ROLL_LOCK & current_orientation_lock_) output_nudge[0] = -1 * pose_pid[3].compute_command(axis_err[0], (dt_us_ / 1000000.0));
   if (PITCH_LOCK & current_orientation_lock_) output_nudge[1] = -1 * pose_pid[4].compute_command(axis_err[1], (dt_us_ / 1000000.0));
-  if (YAW_LOCK & current_orientation_lock_) output_nudge[2] = pose_pid[5].compute_command(axis_err[2], (dt_us_ / 1000000.0));
+  if (YAW_LOCK & current_orientation_lock_) output_nudge[2] = -1 * pose_pid[5].compute_command(axis_err[2], (dt_us_ / 1000000.0));
 
   return output_nudge;
 }
@@ -159,12 +162,12 @@ Eigen::Vector<double, N_MOTORS> ChassisController::allocate_thrust(Eigen::Vector
   return qp_.results.x;
 }
 
-void ChassisController::update_current_state(nav_msgs::msg::Odometry msg) {
-  // get message parts from the SharedPointer
+void ChassisController::update_current_state(nav_msgs::msg::Odometry::SharedPtr msg) {
+  // get message parts from the Shared Pointer
   auto ros_odom = msg;
-  auto ros_quat = ros_odom.pose.pose.orientation;
-  auto ros_pos = ros_odom.pose.pose.position;
-  auto ros_twist = ros_odom.twist.twist;
+  auto ros_quat = ros_odom->pose.pose.orientation;
+  auto ros_pos = ros_odom->pose.pose.position;
+  auto ros_twist = ros_odom->twist.twist;
 
   // update current velocity
   Eigen::Vector<double, 6> new_current_vel;

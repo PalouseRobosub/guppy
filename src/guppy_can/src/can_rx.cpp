@@ -141,13 +141,13 @@ class CanRx : public rclcpp::Node {
 
       // checks for read error
       if (nbytes < 0) {
-        RCLCPP_ERROR(this->get_logger(), "Reading from CAN frame failed");
-        return;
+        RCLCPP_WARN(this->get_logger(), "Reading from CAN frame failed");
+        continue;
       }
       
       // do not publish to ros if msb is 1
       if (frame.can_id & CAN_ID_BIT_MASK) {
-        return;
+        continue;
       }
 
       if (int idx = check_id(frame.can_id); idx != -1) {

@@ -42,7 +42,7 @@ public:
     parameters.drag_areas<< 1, 1, 1, 1, 1, 1;
     parameters.drag_effect_matrix = Eigen::Matrix<double, 6, 6>::Identity();
     parameters.water_density = 1000; // kg/m^3
-    parameters.robot_volume = 0.02; // m^3
+    parameters.robot_volume = 0.023; // m^3
     parameters.robot_mass = 20; // kg
     parameters.center_of_buoyancy << 0, 0, 0.04;
     parameters.qp_epsilon = 1e-3;

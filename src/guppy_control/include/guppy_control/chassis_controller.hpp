@@ -1,7 +1,7 @@
 #ifndef GUPPY_CHASSIS_CONTROLLER_H
 #define GUPPY_CHASSIS_CONTROLLER_H
 
-#define GRAVITY 9.80665
+#define GRAVITY 9.8
 #define N_MOTORS 8
 
 #include <chrono>

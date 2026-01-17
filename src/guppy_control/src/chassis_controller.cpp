@@ -16,7 +16,7 @@ bool ChassisController::control_loop() {
   // calculate gravity effect on sub
   Eigen::Vector3d gravity_force;
   gravity_force << 0, 0, -(GRAVITY * params_.robot_mass);
-  gravity_force = current_orientation_state_ * gravity_force;
+  gravity_force = current_orientation_state_.inverse() * gravity_force;
   Eigen::Vector<double, 6> gravity_wrench;
   gravity_wrench << gravity_force, 0, 0, 0;
 
@@ -32,7 +32,7 @@ bool ChassisController::control_loop() {
   std::cout << "drag_wrench: " << drag_wrench.transpose() << std::endl;
 
   // calculate total feedforward
-  Eigen::Vector<double, 6> feedforward = -(drag_wrench + buoyancy_wrench + gravity_wrench);
+  Eigen::Vector<double, 6> feedforward = (drag_wrench + buoyancy_wrench + gravity_wrench);
 
   // calculate PID of current velocity error
   Eigen::Vector<double, 6> velocity_feedback;
@@ -53,7 +53,7 @@ bool ChassisController::control_loop() {
   for (int i=0; i<3; i++) {
     if (abs(desired_velocity_state_[i]) < params_.pose_lock_deadband[i]) {
       position_nudge[i] = -1 * pose_pid[i].compute_command(desired_position_state_[i] - current_position_state_[i], (dt_us_ / 1000000.0));
-      if (i == 2) position_nudge[i] *= -1;
+      // if (i == 2) position_nudge[i] *= -1;
     } else {
       desired_position_state_[i] = current_position_state_[i];
     }

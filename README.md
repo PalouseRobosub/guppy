@@ -36,6 +36,19 @@ To contribute code:
 5. Document and comment all of your code!
 6. Ensure all checks pass in the GitHub Action attached to the Pull Request.
 
+## Run this in Docker
+It is possible to run ROS2 in a docker container if you do not wish to setup a VM
+To do so either run the bash script in util/run_in_docker.sh with docker installed which will build this codebase and start a docker container with host usb access, input passthrough and a VNC server on localhost:5900
+or:
+1. Install Docker (System Dependant)
+2. At the project root run "docker build --tag guppy ."
+3. To run the container with an open VNC port, and with input passthrough for gamepads run:
+"docker run --rm -p 5900:5900 -v /dev/input:/dev/input -it guppy"
+4. Connect to localhost:5900 with a VNC client
+5. Shell will be already sourced and ready to run ros2 commands
+
+It is suggested to rerun build and create a new docker container after any code changes
+
 
 ## Contact and Sponsorship
 Need to get in touch? Reach out to `robosub.vcea@wsu.edu`.

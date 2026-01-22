@@ -28,7 +28,7 @@ It is imported from `guppy_msgs` and can be found at [guppy_msgs/msg/CanFrame.ms
 ### Interface Selection
 
 The CAN interface that `can_rx` listens on is controlled by the `interface` parameter.
-By default, it is set to `vcan0`. The interface can be hot-swapped without restarting the
+By default, it is set to `can0`. The interface can be hot-swapped without restarting the
 node using the following command:
 ```shell
 ros2 param set can_rx interface <can_interface_name>

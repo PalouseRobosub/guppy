@@ -26,7 +26,10 @@ if(NOT CMAKE_CXX_STANDARD)
     set_source_files_properties(src/chassis_controller.cpp PROPERTIES
       COMPILE_OPTIONS "-O3;-DNDEBUG;-DPROXSUITE_VECTORIZE"
     )
-
+    install(DIRECTORY
+      launch
+      DESTINATION share/${PROJECT_NAME}/
+    )
     install(TARGETS
       control_chassis
 

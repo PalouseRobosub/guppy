@@ -1,7 +1,7 @@
 <launch>
-    <!-- <node pkg="guppy_localization" exec="barometer_pub"/>
+    <node pkg="guppy_localization" exec="barometer_pub"/>
     <include file="$(find-pkg-share waterlinked_dvl_driver)/launch/dvl.launch.py"></include>
-    <include file="$(find-pkg-share vectornav)/launch/vectornav.launch.py"></include> -->
+    <include file="$(find-pkg-share vectornav)/launch/vectornav.launch.py"></include>
     <node pkg="robot_localization" exec="ekf_node">
         <param from="$(find-pkg-share guppy_localization)/config/ekf.yaml" />
     </node>

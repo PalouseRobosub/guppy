@@ -22,15 +22,15 @@ bool ChassisController::control_loop() {
 
   // calculate buoyant effect on sub
   Eigen::Vector3d buoyancy_force; buoyancy_force << 0, 0, params_.water_density * params_.robot_volume * GRAVITY;
-  // Eigen::Vector3d r_vec = current_orientation_state_.inverse() * params_.center_of_buoyancy;
-  // Eigen::Vector3d buoyancy_torque = r_vec.cross(buoyancy_force);
+  Eigen::Vector3d r_vec = current_orientation_state_.inverse() * params_.center_of_buoyancy;
+  Eigen::Vector3d buoyancy_torque = r_vec.cross(buoyancy_force);
   Eigen::Vector3d buoyancy_force_rotated = current_orientation_state_.inverse() * buoyancy_force;
   Eigen::Vector<double, 6> buoyancy_wrench;
-  buoyancy_wrench << -buoyancy_force_rotated[0], -buoyancy_force_rotated[1], buoyancy_force_rotated[2], 0, 0, 0;
+  buoyancy_wrench << -buoyancy_force_rotated[0], -buoyancy_force_rotated[1], buoyancy_force_rotated[2], buoyancy_torque;
 
-  std::cout << "buoyancy_wrench: " << buoyancy_wrench.transpose() << std::endl;
-  std::cout << "gravity_wrench: " << gravity_wrench.transpose() << std::endl;
-  std::cout << "drag_wrench: " << drag_wrench.transpose() << std::endl;
+  // std::cout << "buoyancy_wrench: " << buoyancy_wrench.transpose() << std::endl;
+  // std::cout << "gravity_wrench: " << gravity_wrench.transpose() << std::endl;
+  // std::cout << "drag_wrench: " << drag_wrench.transpose() << std::endl;
 
   // calculate total feedforward
   Eigen::Vector<double, 6> feedforward = -(drag_wrench + buoyancy_wrench + gravity_wrench);
@@ -42,7 +42,7 @@ bool ChassisController::control_loop() {
     if (i == 5 || i == 2) velocity_feedback[i] *= -1;
   }
 
-  std::cout << "velocity_feedback: " << velocity_feedback.transpose() << std::endl;
+  // std::cout << "velocity_feedback: " << velocity_feedback.transpose() << std::endl;
 
 
   // calculate position and orientation pid
@@ -64,17 +64,15 @@ bool ChassisController::control_loop() {
   Eigen::Vector3d rotational_nudge = calculate_rotational_nudge();
   added_pose_nudge << position_nudge, rotational_nudge;
 
-  std::cout << "c pos: " << current_position_state_.transpose() << std::endl;
-  std::cout << "d pos: " << desired_position_state_.transpose() << std::endl;
-
-
-  std::cout << "pose_nudge: " << added_pose_nudge.transpose() << std::endl;
-  std::cout << std::endl;
+  // std::cout << "c pos: " << current_position_state_.transpose() << std::endl;
+  // std::cout << "d pos: " << desired_position_state_.transpose() << std::endl;
+  // std::cout << "pose_nudge: " << added_pose_nudge.transpose() << std::endl;
+  // std::cout << std::endl;
 
   // allocate thrust
   auto local_wrench = feedforward + velocity_feedback + added_pose_nudge;
-  std::cout << "local_wrench: " << local_wrench.transpose() << std::endl;
-  std::cout << std::endl;
+  // std::cout << "local_wrench: " << local_wrench.transpose() << std::endl;
+  // std::cout << std::endl;
   motor_forces_ = allocate_thrust(local_wrench);
 
   // convert the Newtons of thrust to -1/1 throttle values
@@ -105,8 +103,8 @@ Eigen::Vector3d ChassisController::calculate_rotational_nudge() {
     current_orientation_lock_ = (OrientationLockState)new_orientation_lock;
   }
 
-  std::cout << "lock_state: " << (int)new_orientation_lock << std::endl;
-  std::cout << "old_state: " << (int)current_orientation_lock_ << std::endl;
+  // std::cout << "lock_state: " << (int)new_orientation_lock << std::endl;
+  // std::cout << "old_state: " << (int)current_orientation_lock_ << std::endl;
 
   // calculate the error quaternion
   Eigen::Quaternion q_err = current_orientation_state_.inverse() * desired_orientation_state_;
@@ -115,9 +113,9 @@ Eigen::Vector3d ChassisController::calculate_rotational_nudge() {
   // flip to achieve shortest rotation
   if (q_err.w() < 0) axis_err = -axis_err;
 
-  std::cout << "c: " << current_orientation_state_.w() << " " << current_orientation_state_.vec().transpose() << std::endl;
-  std::cout << "d: " << desired_orientation_state_.w() << " " << desired_orientation_state_.vec().transpose() << std::endl;
-  std::cout << "axis_err: " << axis_err.transpose() << std::endl;
+  // std::cout << "c: " << current_orientation_state_.w() << " " << current_orientation_state_.vec().transpose() << std::endl;
+  // std::cout << "d: " << desired_orientation_state_.w() << " " << desired_orientation_state_.vec().transpose() << std::endl;
+  // std::cout << "axis_err: " << axis_err.transpose() << std::endl;
 
   // calculate the output nudge with PID
   Eigen::Vector3d output_nudge = Eigen::Vector3d::Zero();
@@ -290,7 +288,7 @@ void ChassisController::loop_runner() {
   // shutdown interface (send 0 to all...)
   interface_->shutdown();
 
-  std::cout << "\t\t min_us:" << min_us << "\tmax_us: " << max_us << std::endl;
+  // std::cout << "\t\t min_us:" << min_us << "\tmax_us: " << max_us << std::endl;
 }
 
 void ChassisController::start() {

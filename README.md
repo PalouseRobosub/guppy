@@ -19,7 +19,7 @@ To install, run the following on a brand new [Ubuntu 24.04](https://ubuntu.com/b
 sudo apt install -y curl
 curl https://raw.githubusercontent.com/PalouseRobosub/guppy/refs/heads/main/util/bootstrap.sh | bash
 
-# to install GNCea:
+# to install the GNCea simulator:
 git clone https://github.com/palouserobosub/gncea
 ```
 

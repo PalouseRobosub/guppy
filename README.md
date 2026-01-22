@@ -10,6 +10,42 @@
 
 Home to the ROS 2 code that runs Guppy: [Palouse RoboSub](https://robosub.eecs.wsu.edu/)'s 2026 AUV for the international RoboSub competition.
 
+## Getting Started
+
+### Installation
+To install, run the following on a brand new [Ubuntu 24.04](https://ubuntu.com/blog/tag/ubuntu-24-04-lts) installation:
+
+```bash
+sudo apt install -y curl
+curl https://raw.githubusercontent.com/PalouseRobosub/guppy/refs/heads/main/util/bootstrap.sh | bash
+
+# to install GNCea:
+git clone https://github.com/palouserobosub/gncea
+```
+
+This runs the [`utils/boostrap.sh`](./utils/bootstrap.sh) script. If you do not use the install script, please be sure to *clone the repo recursively* with `--recurse-submodules` for all of the vendor packages.
+
+### Building
+```bash
+cd ~/guppy # (or ~/gncea for sim)
+colcon build
+source install/setup.bash
+```
+
+### Running
+```bash
+# to run on hardware:
+ros2 launch guppy hw.xml
+
+# to run simulated codebase:
+ros2 launch guppy sim.xml
+
+# to run teleop control software:
+ros2 launch guppy teleop.xml
+```
+Do not run `hw.xml` and `sim.xml` simultaneously.
+
+
 ## Organization
 The code is broken up into several ros2 packages, in the [`src/`](./src/) directory:
 - [**`guppy`**](./src/guppy/#readme): A metapackage that contains dependencies of all other packages, as well as bringup and launch scripts.
@@ -25,6 +61,8 @@ The code is broken up into several ros2 packages, in the [`src/`](./src/) direct
 - [**`guppy_tasks`**](./src/guppy_tasks/#readme): Action nodes for each of the tasks in the game. Control will be shifted from Nav2 to the individual task nodes via behavior trees.
 - [**`guppy_teleop`**](./src/guppy_teleop/#readme): Code and nodes for operating the robot with a human operator (for testing and general fun).
 - [**`guppy_vision`**](./src/guppy_vision/#readme): Object detection, camera publishers, and potentially VSLAM.
+
+Each package has two launch files: `hw.xml` and `core.xml`. The `hw` (hardware) launch file is almost always a superset of the `core` functionality.
 
 ## Contributing
 To contribute code:

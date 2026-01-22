@@ -34,17 +34,17 @@ public:
     parameters.motor_coefficients = temp_motor_coeff_matrix;
     parameters.motor_lower_bounds << -49.42552, -49.42552, -49.42552, -49.42552, -49.42552, -49.42552, -49.42552, -49.42552;
     parameters.motor_upper_bounds << 64.23356, 64.23356, 64.23356, 64.23356, 64.23356, 64.23356, 64.23356, 64.23356;
-    parameters.pid_gains_vel_linear = {400, 0, 0};
-    parameters.pid_gains_vel_angular = {400, 0, 0};
-    parameters.pid_gains_pose_linear = {400, 0, 0};
-    parameters.pid_gains_pose_angular = {400, 0, 0};
+    parameters.pid_gains_vel_linear = {100, 0, 0};
+    parameters.pid_gains_vel_angular = {100, 0, 0};
+    parameters.pid_gains_pose_linear = {0, 0, 0};
+    parameters.pid_gains_pose_angular = {20, 0, 1};
     parameters.drag_coefficients << 0,0,0,0,0,0;
     parameters.drag_areas<< 1, 1, 1, 1, 1, 1;
     parameters.drag_effect_matrix = Eigen::Matrix<double, 6, 6>::Identity();
     parameters.water_density = 1000; // kg/m^3
-    parameters.robot_volume = 0; // m^3
-    parameters.robot_mass = 0; // kg
-    parameters.center_of_buoyancy << 0, 0, 1;
+    parameters.robot_volume = 0.020; // m^3
+    parameters.robot_mass = 15; // kg
+    parameters.center_of_buoyancy << 0, 0, 0;
     parameters.qp_epsilon = 1e-3;
     parameters.pose_lock_deadband << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1;
 
@@ -55,8 +55,10 @@ public:
     for (int i=0; i<8; i++) {
       sim_motor_publishers_[i] = this->create_publisher<std_msgs::msg::Float32>("/sim/motor_forces/m_"+std::to_string(i), 10);
     }
+
     odom_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("/odom",10,std::bind(&ControlChassis::odom_callback, this, std::placeholders::_1));
     cmd_vel_subscription_ = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel",10,std::bind(&ControlChassis::cmdvel_callback, this, std::placeholders::_1));
+
 
 
     auto timer_callback = [this]() -> void {

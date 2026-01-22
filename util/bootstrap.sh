@@ -31,6 +31,7 @@ sudo apt install -y \
     ros-jazzy-marine-acoustic-msgs \
     ros-jazzy-spinnaker-camera-driver \
     python3-colcon-common-extensions \
+    python3-pygame \
     python3-rosdep \
 
 echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc

@@ -16,20 +16,21 @@ bool ChassisController::control_loop() {
   // calculate gravity effect on sub
   Eigen::Vector3d gravity_force;
   gravity_force << 0, 0, -(GRAVITY * params_.robot_mass);
-  gravity_force = current_orientation_state_ * gravity_force;
+  gravity_force = current_orientation_state_.inverse() * gravity_force;
   Eigen::Vector<double, 6> gravity_wrench;
-  gravity_wrench << gravity_force, 0, 0, 0;
+  gravity_wrench << -gravity_force[0], -gravity_force[1], gravity_force[2], 0, 0, 0;
 
   // calculate buoyant effect on sub
   Eigen::Vector3d buoyancy_force; buoyancy_force << 0, 0, params_.water_density * params_.robot_volume * GRAVITY;
   Eigen::Vector3d r_vec = current_orientation_state_ * params_.center_of_buoyancy;
   Eigen::Vector3d buoyancy_torque = r_vec.cross(buoyancy_force);
   Eigen::Vector3d buoyancy_force_rotated = current_orientation_state_.inverse() * buoyancy_force;
-  Eigen::Vector<double, 6> buoyancy_wrench; buoyancy_wrench << buoyancy_force_rotated, buoyancy_torque;
+  Eigen::Vector<double, 6> buoyancy_wrench;
+  buoyancy_wrench << -buoyancy_force_rotated[0], -buoyancy_force_rotated[1], buoyancy_force_rotated[2], buoyancy_torque;
 
-  // std::cout << "buoyancy_wrench: " << buoyancy_wrench.transpose() << std::endl;
-  // std::cout << "gravity_wrench: " << gravity_wrench.transpose() << std::endl;
-  // std::cout << "drag_wrench: " << drag_wrench.transpose() << std::endl;
+  std::cout << "buoyancy_wrench: " << buoyancy_wrench.transpose() << std::endl;
+  std::cout << "gravity_wrench: " << gravity_wrench.transpose() << std::endl;
+  std::cout << "drag_wrench: " << drag_wrench.transpose() << std::endl;
 
   // calculate total feedforward
   Eigen::Vector<double, 6> feedforward = -(drag_wrench + buoyancy_wrench + gravity_wrench);
@@ -37,10 +38,11 @@ bool ChassisController::control_loop() {
   // calculate PID of current velocity error
   Eigen::Vector<double, 6> velocity_feedback;
   for (int i=0; i<6; i++) {
-    velocity_feedback[i] = velocity_pid[i].compute_command(desired_velocity_state_[i] - current_velocity_state_[i], (dt_us_ / 1000000.0));
+    velocity_feedback[i] = -1 * velocity_pid[i].compute_command(desired_velocity_state_[i] - current_velocity_state_[i], (dt_us_ / 1000000.0));
+    if (i == 5 || i == 2) velocity_feedback[i] *= -1;
   }
 
-  // std::cout << "velocity_feedback: " << velocity_feedback.transpose() << std::endl;
+  std::cout << "velocity_feedback: " << velocity_feedback.transpose() << std::endl;
 
 
   // calculate position and orientation pid
@@ -51,23 +53,29 @@ bool ChassisController::control_loop() {
   // positions...
   for (int i=0; i<3; i++) {
     if (abs(desired_velocity_state_[i]) < params_.pose_lock_deadband[i]) {
-      position_nudge[i] = pose_pid[i].compute_command(desired_position_state_[i] - current_position_state_[i], (dt_us_ / 1000000.0));
+      position_nudge[i] = -1 * pose_pid[i].compute_command(desired_position_state_[i] - current_position_state_[i], (dt_us_ / 1000000.0));
+      if (i == 2) position_nudge[i] *= -1;
     } else {
       desired_position_state_[i] = current_position_state_[i];
     }
   }
 
+  // position_nudge = current_orientation_state_.inverse() * position_nudge;
+  // position_nudge = Eigen::Vector3d(-position_nudge[0], -position_nudge[1], position_nudge[2]);
+  
   // orientation...
   Eigen::Vector3d rotational_nudge = calculate_rotational_nudge();
   added_pose_nudge << position_nudge, rotational_nudge;
 
-  // std::cout << "pose_nudge: " << added_pose_nudge.transpose() << std::endl;
-  // std::cout << std::endl;
+  std::cout << "c pos: " << current_position_state_.transpose() << std::endl;
+  std::cout << "d pos: " << desired_position_state_.transpose() << std::endl;
+  std::cout << "pose_nudge: " << added_pose_nudge.transpose() << std::endl;
+  std::cout << std::endl;
 
   // allocate thrust
   auto local_wrench = feedforward + velocity_feedback + added_pose_nudge;
-  // std::cout << "local_wrench: " << local_wrench.transpose() << std::endl;
-  // std::cout << std::endl;
+  std::cout << "local_wrench: " << local_wrench.transpose() << std::endl;
+  std::cout << std::endl;
   motor_forces_ = allocate_thrust(local_wrench);
 
   // convert the Newtons of thrust to -1/1 throttle values
@@ -98,25 +106,25 @@ Eigen::Vector3d ChassisController::calculate_rotational_nudge() {
     current_orientation_lock_ = (OrientationLockState)new_orientation_lock;
   }
 
-  // std::cout << "lock_state: " << (int)new_orientation_lock << std::endl;
-  // std::cout << "old_state: " << (int)current_orientation_lock_ << std::endl;
+  std::cout << "lock_state: " << (int)new_orientation_lock << std::endl;
+  std::cout << "old_state: " << (int)current_orientation_lock_ << std::endl;
 
   // calculate the error quaternion
   Eigen::Quaternion q_err = current_orientation_state_.inverse() * desired_orientation_state_;
   Eigen::Vector3d axis_err = q_err.vec();
 
-  // flip to achieve shortest rotation
-  if (q_err.w() < 0) axis_err = -axis_err;
+  // // flip to achieve shortest rotation
+  // if (q_err.w() < 0) axis_err = -axis_err;
 
-  // std::cout << "c: " << current_orientation_state_.w() << " " << current_orientation_state_.vec().transpose() << std::endl;
-  // std::cout << "d: " << desired_orientation_state_.w() << " " << desired_orientation_state_.vec().transpose() << std::endl;
-  // std::cout << "axis_err: " << axis_err.transpose() << std::endl;
+  std::cout << "c: " << current_orientation_state_.w() << " " << current_orientation_state_.vec().transpose() << std::endl;
+  std::cout << "d: " << desired_orientation_state_.w() << " " << desired_orientation_state_.vec().transpose() << std::endl;
+  std::cout << "axis_err: " << axis_err.transpose() << std::endl;
 
   // calculate the output nudge with PID
   Eigen::Vector3d output_nudge = Eigen::Vector3d::Zero();
   if (ROLL_LOCK & current_orientation_lock_) output_nudge[0] = -1 * pose_pid[3].compute_command(axis_err[0], (dt_us_ / 1000000.0));
   if (PITCH_LOCK & current_orientation_lock_) output_nudge[1] = -1 * pose_pid[4].compute_command(axis_err[1], (dt_us_ / 1000000.0));
-  if (YAW_LOCK & current_orientation_lock_) output_nudge[2] = -1 * pose_pid[5].compute_command(axis_err[2], (dt_us_ / 1000000.0));
+  if (YAW_LOCK & current_orientation_lock_) output_nudge[2] = pose_pid[5].compute_command(axis_err[2], (dt_us_ / 1000000.0));
 
   return output_nudge;
 }
@@ -157,8 +165,8 @@ Eigen::Vector<double, N_MOTORS> ChassisController::allocate_thrust(Eigen::Vector
 }
 
 void ChassisController::update_current_state(nav_msgs::msg::Odometry::SharedPtr msg) {
-  // get message parts from the SharedPointer
-  auto ros_odom = msg.get();
+  // get message parts from the Shared Pointer
+  auto ros_odom = msg;
   auto ros_quat = ros_odom->pose.pose.orientation;
   auto ros_pos = ros_odom->pose.pose.position;
   auto ros_twist = ros_odom->twist.twist;
@@ -267,7 +275,7 @@ void ChassisController::loop_runner() {
     // time the loop
     auto stop = high_resolution_clock::now();
     int duration_us = duration_cast<microseconds>(stop - start).count();
-    // std::cout << duration_us << " us total loop time" << std::endl;
+    std::cout << duration_us << " us total loop time" << std::endl;
 
     // update min/max
     if (duration_us < min_us) min_us = duration_us;

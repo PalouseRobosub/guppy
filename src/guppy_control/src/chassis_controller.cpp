@@ -14,25 +14,26 @@ bool ChassisController::control_loop() {
   auto drag_wrench = params_.drag_effect_matrix * drag_plain;
 
   // calculate gravity effect on sub
-  // Eigen::Vector3d gravity_force;
-  // gravity_force << 0, 0, -(0 * GRAVITY * params_.robot_mass);
-  // gravity_force = current_orientation_state_.inverse() * gravity_force;
-  // Eigen::Vector<double, 6> gravity_wrench;
-  // gravity_wrench << gravity_force, 0, 0, 0;
+  Eigen::Vector3d gravity_force;
+  gravity_force << 0, 0, -(GRAVITY * params_.robot_mass);
+  gravity_force = current_orientation_state_.inverse() * gravity_force;
+  Eigen::Vector<double, 6> gravity_wrench;
+  gravity_wrench << -gravity_force[0], -gravity_force[1], gravity_force[2], 0, 0, 0;
 
   // calculate buoyant effect on sub
   Eigen::Vector3d buoyancy_force; buoyancy_force << 0, 0, params_.water_density * params_.robot_volume * GRAVITY;
   // Eigen::Vector3d r_vec = current_orientation_state_.inverse() * params_.center_of_buoyancy;
   // Eigen::Vector3d buoyancy_torque = r_vec.cross(buoyancy_force);
-  Eigen::Vector3d buoyancy_force_rotated = current_orientation_state_ * buoyancy_force;
-  Eigen::Vector<double, 6> buoyancy_wrench; buoyancy_wrench << buoyancy_force_rotated, 0, 0, 0;
+  Eigen::Vector3d buoyancy_force_rotated = current_orientation_state_.inverse() * buoyancy_force;
+  Eigen::Vector<double, 6> buoyancy_wrench;
+  buoyancy_wrench << -buoyancy_force_rotated[0], -buoyancy_force_rotated[1], buoyancy_force_rotated[2], 0, 0, 0;
 
   std::cout << "buoyancy_wrench: " << buoyancy_wrench.transpose() << std::endl;
-  // std::cout << "gravity_wrench: " << gravity_wrench.transpose() << std::endl;
+  std::cout << "gravity_wrench: " << gravity_wrench.transpose() << std::endl;
   std::cout << "drag_wrench: " << drag_wrench.transpose() << std::endl;
 
   // calculate total feedforward
-  Eigen::Vector<double, 6> feedforward = -(drag_wrench + buoyancy_wrench);// + gravity_wrench);
+  Eigen::Vector<double, 6> feedforward = -(drag_wrench + buoyancy_wrench + gravity_wrench);
 
   // calculate PID of current velocity error
   Eigen::Vector<double, 6> velocity_feedback;

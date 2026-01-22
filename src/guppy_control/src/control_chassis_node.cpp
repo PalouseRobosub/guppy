@@ -55,7 +55,6 @@ public:
     for (int i=0; i<8; i++) {
       sim_motor_publishers_[i] = this->create_publisher<std_msgs::msg::Float32>("/sim/motor_forces/m_"+std::to_string(i), 10);
     }
-    viz_pub_ = this->create_publisher<geometry_msgs::msg::Wrench>("/sim/visualize", 10);
 
     odom_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("/odom",10,std::bind(&ControlChassis::odom_callback, this, std::placeholders::_1));
     cmd_vel_subscription_ = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel",10,std::bind(&ControlChassis::cmdvel_callback, this, std::placeholders::_1));
@@ -69,16 +68,6 @@ public:
         thrust.data = (double)thrusts[i];
         sim_motor_publishers_[i].get()->publish(thrust);
       }
-      auto visualize = controller->get_visualize();
-      geometry_msgs::msg::Wrench wr;
-      wr.force.x = visualize[0];
-      wr.force.y = visualize[1];
-      wr.force.z = visualize[2];
-      wr.torque.x = visualize[3];
-      wr.torque.y = visualize[4];
-      wr.torque.z = visualize[5];
-      viz_pub_.get()->publish(wr);
-      
     };
 
     timer_ = this->create_wall_timer(10ms, timer_callback);
@@ -133,7 +122,6 @@ public:
 
 private:
   rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr sim_motor_publishers_[8];
-  rclcpp::Publisher<geometry_msgs::msg::Wrench>::SharedPtr viz_pub_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_subscription_;
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_subscription_;
   rclcpp::TimerBase::SharedPtr timer_;

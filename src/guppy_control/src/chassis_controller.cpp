@@ -27,8 +27,6 @@ bool ChassisController::control_loop() {
   Eigen::Vector3d buoyancy_force_rotated = current_orientation_state_ * buoyancy_force;
   Eigen::Vector<double, 6> buoyancy_wrench; buoyancy_wrench << buoyancy_force_rotated, 0, 0, 0;
 
-  this->visualize_ = buoyancy_wrench;
-
   std::cout << "buoyancy_wrench: " << buoyancy_wrench.transpose() << std::endl;
   // std::cout << "gravity_wrench: " << gravity_wrench.transpose() << std::endl;
   std::cout << "drag_wrench: " << drag_wrench.transpose() << std::endl;
@@ -253,10 +251,6 @@ void ChassisController::update_parameters(ChassisControllerParams parameters) {
 Eigen::Vector<double, N_MOTORS> ChassisController::get_motor_thrusts() {
   // simple getter
   return this->motor_forces_;
-}
-
-Eigen::Vector<double, 6> ChassisController::get_visualize() {
-  return this->visualize_;
 }
 
 void ChassisController::loop_runner() {

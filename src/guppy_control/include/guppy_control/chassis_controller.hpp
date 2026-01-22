@@ -1,7 +1,7 @@
 #ifndef GUPPY_CHASSIS_CONTROLLER_H
 #define GUPPY_CHASSIS_CONTROLLER_H
 
-#define GRAVITY 9.8
+#define GRAVITY 9.81
 #define N_MOTORS 8
 
 #include <chrono>
@@ -166,7 +166,6 @@ public:
     Eigen::Vector<double, N_MOTORS> get_motor_thrusts();
 
 
-    Eigen::Vector<double, 6> get_visualize();
     private:
     /* the hardware interface */
     T200Interface* interface_;
@@ -194,9 +193,6 @@ public:
 
     /* the output motor forces in Newtons (using in get_motor_thrusts) */
     Eigen::Vector<double, N_MOTORS> motor_forces_;
-
-    /* a reusable visualizer vector */
-    Eigen::Vector<double, 6> visualize_;
 
     /* the storage location for the setup param object */
     ChassisControllerParams params_;

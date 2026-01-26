@@ -45,10 +45,12 @@ ros2 launch guppy teleop.xml
 ```
 Do not run `hw.xml` and `sim.xml` simultaneously.
 
-### Running this in Docker
+### Running in Docker
 It is possible to run ROS2 in a docker container if you do not wish to setup a VM
 To do so either run the bash script in util/run_in_docker.sh with docker installed which will build this codebase and start a docker container with host usb access, input passthrough and a VNC server on localhost:5900
-or:
+
+OR
+
 1. Install Docker
 2. At the project root run: 
 ```bash 

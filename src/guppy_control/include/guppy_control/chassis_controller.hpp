@@ -1,7 +1,7 @@
 #ifndef GUPPY_CHASSIS_CONTROLLER_H
 #define GUPPY_CHASSIS_CONTROLLER_H
 
-#define GRAVITY 9.80665
+#define GRAVITY 9.81
 #define N_MOTORS 8
 
 #include <chrono>
@@ -162,7 +162,9 @@ public:
         @return the the commanded motor thrusts in Newtons
     */
     Eigen::Vector<double, N_MOTORS> get_motor_thrusts();
-private:
+
+
+    private:
     /* the hardware interface */
     T200Interface* interface_;
 

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <!-- <include file="$(find-pkg-share guppy_control)/launch/core.xml" /> -->
+    <node pkg="ros_gz_bridge" exec="parameter_bridge" args="/odom@nav_msgs/msg/Odometry@gz.msgs.Odometry"></node>
+</launch>

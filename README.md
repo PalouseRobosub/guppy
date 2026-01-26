@@ -10,6 +10,59 @@
 
 Home to the ROS 2 code that runs Guppy: [Palouse RoboSub](https://robosub.eecs.wsu.edu/)'s 2026 AUV for the international RoboSub competition.
 
+## Getting Started
+
+### Installation
+To install, run the following on a brand new [Ubuntu 24.04](https://ubuntu.com/blog/tag/ubuntu-24-04-lts) installation:
+
+```bash
+sudo apt install -y curl
+curl https://raw.githubusercontent.com/PalouseRobosub/guppy/refs/heads/main/util/bootstrap.sh | bash
+
+# to install the GNCea simulator:
+git clone https://github.com/palouserobosub/gncea
+```
+
+This runs the [`utils/boostrap.sh`](./utils/bootstrap.sh) script. If you do not use the install script, please be sure to *clone the repo recursively* with `--recurse-submodules` for all of the vendor packages.
+
+### Building
+```bash
+cd ~/guppy # (or ~/gncea for sim)
+colcon build
+source install/setup.bash
+```
+
+### Running
+```bash
+# to run on hardware:
+ros2 launch guppy hw.xml
+
+# to run simulated codebase:
+ros2 launch guppy sim.xml
+
+# to run teleop control software:
+ros2 launch guppy teleop.xml
+```
+Do not run `hw.xml` and `sim.xml` simultaneously.
+
+### Running this in Docker
+It is possible to run ROS2 in a docker container if you do not wish to setup a VM
+To do so either run the bash script in util/run_in_docker.sh with docker installed which will build this codebase and start a docker container with host usb access, input passthrough and a VNC server on localhost:5900
+or:
+1. Install Docker (System Dependant)
+2. At the project root run: 
+```bash 
+docker build --tag guppy .
+```
+3. To run the container with an open VNC port, and with input passthrough for gamepads run:
+```bash
+docker run --rm -p 5900:5900 -v /dev/input:/dev/input -it guppy`
+```
+4. Connect to localhost:5900 with a VNC client
+5. Shell will be already sourced and ready to run ros2 commands
+
+It is suggested to rerun build and create a new docker container after any code changes
+
 ## Organization
 The code is broken up into several ros2 packages, in the [`src/`](./src/) directory:
 - [**`guppy`**](./src/guppy/#readme): A metapackage that contains dependencies of all other packages, as well as bringup and launch scripts.
@@ -26,6 +79,8 @@ The code is broken up into several ros2 packages, in the [`src/`](./src/) direct
 - [**`guppy_teleop`**](./src/guppy_teleop/#readme): Code and nodes for operating the robot with a human operator (for testing and general fun).
 - [**`guppy_vision`**](./src/guppy_vision/#readme): Object detection, camera publishers, and potentially VSLAM.
 
+Each package has two launch files: `hw.xml` and `core.xml`. The `hw` (hardware) launch file is almost always a superset of the `core` functionality.
+
 ## Contributing
 To contribute code:
 
@@ -35,20 +90,6 @@ To contribute code:
 4. Make sure all commits have proper messages starting with `feat:`, `chore:`, or `fix:`
 5. Document and comment all of your code!
 6. Ensure all checks pass in the GitHub Action attached to the Pull Request.
-
-## Run this in Docker
-It is possible to run ROS2 in a docker container if you do not wish to setup a VM
-To do so either run the bash script in util/run_in_docker.sh with docker installed which will build this codebase and start a docker container with host usb access, input passthrough and a VNC server on localhost:5900
-or:
-1. Install Docker (System Dependant)
-2. At the project root run "docker build --tag guppy ."
-3. To run the container with an open VNC port, and with input passthrough for gamepads run:
-"docker run --rm -p 5900:5900 -v /dev/input:/dev/input -it guppy"
-4. Connect to localhost:5900 with a VNC client
-5. Shell will be already sourced and ready to run ros2 commands
-
-It is suggested to rerun build and create a new docker container after any code changes
-
 
 ## Contact and Sponsorship
 Need to get in touch? Reach out to `robosub.vcea@wsu.edu`.

@@ -1,107 +1,109 @@
 <?xml version="1.0" encoding="utf-8"?>
-<robot xmlns:xacro="http://ros.org/wiki/xacro" name="guppytest1">
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="guppytest1" xmlns:gz="http://gazebosim.org/schema">
 
+  <gazebo><disableFixedJointLumping>true</disableFixedJointLumping></gazebo>
+
+  <!-- Global material: opaque red -->
   <material name="opaque_red">
-    <color rgba="1 0 0 0.6"/>
+    <color rgba="1 0 0 1"/>
   </material>
-    <material name="blue">
-    <color rgba="0 0 1 0.5"/>
+
+  <material name="black">
+    <color rgba="0 0 0 1"/>
   </material>
 
   <link name="base_link">
     <inertial>
-      <origin xyz="5.0383E-06 0.042158 0.00054643" rpy="0 0 -1.5708"/>
-      <mass value="12.294"/>
+      <origin xyz="0 0 -0.04" rpy="0 0 -1.5708"/>
+      <mass value="20"/>
       <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 -1.5708"/>
       <geometry>
-        <mesh filename="package://auv_description/meshes/base_link.STL"/>
+        <mesh filename="package://gncea_description/meshes/base_link.STL"/>
       </geometry>
-      <material name="blue"/>
+      <material name="opaque_red"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 -1.5708"/>
       <geometry>
-        <mesh filename="package://auv_description/meshes/base_link.STL"/>
+        <mesh filename="package://gncea_description/meshes/base_link.STL"/>
       </geometry>
     </collision>
   </link>
 
   <link name="thruster0C_link">
     <inertial>
-      <origin xyz="-0.006048 6.5742E-06 -0.00061572" rpy="0 0 0"/>
-      <mass value="0.17277"/>
+      <origin xyz="-0.006048 0 -0.00061572" rpy="0 0 0"/>
+      <mass value="0"/>
       <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://auv_description/meshes/thruster0C_link.STL"/>
+        <mesh filename="package://gncea_description/meshes/thruster0C_link.STL"/>
       </geometry>
       <material name="opaque_red"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://auv_description/meshes/thruster0C_link.STL"/>
+        <mesh filename="package://gncea_description/meshes/thruster0C_link.STL"/>
       </geometry>
     </collision>
   </link>
 
-  <joint name="thruster0C_joint" type="revolute">
+  <joint name="thruster0C_joint" type="fixed">
     <origin xyz="0.27819 0.24536 -0.019075" rpy="1.5708 0 -3.9270"/>
     <parent link="base_link"/>
     <child link="thruster0C_link"/>
-    <limit lower="0" upper="0" effort="0" velocity="9999"/>
   </joint>
 
   <link name="thruster0M_link">
     <inertial>
-      <origin xyz="-0.0060486 6.6279E-06 -0.0006157" rpy="0 0 0"/>
-      <mass value="0.17279"/>
+      <origin xyz="-0.0060486 0 -0.0006157" rpy="0 0 0"/>
+      <mass value="0"/>
       <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://auv_description/meshes/thruster0M_link.STL"/>
+        <mesh filename="package://gncea_description/meshes/thruster0M_link.STL"/>
       </geometry>
       <material name="opaque_red"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://auv_description/meshes/thruster0M_link.STL"/>
+        <mesh filename="package://gncea_description/meshes/thruster0M_link.STL"/>
       </geometry>
     </collision>
   </link>
 
-  <joint name="thruster0M_joint" type="revolute">
-    <origin xyz="0.2903 -2.5E-05 -0.013798" rpy="1.5708 1.5708 -1.5708"/>
+  <joint name="thruster0M_joint" type="fixed">
+    <origin xyz="0.2903 0 -0.013798" rpy="1.5708 1.5708 -1.5708"/>
     <parent link="base_link"/>
     <child link="thruster0M_link"/>
-    <limit lower="0" upper="0" effort="0" velocity="9999"/>
   </joint>
 
   <link name="thruster1C_link">
     <inertial>
-      <origin xyz="-0.006048 6.5742E-06 -0.00061572" rpy="0 0 0"/>
-      <mass value="0.17277"/>
+      <origin xyz="-0.006048 0 -0.00061572" rpy="0 0 0"/>
+      <mass value="0"/>
       <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://auv_description/meshes/thruster1C_link.STL"/>
+        <mesh filename="package://gncea_description/meshes/thruster1C_link.STL"/>
       </geometry>
       <material name="opaque_red"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://auv_description/meshes/thruster1C_link.STL"/>
+        <mesh filename="package://gncea_description/meshes/thruster1C_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -114,48 +116,48 @@
 
   <link name="thruster1M_link">
     <inertial>
-      <origin xyz="-0.0060486 6.628E-06 -0.0006157" rpy="0 0 0"/>
-      <mass value="0.17279"/>
+      <origin xyz="-0.0060486 0 -0.0006157" rpy="0 0 0"/>
+      <mass value="0"/>
       <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://auv_description/meshes/thruster1M_link.STL"/>
+        <mesh filename="package://gncea_description/meshes/thruster1M_link.STL"/>
       </geometry>
       <material name="opaque_red"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://auv_description/meshes/thruster1M_link.STL"/>
+        <mesh filename="package://gncea_description/meshes/thruster1M_link.STL"/>
       </geometry>
     </collision>
   </link>
 
   <joint name="thruster1M_joint" type="fixed">
-    <origin xyz="-2.5E-05 -0.2649 -0.013798" rpy="0 1.5708 -1.5708"/>
+    <origin xyz="0 -0.2649 -0.013798" rpy="0 1.5708 -1.5708"/>
     <parent link="base_link"/>
     <child link="thruster1M_link"/>
   </joint>
 
   <link name="thruster2C_link">
     <inertial>
-      <origin xyz="-0.006048 6.6362E-06 -0.00061575" rpy="0 0 0"/>
-      <mass value="0.17277"/>
+      <origin xyz="-0.006048 0 -0.00061575" rpy="0 0 0"/>
+      <mass value="0"/>
       <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://auv_description/meshes/thruster2C_link.STL"/>
+        <mesh filename="package://gncea_description/meshes/thruster2C_link.STL"/>
       </geometry>
       <material name="opaque_red"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://auv_description/meshes/thruster2C_link.STL"/>
+        <mesh filename="package://gncea_description/meshes/thruster2C_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -168,48 +170,48 @@
 
   <link name="thruster2M_link">
     <inertial>
-      <origin xyz="-0.0060486 6.628E-06 -0.0006157" rpy="0 0 0"/>
-      <mass value="0.17279"/>
+      <origin xyz="-0.0060486 0 -0.0006157" rpy="0 0 0"/>
+      <mass value="0"/>
       <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://auv_description/meshes/thruster2M_link.STL"/>
+        <mesh filename="package://gncea_description/meshes/thruster2M_link.STL"/>
       </geometry>
       <material name="opaque_red"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://auv_description/meshes/thruster2M_link.STL"/>
+        <mesh filename="package://gncea_description/meshes/thruster2M_link.STL"/>
       </geometry>
     </collision>
   </link>
 
   <joint name="thruster2M_joint" type="fixed">
-    <origin xyz="-0.2903 2.5E-05 -0.013798" rpy="1.5708 1.5708 -1.5708"/>
+    <origin xyz="-0.2903 0 -0.013798" rpy="1.5708 1.5708 -1.5708"/>
     <parent link="base_link"/>
     <child link="thruster2M_link"/>
   </joint>
 
   <link name="thruster3C_link">
     <inertial>
-      <origin xyz="-0.006048 6.5742E-06 -0.00061572" rpy="0 0 0"/>
-      <mass value="0.17277"/>
+      <origin xyz="-0.006048 0 -0.00061572" rpy="0 0 0"/>
+      <mass value="0"/>
       <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://auv_description/meshes/thruster3C_link.STL"/>
+        <mesh filename="package://gncea_description/meshes/thruster3C_link.STL"/>
       </geometry>
       <material name="opaque_red"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://auv_description/meshes/thruster3C_link.STL"/>
+        <mesh filename="package://gncea_description/meshes/thruster3C_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -223,45 +225,652 @@
   <link name="thruster3M_link">
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="0.17277"/>
+      <mass value="0"/>
       <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://auv_description/meshes/thruster3M_link.STL"/>
+        <mesh filename="package://gncea_description/meshes/thruster3M_link.STL"/>
       </geometry>
       <material name="opaque_red"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://auv_description/meshes/thruster3M_link.STL"/>
+        <mesh filename="package://gncea_description/meshes/thruster3M_link.STL"/>
       </geometry>
     </collision>
   </link>
 
   <joint name="thruster3M_joint" type="fixed">
-    <origin xyz="2.5E-05 0.2649 -0.013798" rpy="3.1416 1.5708 -1.5708"/>
+    <origin xyz="0 0.2649 -0.013798" rpy="3.1416 1.5708 -1.5708"/>
     <parent link="base_link"/>
     <child link="thruster3M_link"/>
   </joint>
 
-  <ros2_control name="custom_controller" type="system">
-    <hardware>
-        <plugin>guppy_control/T200Interface</plugin>
-        <param name="ican_nterface">can0</param>
-    </hardware>
+<link name="imu_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.01 0.01 0.01"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
 
-    <joint name="thruster0C_joint">
-        <command_interface name="velocity"/>
-    </joint>
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+    <origin xyz="0 0 0.05" rpy="0 0 0"/>
+  </joint>
 
-    <joint name="thruster0M_joint">
-        <command_interface name="velocity"/>
-    </joint>
+  <gazebo>
+    <plugin filename="libsimple_buoyancy.so" name="gz::sim::systems::SimpleBuoyancy">
+      <link_name>base_link</link_name>
+      <water_level>0.0</water_level>
+      <fluid_density>1000.0</fluid_density>
+      <volume>0.025</volume>
+    </plugin>
+  </gazebo>
 
-  </ros2_control>
+
+  <gazebo>
+<plugin filename="gz-sim-hydrodynamics-system" name="gz::sim::systems::Hydrodynamics">
+  <!-- Target the specific model/link -->
+  <link_name>base_link</link_name>
+    <!-- <damping_on>true</damping_on>
+    <viscous_drag_on>true</viscous_drag_on>
+    <pressure_drag_on>true</pressure_drag_on> -->
+    
+    <!-- Example Coefficients (Linear damping) -->
+    <xU>-10.0</xU>
+    <yV>-10.0</yV>
+    <zW>-10.0</zW>
+    
+    <!-- Quadratic damping (Note: use xUabsU for Gazebo Garden+ ) -->
+    <xUabsU>-3.0</xUabsU>
+    <yVabsV>-3.0</yVabsV>
+    <zWabsW>-3.0</zWabsW>
+
+    <kP>-1.0</kP>
+    <mQ>-1.0</mQ>
+    <nR>-1.0</nR>
+
+    <kPabsP>-0.0</kPabsP>
+    <mQabsQ>-0.0</mQabsQ>
+    <nRabsR>-0.0</nRabsR>
+</plugin>
+</gazebo>
+
+  <!-- <gazebo>
+    <plugin name="wasd_body_thrust_plugin" filename="libwasd_body_thrust_plugin.so">
+      <link_name>base_link</link_name>
+      <topic>guppy/force_body</topic>
+      <hold_ms>-1</hold_ms>
+      <scale>1.0</scale>
+      <force_scale>1.0</force_scale>
+      <torque_scale>1.0</torque_scale>
+    </plugin>
+  </gazebo> -->
+
+  <!-- Per-thruster plugins -->
+  <!-- Per-thruster plugins -->
+  <!-- THRUSTER OFFSET: "0.27819 0.24536 -0.019075" -->
+  <gazebo>
+    <plugin name="wasd_body_thrust_plugin" filename="libwasd_body_thrust_plugin.so">
+      <link_name>base_link</link_name>
+      <motor_name>m0</motor_name>
+      <motor_speed_topic>/sim/motor_forces/m_0</motor_speed_topic>
+      <lever>-1 1 0</lever>
+      <theta>-45</theta>
+      <phi>0</phi>
+    </plugin>
+
+  <!-- THRUSTER OFFSET: "0.2903 0 -0.013798" -->
+    <plugin name="wasd_body_thrust_plugin" filename="libwasd_body_thrust_plugin.so">
+      <link_name>base_link</link_name>
+      <motor_name>m4</motor_name>
+      <motor_speed_topic>/sim/motor_forces/m_4</motor_speed_topic>
+      <lever>0 1 0</lever>
+      <theta>0</theta>
+      <phi>90</phi>
+    </plugin>
+
+  <!-- THRUSTER OFFSET: "0.27819 -0.24536 -0.019025" -->
+    <plugin name="wasd_body_thrust_plugin" filename="libwasd_body_thrust_plugin.so">
+      <link_name>base_link</link_name>
+      <motor_name>m1</motor_name>
+      <motor_speed_topic>/sim/motor_forces/m_1</motor_speed_topic>
+      <lever>1 1 0</lever>
+      <theta>-135</theta>
+      <phi>0</phi>
+    </plugin>
+
+  <!-- THRUSTER OFFSET: "0 -0.2649 -0.013798" -->
+    <plugin name="wasd_body_thrust_plugin" filename="libwasd_body_thrust_plugin.so">
+      <link_name>base_link</link_name>
+      <motor_name>m5</motor_name>
+      <motor_speed_topic>/sim/motor_forces/m_5</motor_speed_topic>
+      <lever>1 0 0</lever>
+      <theta>0</theta>
+      <phi>90</phi>
+    </plugin>
+
+  <!-- THRUSTER OFFSET: "-0.27819 -0.24536 -0.019075" -->
+    <plugin name="wasd_body_thrust_plugin" filename="libwasd_body_thrust_plugin.so">
+      <link_name>base_link</link_name>
+      <motor_name>m2</motor_name>
+      <motor_speed_topic>/sim/motor_forces/m_2</motor_speed_topic>
+      <lever>1 -1 0</lever>
+      <theta>135</theta>
+      <phi>0</phi>
+    </plugin>
+
+  <!-- THRUSTER OFFSET: "-0.2903 0 -0.013798" -->
+    <plugin name="wasd_body_thrust_plugin" filename="libwasd_body_thrust_plugin.so">
+      <link_name>base_link</link_name>
+      <motor_name>m6</motor_name>
+      <motor_speed_topic>/sim/motor_forces/m_6</motor_speed_topic>
+      <lever>0 -1 0</lever>
+      <theta>0</theta>
+      <phi>90</phi>
+    </plugin>
+
+  <!-- THRUSTER OFFSET: "-0.27819 0.24536 -0.019075" -->
+    <plugin name="wasd_body_thrust_plugin" filename="libwasd_body_thrust_plugin.so">
+      <link_name>base_link</link_name>
+      <motor_name>m6</motor_name>
+      <motor_speed_topic>/sim/motor_forces/m_3</motor_speed_topic>
+      <lever>-1 -1 0</lever>      
+      <theta>45</theta>
+      <phi>0</phi>
+    </plugin>
+
+  <!-- THRUSTER OFFSET: "0 0.2649 -0.013798" -->
+    <plugin name="wasd_body_thrust_plugin" filename="libwasd_body_thrust_plugin.so">
+      <link_name>base_link</link_name>
+      <motor_name>m7</motor_name>
+      <motor_speed_topic>/sim/motor_forces/m_7</motor_speed_topic>
+      <lever>-1 0 0</lever>
+      <theta>0</theta>
+      <phi>90</phi>
+    </plugin>
+  </gazebo>
+
+  <gazebo reference="imu_link">
+    <sensor name="imu_sensor" type="imu">
+      <always_on>true</always_on>
+      <update_rate>100</update_rate>
+      <pose>0 0 0 0 0 0</pose>
+      <imu>
+        <angular_velocity>
+          <x>
+            <noise type="gaussian">
+              <mean>0</mean>
+              <stddev>0.002</stddev>
+            </noise>
+          </x>
+          <y>
+            <noise type="gaussian"><mean>0</mean><stddev>0.002</stddev></noise>
+          </y>
+          <z>
+            <noise type="gaussian"><mean>0</mean><stddev>0.002</stddev></noise>
+          </z>
+        </angular_velocity>
+        <linear_acceleration>
+          <x>
+            <noise type="gaussian">
+              <mean>0</mean>
+              <stddev>0.05</stddev>
+            </noise>
+          </x>
+          <y>
+            <noise type="gaussian"><mean>0</mean><stddev>0.05</stddev></noise>
+          </y>
+          <z>
+            <noise type="gaussian"><mean>0</mean><stddev>0.05</stddev></noise>
+          </z>
+        </linear_acceleration>
+      </imu>
+      <topic>/imu</topic>
+    </sensor>
 
 
+    <sensor name="altimeter_sensor" type="altimeter">
+        <always_on>true</always_on>
+        <update_rate>50</update_rate>
+        <pose>0 0 0 0 0 0</pose>
+        <altimeter>
+          <vertical_position>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>0.01</stddev>            <!-- meters -->
+              <bias_mean>0.0</bias_mean>
+              <bias_stddev>0.001</bias_stddev>
+            </noise>
+          </vertical_position>
+
+          <vertical_velocity>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>0.02</stddev>            <!-- m/s -->
+              <bias_mean>0.0</bias_mean>
+              <bias_stddev>0.001</bias_stddev>
+            </noise>
+          </vertical_velocity>
+        </altimeter>
+        <topic>/altimeter</topic>
+      </sensor>    
+  </gazebo>
+
+
+
+<link name="camera_link">
+  <inertial>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <mass value="0"/>
+    <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-4"/>
+  </inertial>
+
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry><box size="0.10 0.06 0.04"/></geometry>
+    <material name="black"/>
+  </visual>
+
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry><box size="0.10 0.06 0.04"/></geometry>
+  </collision>
+
+  <!-- <visual name="camera_nose">
+    <origin xyz="0.10 0 0" rpy="0 0 0"/>
+    <geometry><box size="0.20 0.02 0.02"/></geometry>
+    <material name="opaque_red"/>
+  </visual>   -->
+</link>
+
+<joint name="camera_joint" type="fixed">
+  <parent link="base_link"/>
+  <child link="camera_link"/>
+  <origin xyz="0.00 0.20 0.10" rpy="0 0 1.57079632679"/>
+</joint>
+
+<link name="camera_optical_frame"/>
+<joint name="camera_optical_joint" type="fixed">
+  <parent link="camera_link"/>
+  <child link="camera_optical_frame"/>
+  <origin xyz="0 0 0" rpy="-1.57079632679 0 1.57079632679"/>
+</joint>
+
+
+<gazebo reference="camera_link">
+  <sensor name="rgbd_camera" type="rgbd_camera">
+    <always_on>true</always_on>
+    <update_rate>30</update_rate>
+    <visualize>true</visualize>
+
+    <!-- Base Gazebo Transport topic; publishes:
+         /guppy/camera/image
+         /guppy/camera/depth_image
+         /guppy/camera/points
+         /guppy/camera/camera_info -->
+    <topic>/guppy/camera</topic>
+
+    <camera>
+      <horizontal_fov>1.047</horizontal_fov>
+
+      <image>
+        <width>640</width>
+        <height>480</height>
+        <format>R8G8B8</format>
+      </image>
+
+      <clip>
+        <near>0.10</near>
+        <far>10.0</far>
+      </clip>
+
+      <depth_camera>
+        <clip>
+          <near>0.10</near>
+          <far>8.0</far>
+        </clip>
+      </depth_camera>
+
+      <optical_frame_id>camera_optical_frame</optical_frame_id>
+
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>0.001</stddev>
+      </noise>
+    </camera>
+  </sensor>
+</gazebo>
+
+
+<!-- CORNER CAMERAS -->
+
+<link name="cam_fl_link">
+  <inertial>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <mass value="0"/>
+    <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-4"/>
+  </inertial>
+
+  <!-- visible little box so you can see the camera body in Gazebo -->
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry><box size="0.06 0.03 0.03"/></geometry>
+    <material name="black"/>
+  </visual>
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry><box size="0.06 0.03 0.03"/></geometry>
+  </collision>
+</link>
+
+<joint name="cam_fl_joint" type="fixed">
+  <parent link="base_link"/>
+  <child link="cam_fl_link"/>
+  <!-- mount position + yaw(+45deg) -->
+  <origin xyz="0.25 0.18 0.10" rpy="0 0 0.78539816339"/>
+</joint>
+
+<!-- ROS optical frame (optional but recommended for RViz) -->
+<link name="cam_fl_optical_frame"/>
+<joint name="cam_fl_optical_joint" type="fixed">
+  <parent link="cam_fl_link"/>
+  <child link="cam_fl_optical_frame"/>
+  <!-- common camera_link -> optical transform (REP-103) -->
+  <origin xyz="0 0 0" rpy="-1.57079632679 0 -1.57079632679"/>
+</joint>
+
+<!-- Gazebo camera sensor -->
+<gazebo reference="cam_fl_link">
+  <sensor name="cam_fl" type="camera">
+    <always_on>true</always_on>
+    <update_rate>30</update_rate>
+    <visualize>true</visualize>
+
+    <!-- gz-transport base topic (FL)-->
+    <topic>/guppy/raw_1</topic>
+
+    <camera>
+      <horizontal_fov>1.047</horizontal_fov>
+      <image>
+        <width>640</width>
+        <height>480</height>
+        <format>R8G8B8</format>
+      </image>
+      <clip>
+        <near>0.10</near>
+        <far>30.0</far>
+      </clip>
+
+      <!-- only matters if you bridge to ROS and want correct frames -->
+      <optical_frame_id>cam_fl_optical_frame</optical_frame_id>
+    </camera>
+  </sensor>
+</gazebo>
+
+<link name="cam_fr_link">
+  <inertial>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <mass value="0"/>
+    <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-4"/>
+  </inertial>
+
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry><box size="0.06 0.03 0.03"/></geometry>
+    <material name="black"/>
+  </visual>
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry><box size="0.06 0.03 0.03"/></geometry>
+  </collision>
+</link>
+
+<joint name="cam_fr_joint" type="fixed">
+  <parent link="base_link"/>
+  <child link="cam_fr_link"/>
+  <!-- mount position + yaw(-45deg) -->
+  <origin xyz="0.25 -0.18 0.10" rpy="0 0 -0.78539816339"/>
+</joint>
+
+<link name="cam_fr_optical_frame"/>
+<joint name="cam_fr_optical_joint" type="fixed">
+  <parent link="cam_fr_link"/>
+  <child link="cam_fr_optical_frame"/>
+  <!-- camera_link -> optical (REP-103-ish) -->
+  <origin xyz="0 0 0" rpy="-1.57079632679 0 -1.57079632679"/>
+</joint>
+
+<gazebo reference="cam_fr_link">
+  <sensor name="cam_fr" type="camera">
+    <always_on>true</always_on>
+    <update_rate>30</update_rate>
+    <visualize>true</visualize>
+    <!-- FR -->
+    <topic>/guppy/raw_2</topic> 
+
+    <camera>
+      <horizontal_fov>1.047</horizontal_fov>
+      <image>
+        <width>640</width>
+        <height>480</height>
+        <format>R8G8B8</format>
+      </image>
+      <clip>
+        <near>0.10</near>
+        <far>30.0</far>
+      </clip>
+
+      <optical_frame_id>cam_fr_optical_frame</optical_frame_id>
+    </camera>
+  </sensor>
+</gazebo>
+
+<link name="cam_rl_link">
+  <inertial>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <mass value="0"/>
+    <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-4"/>
+  </inertial>
+
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry><box size="0.06 0.03 0.03"/></geometry>
+    <material name="black"/>
+  </visual>
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry><box size="0.06 0.03 0.03"/></geometry>
+  </collision>
+</link>
+
+<joint name="cam_rl_joint" type="fixed">
+  <parent link="base_link"/>
+  <child link="cam_rl_link"/>
+  <!-- mount position + yaw(+135deg) -->
+  <origin xyz="-0.25 0.18 0.10" rpy="0 0 2.35619449019"/>
+</joint>
+
+<link name="cam_rl_optical_frame"/>
+<joint name="cam_rl_optical_joint" type="fixed">
+  <parent link="cam_rl_link"/>
+  <child link="cam_rl_optical_frame"/>
+  <origin xyz="0 0 0" rpy="-1.57079632679 0 -1.57079632679"/>
+</joint>
+
+<gazebo reference="cam_rl_link">
+  <sensor name="cam_rl" type="camera">
+    <always_on>true</always_on>
+    <update_rate>30</update_rate>
+    <visualize>true</visualize>
+    <!-- RL -->
+    <topic>/guppy/raw_3</topic>
+
+    <camera>
+      <horizontal_fov>1.047</horizontal_fov>
+      <image>
+        <width>640</width>
+        <height>480</height>
+        <format>R8G8B8</format>
+      </image>
+      <clip>
+        <near>0.10</near>
+        <far>30.0</far>
+      </clip>
+
+      <optical_frame_id>cam_rl_optical_frame</optical_frame_id>
+    </camera>
+  </sensor>
+</gazebo>
+
+<link name="cam_rr_link">
+  <inertial>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <mass value="0"/>
+    <inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-4"/>
+  </inertial>
+
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry><box size="0.06 0.03 0.03"/></geometry>
+    <material name="black"/>
+  </visual>
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry><box size="0.06 0.03 0.03"/></geometry>
+  </collision>
+</link>
+
+<joint name="cam_rr_joint" type="fixed">
+  <parent link="base_link"/>
+  <child link="cam_rr_link"/>
+  <!-- mount position + yaw(-135deg) -->
+  <origin xyz="-0.25 -0.18 0.10" rpy="0 0 -2.35619449019"/>
+</joint>
+
+<link name="cam_rr_optical_frame"/>
+<joint name="cam_rr_optical_joint" type="fixed">
+  <parent link="cam_rr_link"/>
+  <child link="cam_rr_optical_frame"/>
+  <origin xyz="0 0 0" rpy="-1.57079632679 0 -1.57079632679"/>
+</joint>
+
+<gazebo reference="cam_rr_link">
+  <sensor name="cam_rr" type="camera">
+    <always_on>true</always_on>
+    <update_rate>30</update_rate>
+    <visualize>true</visualize>
+    <!-- RR -->
+    <topic>/guppy/raw_4</topic>
+
+    <camera>
+      <horizontal_fov>1.047</horizontal_fov>
+      <image>
+        <width>640</width>
+        <height>480</height>
+        <format>R8G8B8</format>
+      </image>
+      <clip>
+        <near>0.10</near>
+        <far>30.0</far>
+      </clip>
+
+      <optical_frame_id>cam_rr_optical_frame</optical_frame_id>
+    </camera>
+  </sensor>
+</gazebo>
+
+<!-- DVL link -->
+<link name="dvl_link">
+  <inertial>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <mass value="0"/>
+    <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+  </inertial>
+
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <box size="0.03 0.03 0.03"/> 
+    </geometry>
+    <material name="black">
+      <color rgba="0 0 0 1"/>
+    </material>
+  </visual>
+
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <box size="0.03 0.03 0.03"/>
+    </geometry>
+  </collision>
+</link>
+
+<!-- Fixed joint: base_link -> dvl_link -->
+<joint name="dvl_joint" type="fixed">
+  <parent link="base_link"/>
+  <child link="dvl_link"/>
+  <origin xyz="0.0 0.0 -0.05" rpy="0 0 0"/>
+</joint>
+<!-- DVL sensor -->
+
+
+<!-- <gazebo reference="dvl_link">
+  <sensor name="dvl" type="custom" gz:type="dvl">
+    <always_on>true</always_on>
+    <update_rate>10</update_rate>
+    <topic>/guppy/dvl</topic>
+
+    <gz:dvl>
+      <arrangement degrees="true">
+        <beam id="1"><aperture>22.5</aperture><rotation>45</rotation><tilt>30</tilt></beam>
+        <beam id="2"><aperture>22.5</aperture><rotation>135</rotation><tilt>30</tilt></beam>
+        <beam id="3"><aperture>22.5</aperture><rotation>225</rotation><tilt>30</tilt></beam>
+        <beam id="4"><aperture>22.5</aperture><rotation>315</rotation><tilt>30</tilt></beam>
+        <visualize>true</visualize>
+      </arrangement>
+
+      <tracking>
+        <bottom_mode>
+          <when>always</when>
+          <noise type="gaussian"><stddev>1</stddev></noise>
+          <visualize>true</visualize>
+        </bottom_mode>
+      </tracking>
+
+      <minimum_range>0.05</minimum_range>
+      <maximum_range>50</maximum_range>
+      <resolution>0.0001</resolution>
+      <reference_frame>0 0 0 0 0 0</reference_frame>
+    </gz:dvl>
+  </sensor>
+</gazebo> -->
+<gazebo>
+<plugin
+  filename="gz-sim-odometry-publisher-system"
+  name="gz::sim::systems::OdometryPublisher">
+  <odom_topic>/odom</odom_topic>
+  <odom_frame>world</odom_frame>
+  <dimensions>3</dimensions>
+  <publish_tf>true</publish_tf>
+  <robot_base_frame>imu_link</robot_base_frame>
+</plugin></gazebo>
 </robot>

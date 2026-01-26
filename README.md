@@ -49,7 +49,7 @@ Do not run `hw.xml` and `sim.xml` simultaneously.
 It is possible to run ROS2 in a docker container if you do not wish to setup a VM
 To do so either run the bash script in util/run_in_docker.sh with docker installed which will build this codebase and start a docker container with host usb access, input passthrough and a VNC server on localhost:5900
 or:
-1. Install Docker (System Dependant)
+1. Install Docker
 2. At the project root run: 
 ```bash 
 docker build --tag guppy .
@@ -58,8 +58,8 @@ docker build --tag guppy .
 ```bash
 docker run --rm -p 5900:5900 -v /dev/input:/dev/input -it guppy`
 ```
-4. Connect to localhost:5900 with a VNC client
-5. Shell will be already sourced and ready to run ros2 commands
+4. Connect to localhost:5900 with any VNC client or press CTRL-x to stop the VNC server and run without a gui
+5. The guppy workspace should be already sourced and ready to run ros2 commands
 
 It is suggested to rerun build and create a new docker container after any code changes
 

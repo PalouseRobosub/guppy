@@ -45,6 +45,23 @@ ros2 launch guppy teleop.xml
 ```
 Do not run `hw.xml` and `sim.xml` simultaneously.
 
+### Running in Docker
+It is possible to run ROS2 in a docker container if you do not wish to setup a VM
+To do so either run the bash script in util/run_in_docker.sh with docker installed which will start a docker container to build and run this codebase with host usb device access, input passthrough and a VNC server on localhost:5900
+
+OR
+
+1. Install Docker
+2. (Only during first-time install or when updating dependencies) At the project root run: 
+```bash 
+docker build --no-cache --tag guppy .
+```
+3. To build and run the workspace in a container with an open VNC port, and with input passthrough for gamepads run:
+```bash
+docker run --rm -p 5900:5900 --privileged -v /dev/input:/dev/input -v /dev/bus/usb:/dev/bus/usb -v .:/home/ubuntu/guppy_ws -it guppy
+```
+4. Connect to localhost:5900 with any VNC client or press CTRL-c to stop the VNC server and run without a gui
+5. The guppy workspace should be already sourced and ready to run ros2 commands
 
 ## Organization
 The code is broken up into several ROS 2 packages, in the [`src/`](./src/) directory:
@@ -73,7 +90,6 @@ To contribute code:
 4. Make sure all commits have proper messages starting with `feat:`, `chore:`, or `fix:`
 5. Document and comment all of your code!
 6. Ensure all checks pass in the GitHub Action attached to the Pull Request.
-
 
 ## Contact and Sponsorship
 Need to get in touch? Reach out to `robosub.vcea@wsu.edu`.

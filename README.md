@@ -52,7 +52,7 @@ To do so either run the bash script in util/run_in_docker.sh with docker install
 OR
 
 1. Install Docker
-2. At the project root run: 
+2. (Only during first-time install or when updating dependencies) At the project root run: 
 ```bash 
 docker build --no-cache --tag guppy .
 ```
@@ -60,7 +60,7 @@ docker build --no-cache --tag guppy .
 ```bash
 docker run --rm -p 5900:5900 --privileged -v /dev/input:/dev/input -v /dev/bus/usb:/dev/bus/usb -v .:/home/ubuntu/guppy_ws -it guppy
 ```
-4. Connect to localhost:5900 with any VNC client or press CTRL-x to stop the VNC server and run without a gui
+4. Connect to localhost:5900 with any VNC client or press CTRL-c to stop the VNC server and run without a gui
 5. The guppy workspace should be already sourced and ready to run ros2 commands
 
 ## Organization

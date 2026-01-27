@@ -35,7 +35,7 @@ RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 RUN echo "source /home/ubuntu/guppy_ws/install/setup.bash" >> ~/.bashrc
 
 # Add .xinitrc
-RUN echo exec i3 > ~/.xinitrc
+RUN echo exec i3 >> ~/.xinitrc
 RUN chmod 700 ~/.xinitrc
 
 

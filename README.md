@@ -47,7 +47,7 @@ Do not run `hw.xml` and `sim.xml` simultaneously.
 
 
 ## Organization
-The code is broken up into several ros2 packages, in the [`src/`](./src/) directory:
+The code is broken up into several ROS 2 packages, in the [`src/`](./src/) directory:
 - [**`guppy`**](./src/guppy/#readme): A metapackage that contains dependencies of all other packages, as well as bringup and launch scripts.
 - [**`guppy_can`**](./src/guppy_can/#readme): A CAN bus relay and transciever package, for communicating with our custom circuit boards.
 - [**`guppy_control`**](./src/guppy_control/#readme): The main control code for the thrusters and chassis, and the torpedo and arm servos as well.

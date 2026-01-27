@@ -58,7 +58,7 @@ docker build --no-cache --tag guppy .
 ```
 3. To build and run the workspace in a container with an open VNC port, and with input passthrough for gamepads run:
 ```bash
-docker run --rm -p 5900:5900 --privileged -v /dev/input:/dev/input -v/dev/bus/usb:/dev/bus/usb -v .:/home/ubuntu/guppy_ws -it guppy`
+docker run --rm -p 5900:5900 --privileged -v /dev/input:/dev/input -v /dev/bus/usb:/dev/bus/usb -v .:/home/ubuntu/guppy_ws -it guppy
 ```
 4. Connect to localhost:5900 with any VNC client or press CTRL-x to stop the VNC server and run without a gui
 5. The guppy workspace should be already sourced and ready to run ros2 commands

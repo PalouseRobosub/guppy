@@ -35,7 +35,9 @@ RUN apt install -y \
 # Install extra utilities
 RUN apt install -y \
     net-tools \
-    can-utils
+    can-utils \
+    nvim \
+    nano
 
 # VNC Setup
 RUN apt update && apt install -y git python3 python3-websockify && \

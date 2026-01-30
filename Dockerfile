@@ -36,7 +36,7 @@ RUN apt install -y \
 RUN apt install -y \
     net-tools \
     can-utils \
-    nvim \
+    neovim \
     nano
 
 # VNC Setup

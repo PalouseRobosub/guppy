@@ -44,7 +44,7 @@ RUN apt install -y git python3 python3-websockify && \
     git clone https://github.com/novnc/noVNC.git /opt/novnc
 
 # DE setup
-RUN apt-get install -y \
+RUN apt update && apt install -y \
     xfce4 xfce4-goodies \
     tigervnc-standalone-server tigervnc-common tigervnc-tools \
     dbus-x11 terminator \

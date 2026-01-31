@@ -40,7 +40,7 @@ RUN apt install -y \
     nano
 
 # VNC Setup
-RUN apt update && apt install -y git python3 python3-websockify && \
+RUN apt install -y git python3 python3-websockify && \
     git clone https://github.com/novnc/noVNC.git /opt/novnc
 
 # DE setup

@@ -1,0 +1,15 @@
+{
+    "ROS2.distro": "jazzy",
+    "python.autoComplete.extraPaths": [
+        "/workspaces/guppy/install/guppy_teleop/lib/python3.12/site-packages",
+        "/workspaces/guppy/install/guppy_tasks/lib/python3.12/site-packages",
+        "/workspaces/guppy/install/guppy_msgs/lib/python3.12/site-packages",
+        "/opt/ros/jazzy/lib/python3.12/site-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/workspaces/guppy/install/guppy_teleop/lib/python3.12/site-packages",
+        "/workspaces/guppy/install/guppy_tasks/lib/python3.12/site-packages",
+        "/workspaces/guppy/install/guppy_msgs/lib/python3.12/site-packages",
+        "/opt/ros/jazzy/lib/python3.12/site-packages"
+    ]
+}

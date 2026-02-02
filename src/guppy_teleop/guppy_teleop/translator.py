@@ -20,7 +20,7 @@ class Translator(Node):
             String, "gamepad_name", self.name_callback, 10
         )
 
-        self.publisher = self.create_publisher(Twist, "/cmd_vel", 10)
+        self.publisher = self.create_publisher(Twist, "/cmd_vel/teleop", 10)
 
         self.controller_state = {"dpad": None, "axes": None, "buttons": None}
         self.controller_name = None

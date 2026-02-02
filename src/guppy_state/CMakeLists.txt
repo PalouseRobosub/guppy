@@ -18,11 +18,11 @@ find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(guppy_msgs REQUIRED)
 
-add_executable(state_service src/state_service.cpp)
-ament_target_dependencies(state_service rclcpp std_msgs geometry_msgs guppy_msgs)
+add_executable(state_manager src/state_manager.cpp)
+ament_target_dependencies(state_manager rclcpp std_msgs geometry_msgs guppy_msgs)
 
 install(TARGETS
-  state_service # what goes here
+  state_manager # what goes here
 
   DESTINATION lib/${PROJECT_NAME})
 

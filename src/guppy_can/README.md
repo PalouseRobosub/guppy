@@ -54,6 +54,32 @@ uint8 written
 
 It is imported from `guppy_msgs` and can be found at [guppy_msgs/srv/SendCan.srv](../guppy_msgs/srv/SendCan.srv)
 
+### Interacting with the Service
+
+First, create a service client:
+```cpp
+rclcpp::Client<gupy_msgs::srv::SendCan>::SharedPtr client =
+    node->create_client<guppy_msgs::srv::SendCan>("add_two_ints");
+```
+
+Next, create a request:
+```cpp
+auto request = std::make_shared<guppy_msgs::srv::SendCan::Request>();
+request->id = your_id;
+request->data = your_data;
+```
+
+Next, send the request:
+```cpp
+auto result = client->async_send_request(request);
+```
+
+Finally, await the result:
+```cpp
+rclcpp::spin_until_future_complete(node, result)
+```
+
+
 ### Interface Selection
 
 Currently, the interface is hard-coded. It can be changed at [`src/can_tx.cpp:24`](src/can_tx.cpp#24).

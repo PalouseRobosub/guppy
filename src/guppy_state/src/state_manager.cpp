@@ -57,12 +57,12 @@ class StateManager : public rclcpp::Node {
             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "State transition request...");   
             
             if (!is_valid_state(request->state)) {
-                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Invalid state passed in transition sercice!");
+                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Invalid state passed in transition service!");
                 response->success = false;
                 return;
             }
 
-            // TODO switch logic should be handeled here NOT in StateManager#publishState()
+            // TODO switch logic should be handled here NOT in StateManager#publishState()
             
             response->success = this->publish_state(request->state);                                                                                 
         }
@@ -90,7 +90,7 @@ class StateManager : public rclcpp::Node {
         // state handlers
         void handle_initial() {
             // TODO may just break? pseudo init state
-            this->publish_state(guppy_msgs::srv::ChangeState::Request::TELEOP); // just move straight to teleop for sim purposes untill proper pipeline is created
+            this->publish_state(guppy_msgs::srv::ChangeState::Request::TELEOP); // just move straight to teleop for sim purposes until proper pipeline is created
         }
 
         void handle_holding() {

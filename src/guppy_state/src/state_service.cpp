@@ -7,6 +7,7 @@
 #include "guppy_msgs/srv/change_state.hpp"                                                                                              
 #include "std_msgs/msg/u_int8.hpp"
 #include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/vector3.hpp"
 
 using namespace std::chrono_literals;
 
@@ -18,19 +19,19 @@ class StateManager : public rclcpp::Node {
                 "change_state",
                 std::bind(&StateManager::transition_callback, this, std::placeholders::_1, std::placeholders::_2)
             );
-            timer_ = this->create_wall_timer(50ms, std::bind(&StateManager::on_timer, this));
+            timer_ = this->create_wall_timer(1ms, std::bind(&StateManager::on_timer, this));
 
-            auto holding_callback   = [this](geometry_msgs::msg::Twist::UniquePtr msg) -> void { this->holding_twist_ = *msg; };
             auto nav_callback       = [this](geometry_msgs::msg::Twist::UniquePtr msg) -> void { this->nav_twist_ = *msg; };
             auto task_callback      = [this](geometry_msgs::msg::Twist::UniquePtr msg) -> void { this->task_twist_ = *msg; };
             auto teleop_callback    = [this](geometry_msgs::msg::Twist::UniquePtr msg) -> void { this->teleop_twist_ = *msg; };
 
-            this->holding_subscription_ = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel/holding", 10, holding_callback);
             this->nav_subscription_     = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel/nav", 10, nav_callback);
             this->task_subscription_    = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel/task", 10, task_callback);
             this->teleop_subscription_  = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel/teleop", 10, teleop_callback);
 
             cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10); // this one too
+
+            static const geometry_msgs::msg::Twist zero_twist;
         }
     
     private:
@@ -93,8 +94,7 @@ class StateManager : public rclcpp::Node {
         }
 
         void handle_holding() {
-            if (this->holding_twist_.has_value())
-                this->cmd_vel_publisher_->publish(holding_twist_.value());
+            this->cmd_vel_publisher_->publish(StateManager::zero_twist); // does this need to constantly publish? if not, just publish once upon transition to holding.
         }
 
         void handle_nav() {
@@ -125,17 +125,27 @@ class StateManager : public rclcpp::Node {
         rclcpp::Service<guppy_msgs::srv::ChangeState>::SharedPtr state_service_;
         rclcpp::TimerBase::SharedPtr timer_;
 
-        rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr holding_subscription_;
         rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr nav_subscription_;
         rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr task_subscription_;
         rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr teleop_subscription_;
 
-        std::optional<geometry_msgs::msg::Twist> holding_twist_;
         std::optional<geometry_msgs::msg::Twist> nav_twist_;
         std::optional<geometry_msgs::msg::Twist> task_twist_;
         std::optional<geometry_msgs::msg::Twist> teleop_twist_;
 
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_publisher_;
+    
+    const geometry_msgs::msg::Twist zero_twist = []() {
+        geometry_msgs::msg::Vector3 zero_vector;
+        zero_vector.x = 0.0;
+        zero_vector.y = 0.0;
+        zero_vector.z = 0.0;
+
+        geometry_msgs::msg::Twist twist;
+        twist.linear = zero_vector;
+        twist.angular = zero_vector;
+        return twist;
+    }();
 };
 
 int main(int argc, char* argv[]) {

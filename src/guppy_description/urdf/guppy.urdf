@@ -21,14 +21,14 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 -1.5708"/>
       <geometry>
-        <mesh filename="package://gncea_description/meshes/base_link.STL"/>
+        <mesh filename="package://guppy_description/meshes/base_link.STL"/>
       </geometry>
       <material name="opaque_red"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 -1.5708"/>
       <geometry>
-        <mesh filename="package://gncea_description/meshes/base_link.STL"/>
+        <mesh filename="package://guppy_description/meshes/base_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -42,14 +42,14 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://gncea_description/meshes/thruster0C_link.STL"/>
+        <mesh filename="package://guppy_description/meshes/thruster0C_link.STL"/>
       </geometry>
       <material name="opaque_red"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://gncea_description/meshes/thruster0C_link.STL"/>
+        <mesh filename="package://guppy_description/meshes/thruster0C_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -69,14 +69,14 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://gncea_description/meshes/thruster0M_link.STL"/>
+        <mesh filename="package://guppy_description/meshes/thruster0M_link.STL"/>
       </geometry>
       <material name="opaque_red"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://gncea_description/meshes/thruster0M_link.STL"/>
+        <mesh filename="package://guppy_description/meshes/thruster0M_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -96,14 +96,14 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://gncea_description/meshes/thruster1C_link.STL"/>
+        <mesh filename="package://guppy_description/meshes/thruster1C_link.STL"/>
       </geometry>
       <material name="opaque_red"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://gncea_description/meshes/thruster1C_link.STL"/>
+        <mesh filename="package://guppy_description/meshes/thruster1C_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -123,14 +123,14 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://gncea_description/meshes/thruster1M_link.STL"/>
+        <mesh filename="package://guppy_description/meshes/thruster1M_link.STL"/>
       </geometry>
       <material name="opaque_red"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://gncea_description/meshes/thruster1M_link.STL"/>
+        <mesh filename="package://guppy_description/meshes/thruster1M_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -150,14 +150,14 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://gncea_description/meshes/thruster2C_link.STL"/>
+        <mesh filename="package://guppy_description/meshes/thruster2C_link.STL"/>
       </geometry>
       <material name="opaque_red"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://gncea_description/meshes/thruster2C_link.STL"/>
+        <mesh filename="package://guppy_description/meshes/thruster2C_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -177,14 +177,14 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://gncea_description/meshes/thruster2M_link.STL"/>
+        <mesh filename="package://guppy_description/meshes/thruster2M_link.STL"/>
       </geometry>
       <material name="opaque_red"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://gncea_description/meshes/thruster2M_link.STL"/>
+        <mesh filename="package://guppy_description/meshes/thruster2M_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -204,14 +204,14 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://gncea_description/meshes/thruster3C_link.STL"/>
+        <mesh filename="package://guppy_description/meshes/thruster3C_link.STL"/>
       </geometry>
       <material name="opaque_red"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://gncea_description/meshes/thruster3C_link.STL"/>
+        <mesh filename="package://guppy_description/meshes/thruster3C_link.STL"/>
       </geometry>
     </collision>
   </link>
@@ -231,14 +231,14 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://gncea_description/meshes/thruster3M_link.STL"/>
+        <mesh filename="package://guppy_description/meshes/thruster3M_link.STL"/>
       </geometry>
       <material name="opaque_red"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <mesh filename="package://gncea_description/meshes/thruster3M_link.STL"/>
+        <mesh filename="package://guppy_description/meshes/thruster3M_link.STL"/>
       </geometry>
     </collision>
   </link>

@@ -37,14 +37,14 @@ public:
     parameters.pid_gains_vel_linear = {100, 0, 0};
     parameters.pid_gains_vel_angular = {100, 0, 0};
     parameters.pid_gains_pose_linear = {0, 0, 0};
-    parameters.pid_gains_pose_angular = {1, 0, 0};
+    parameters.pid_gains_pose_angular = {20, 0, 1};
     parameters.drag_coefficients << 0,0,0,0,0,0;
     parameters.drag_areas<< 1, 1, 1, 1, 1, 1;
     parameters.drag_effect_matrix = Eigen::Matrix<double, 6, 6>::Identity();
     parameters.water_density = 1000; // kg/m^3
     parameters.robot_volume = 0.020; // m^3
     parameters.robot_mass = 15; // kg
-    parameters.center_of_buoyancy << 0, 0, 0.04;
+    parameters.center_of_buoyancy << 0, 0, 0;
     parameters.qp_epsilon = 1e-3;
     parameters.pose_lock_deadband << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1;
 

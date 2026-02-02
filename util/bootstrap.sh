@@ -30,6 +30,7 @@ sudo apt install -y \
     ros-jazzy-proxsuite \
     ros-jazzy-marine-acoustic-msgs \
     python3-colcon-common-extensions \
+    python3-pygame \
     python3-rosdep \
 
 echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc

@@ -29,7 +29,6 @@ sudo apt install -y \
     ros-jazzy-control-toolbox \
     ros-jazzy-proxsuite \
     ros-jazzy-marine-acoustic-msgs \
-    ros-jazzy-spinnaker-camera-driver \
     python3-colcon-common-extensions \
     python3-pygame \
     python3-rosdep \

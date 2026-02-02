@@ -18,16 +18,13 @@ To install, run the following on a brand new [Ubuntu 24.04](https://ubuntu.com/b
 ```bash
 sudo apt install -y curl
 curl https://raw.githubusercontent.com/PalouseRobosub/guppy/refs/heads/main/util/bootstrap.sh | bash
-
-# to install the GNCea simulator:
-git clone https://github.com/palouserobosub/gncea
 ```
 
 This runs the [`utils/boostrap.sh`](./utils/bootstrap.sh) script. If you do not use the install script, please be sure to *clone the repo recursively* with `--recurse-submodules` for all of the vendor packages.
 
 ### Building
 ```bash
-cd ~/guppy # (or ~/gncea for sim)
+cd ~/guppy
 colcon build
 source install/setup.bash
 ```
@@ -43,7 +40,7 @@ ros2 launch guppy sim.xml
 # to run teleop control software:
 ros2 launch guppy teleop.xml
 ```
-Do not run `hw.xml` and `sim.xml` simultaneously.
+Do not run `hw.xml` and `sim.xml` simultaneously. The simulator uses [PalouseRobosub/GNCea](https://github.com/palouserobosub/gncea)!
 
 ### Running in Dev Containers
 

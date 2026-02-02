@@ -57,8 +57,5 @@ RUN mkdir -p /root/.vnc && \
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Clone the sim
-RUN git clone https://github.com/PalouseRobosub/GNCea.git ~/GNCea
-
 # Source the ros install by default
 RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc

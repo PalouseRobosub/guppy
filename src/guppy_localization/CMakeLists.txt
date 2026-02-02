@@ -19,11 +19,15 @@ ament_target_dependencies(barometer_pub rclcpp geometry_msgs std_msgs)
 
 install(TARGETS
   barometer_pub
-  DESTINATION lib/${PROJECT_NAME})
+  DESTINATION lib/${PROJECT_NAME}
+)
 
-  install(DIRECTORY
+install(DIRECTORY
   launch
   DESTINATION share/${PROJECT_NAME}/
 )
-
+install(DIRECTORY
+  config
+  DESTINATION share/${PROJECT_NAME}/
+)
 ament_package()

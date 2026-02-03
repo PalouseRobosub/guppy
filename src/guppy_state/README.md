@@ -6,7 +6,7 @@ Node, service, and message for managing the guppy state machine over ROS.
 
 The following states are expected by the `change_state` service,
 
-- INITIAL
+- STARTUP
 - HOLDING
 - NAV
 - TASK

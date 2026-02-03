@@ -19,6 +19,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(guppy_msgs REQUIRED)
 
 add_executable(state_manager src/state_manager.cpp)
+add_executable(led_pub src/led_pub.cpp)
 ament_target_dependencies(state_manager rclcpp std_msgs geometry_msgs guppy_msgs)
 
 install(TARGETS

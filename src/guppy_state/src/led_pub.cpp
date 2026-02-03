@@ -1,8 +1,10 @@
 #include <memory>
+#include <vector>
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "std_msgs/msg/u_int8.hpp"
+#include "guppy_msgs/srv/send_can.hpp"
 
 class MinimalSubscriber : public rclcpp::Node
 {
@@ -13,9 +15,9 @@ public:
       [this](std_msgs::msg::UInt8::UniquePtr msg) -> void {
         auto request = std::make_shared<guppy_msgs::srv::SendCan::Request>();
         request->id = 0x001;
-        request->data = msg->data;
-        auto result = client_->async_send_request(request);
-        rclcpp::spin_until_future_complete(this, result);
+        std::vector<uint8_t> bytes = { msg->data };
+        request->data = bytes;
+        client_->async_send_request(request);
       };
 
    

@@ -30,7 +30,7 @@ This can be imported from [../guppy_msgs/srv/ChangeState.srv](../guppy_msgs/srv/
 
 ### Constants
 
-Defined alongside the service are the following constants. Use this to format a request to ensure you set the correct state. The initial state for example is represented by `guppy_msgs::src::ChangeState::Request::INITIAL` in C++ or `ChangeState.Request.INITIAL` in Python.
+Defined alongside the service are the following constants. Use this to format a request to ensure you set the correct state. The initial state for example is represented by `guppy_msgs::src::ChangeState::Request::STARTUP` in C++ or `ChangeState.Request.STARTUP` in Python.
 
 ```
 uint8 INITIAL   = 0
@@ -51,3 +51,8 @@ Transitioning between states is handled by the state manager according to the gr
 ### Using `/cmd_vel`
 
 The `/cmd_vel` topic is published to by the state manager by forwarding the twist messages of from the subtopic of the active state, ie. guppy_teleop now published to the `/cmd_vel/teleop` topic and, provided guppy is in the TELEOP state, the state manager will forward these messages to `/cmd_vel`.
+
+### Change State Example
+
+```
+```

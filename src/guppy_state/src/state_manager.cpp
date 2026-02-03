@@ -6,6 +6,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "guppy_msgs/srv/change_state.hpp"                                                                                              
 #include "std_msgs/msg/u_int8.hpp"
+#include "guppy_msgs/msg/state.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
 
@@ -13,7 +14,7 @@ using namespace std::chrono_literals;
 
 class StateManager : public rclcpp::Node {
     public:
-        StateManager() : Node("state_manager"), current_state_(guppy_msgs::srv::ChangeState::Request::INITIAL) {
+        StateManager() : Node("state_manager"), current_state_(guppy_msgs::msg::State::STARTUP) {
             state_publisher_ = this->create_publisher<std_msgs::msg::UInt8>("state", 10); // what should the queue size be?
             state_service_ = this->create_service<guppy_msgs::srv::ChangeState>(
                 "change_state",
@@ -25,9 +26,9 @@ class StateManager : public rclcpp::Node {
             auto task_callback      = [this](geometry_msgs::msg::Twist::UniquePtr msg) -> void { this->task_twist_ = *msg; };
             auto teleop_callback    = [this](geometry_msgs::msg::Twist::UniquePtr msg) -> void { this->teleop_twist_ = *msg; };
 
-            this->nav_subscription_     = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel/nav", 10, nav_callback);
-            this->task_subscription_    = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel/task", 10, task_callback);
-            this->teleop_subscription_  = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel/teleop", 10, teleop_callback);
+            this->nav_subscription_     = this->create_subscription<geometry_msgs::msg::Twist>("cmd_vel/nav", 10, nav_callback);
+            this->task_subscription_    = this->create_subscription<geometry_msgs::msg::Twist>("cmd_vel/task", 10, task_callback);
+            this->teleop_subscription_  = this->create_subscription<geometry_msgs::msg::Twist>("cmd_vel/teleop", 10, teleop_callback);
 
             cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10); // this one too
 
@@ -77,7 +78,7 @@ class StateManager : public rclcpp::Node {
 
         void on_timer() {
             switch (this->current_state_) {
-                case guppy_msgs::srv::ChangeState::Request::INITIAL:    this->handle_initial();     break;
+                case guppy_msgs::srv::ChangeState::Request::STARTUP:    this->handle_startup();     break; // change to STARTUP
                 case guppy_msgs::srv::ChangeState::Request::HOLDING:    this->handle_holding();     break;
                 case guppy_msgs::srv::ChangeState::Request::NAV:        this->handle_nav();         break;
                 case guppy_msgs::srv::ChangeState::Request::TASK:       this->handle_task();        break;
@@ -88,7 +89,7 @@ class StateManager : public rclcpp::Node {
         }
 
         // state handlers
-        void handle_initial() {
+        void handle_startup() {
             // TODO may just break? pseudo init state
             this->publish_state(guppy_msgs::srv::ChangeState::Request::TELEOP); // just move straight to teleop for sim purposes until proper pipeline is created
         }

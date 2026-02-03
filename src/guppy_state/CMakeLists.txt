@@ -21,6 +21,12 @@ find_package(guppy_msgs REQUIRED)
 add_executable(state_manager src/state_manager.cpp)
 ament_target_dependencies(state_manager rclcpp std_msgs geometry_msgs guppy_msgs)
 
+install(DIRECTORY
+  launch
+  
+  DESTINATION share/${PROJECT_NAME}/
+)
+
 install(TARGETS
   state_manager # what goes here
 

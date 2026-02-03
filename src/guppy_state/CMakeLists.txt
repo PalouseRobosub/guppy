@@ -23,7 +23,7 @@ ament_target_dependencies(state_manager rclcpp std_msgs geometry_msgs guppy_msgs
 
 install(DIRECTORY
   launch
-  
+
   DESTINATION share/${PROJECT_NAME}/
 )
 

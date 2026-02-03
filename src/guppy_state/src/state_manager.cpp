@@ -36,7 +36,7 @@ class StateManager : public rclcpp::Node {
         }
     
     private:
-/*         bool is_valid_state(uint8_t state) {
+         bool is_valid_state(uint8_t state) {
             switch (state) {
                 case guppy_msgs::msg::State::STARTUP:
                 case guppy_msgs::msg::State::HOLDING:
@@ -49,7 +49,7 @@ class StateManager : public rclcpp::Node {
                 default:
                     return false;
             }
-        } */
+        }
 
         void transition_callback(
             const std::shared_ptr<guppy_msgs::srv::ChangeState::Request> request,
@@ -57,11 +57,17 @@ class StateManager : public rclcpp::Node {
         ) {
             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "State transition request...");   
             
-/*             if (!is_valid_state(request->state)) {
+            if (!is_valid_state(request->new_state.state)) {
                 RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Invalid state passed in transition service!");
                 response->success = false;
                 return;
-            } */
+            }
+
+            if (this->current_state_ == guppy_msgs::msg::State::FAULT) {
+                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "You can't exit the fault state!"); // TODO fix loggers!
+                response->success = false;
+                return;
+            }
 
             // TODO switch logic should be handled here NOT in StateManager#publishState()
             
@@ -73,12 +79,12 @@ class StateManager : public rclcpp::Node {
             message.state = state;
             this->state_publisher_->publish(message);
             this->current_state_ = state;
-            return true;                                                                                  
+            return true;
         }
 
         void on_timer() {
             switch (this->current_state_) {
-                case guppy_msgs::msg::State::STARTUP:    this->handle_startup();     break; // change to STARTUP
+                case guppy_msgs::msg::State::STARTUP:    this->handle_startup();     break;
                 case guppy_msgs::msg::State::HOLDING:    this->handle_holding();     break;
                 case guppy_msgs::msg::State::NAV:        this->handle_nav();         break;
                 case guppy_msgs::msg::State::TASK:       this->handle_task();        break;

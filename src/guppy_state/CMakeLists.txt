@@ -23,7 +23,7 @@ ament_target_dependencies(state_manager rclcpp std_msgs geometry_msgs guppy_msgs
 
 install(TARGETS
   state_manager # what goes here
-
+  led_pub
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

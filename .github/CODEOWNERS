@@ -1,8 +1,11 @@
 *   @cole-wilson
+
+util/run_in_docker.sh @B0gos
+Dockerfile @B0gos
+
 src/guppy @cole-wilson
 src/guppy_control @cole-wilson
-Dockerfile @B0gos
-util/run_in_docker.sh @B0gos
 src/guppy_can @andy-sorge
 src/guppy_teleop @andy-sorge
 src/guppy_state @ryden-handsaker
+src/guppy_description @cole-wilson

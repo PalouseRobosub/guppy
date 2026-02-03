@@ -3,6 +3,5 @@
     <include file="$(find-pkg-share guppy_control)/launch/sim.xml" />
     <include file="$(find-pkg-share guppy_can)/launch/sim.xml" />
     <include file="$(find-pkg-share guppy_localization)/launch/sim.xml" />
-
-    <include file="$(find-pkg-share auv_description)/launch/guppy_woolletpool.launch.py"/>
+    <include file="$(find-pkg-share guppy_description)/launch/sim.xml" />
 </launch>

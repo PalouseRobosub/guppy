@@ -58,13 +58,13 @@ class StateManager : public rclcpp::Node {
             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "State transition request...");   
             
             if (!is_valid_state(request->new_state.state)) {
-                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Invalid state passed in transition service!");
+                RCLCPP_ERROR(this->get_logger(), "Invalid state passed in transition service!");
                 response->success = false;
                 return;
             }
 
             if (this->current_state_ == guppy_msgs::msg::State::FAULT) {
-                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "You can't exit the fault state!"); // TODO fix loggers!
+                RCLCPP_ERROR(this->get_logger(), "You can't exit the fault state!"); // TODO fix loggers!
                 response->success = false;
                 return;
             }

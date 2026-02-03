@@ -33,7 +33,7 @@ This can be imported from [../guppy_msgs/srv/ChangeState.srv](../guppy_msgs/srv/
 Defined in the `state` message from are the following constants.
 
 ```go
-uint8 INITIAL   = 0
+uint8 STARTUP   = 0
 uint8 HOLDING   = 1
 uint8 NAV       = 2
 uint8 TASK      = 3

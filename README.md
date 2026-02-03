@@ -18,16 +18,13 @@ To install, run the following on a brand new [Ubuntu 24.04](https://ubuntu.com/b
 ```bash
 sudo apt install -y curl
 curl https://raw.githubusercontent.com/PalouseRobosub/guppy/refs/heads/main/util/bootstrap.sh | bash
-
-# to install the GNCea simulator:
-git clone https://github.com/palouserobosub/gncea
 ```
 
 This runs the [`utils/boostrap.sh`](./utils/bootstrap.sh) script. If you do not use the install script, please be sure to *clone the repo recursively* with `--recurse-submodules` for all of the vendor packages.
 
 ### Building
 ```bash
-cd ~/guppy # (or ~/gncea for sim)
+cd ~/guppy
 colcon build
 source install/setup.bash
 ```
@@ -43,25 +40,13 @@ ros2 launch guppy sim.xml
 # to run teleop control software:
 ros2 launch guppy teleop.xml
 ```
-Do not run `hw.xml` and `sim.xml` simultaneously.
+Do not run `hw.xml` and `sim.xml` simultaneously. The simulator uses [PalouseRobosub/GNCea](https://github.com/palouserobosub/gncea)!
 
-### Running in Docker
-It is possible to run ROS2 in a docker container if you do not wish to setup a VM
-To do so either run the bash script in util/run_in_docker.sh with docker installed which will start a docker container to build and run this codebase with host usb device access, input passthrough and a VNC server on localhost:5900
+### Running in Dev Containers
 
-OR
+The included `Dockerfile` and `devcontainer.json` allow the guppy repo to be opened inside of a docker container attatched to your IDE of choice. Open guppy in your devcontainer-compatible IDE, and then build the container and relaunch to open in the container. If using VSCode, be sure to install all recommended extensions when prompted.
 
-1. Install Docker
-2. (Only during first-time install or when updating dependencies) At the project root run: 
-```bash 
-docker build --no-cache --tag guppy .
-```
-3. To build and run the workspace in a container with an open VNC port, and with input passthrough for gamepads run:
-```bash
-docker run --rm -p 5900:5900 --privileged -v /dev/input:/dev/input -v /dev/bus/usb:/dev/bus/usb -v .:/home/ubuntu/guppy_ws -it guppy
-```
-4. Connect to localhost:5900 with any VNC client or press CTRL-c to stop the VNC server and run without a gui
-5. The guppy workspace should be already sourced and ready to run ros2 commands
+To interact with the Docker contaner graphically, you can visit [localhost:6080/vnc.html](https://localhost:6080/vnc.html), or connect with a VCN client to [localhost:5901](vnc://localhost:5091)
 
 ## Organization
 The code is broken up into several ROS 2 packages, in the [`src/`](./src/) directory:

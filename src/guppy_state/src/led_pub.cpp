@@ -14,7 +14,7 @@ public:
     auto topic_callback =
       [this](std_msgs::msg::UInt8::UniquePtr msg) -> void {
         auto request = std::make_shared<guppy_msgs::srv::SendCan::Request>();
-        request->id = 0x001;
+        request->id = 0x201;
         std::vector<uint8_t> bytes = { msg->data };
         request->data = bytes;
         client_->async_send_request(request);

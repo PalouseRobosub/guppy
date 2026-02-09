@@ -23,6 +23,12 @@ add_executable(led_pub src/led_pub.cpp)
 ament_target_dependencies(led_pub rclcpp std_msgs guppy_msgs)
 ament_target_dependencies(state_manager rclcpp std_msgs geometry_msgs guppy_msgs)
 
+install(DIRECTORY
+  launch
+
+  DESTINATION share/${PROJECT_NAME}/
+)
+
 install(TARGETS
   state_manager # what goes here
   led_pub

@@ -38,7 +38,6 @@ public:
     this->declare_parameter<std::vector<double>>("center_of_buoyancy", std::vector<double>{0.0, 0.0, 0.0});
     this->declare_parameter<double>("qp_epsilon", 0.0);
 
-
     // setup parameters...
 
     ChassisController::ChassisControllerParams parameters;

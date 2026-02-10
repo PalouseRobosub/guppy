@@ -55,7 +55,7 @@ public:
         const auto value = rclcpp::Parameter::from_parameter_msg(param);
 
         auto controller_params = this->controller->get_params();
-        if (name == "motor_coefficients") controller_params->motor_coefficients = to_eigen_matrix<6, N_MOTORS>(value.as_double_array());
+        if (name == "motor_coefficients") controller_params->motor_coefficients = to_motor_coefficients<N_MOTORS>(value.as_double_array());
         else if (name == "motor_lower_bounds") controller_params->motor_lower_bounds = to_eigen_vec<N_MOTORS>(value.as_double_array());
         else if (name == "motor_upper_bounds") controller_params->motor_upper_bounds = to_eigen_vec<N_MOTORS>(value.as_double_array());
         else if (name == "pid_gains_vel_linear") controller_params->pid_gains_vel_linear = value.as_double_array();
@@ -148,24 +148,6 @@ public:
     return out;
   }
 
-  template<int N> Eigen::Vector<double, N> to_eigen_vec(const std::vector<double>& vec) {
-    if (vec.size() != N) {
-      RCLCPP_ERROR(this->get_logger(), "Bad vector parameter passed to controller!");
-      throw std::runtime_error("Bad parameter passed to controller.");
-    }
-
-    return Eigen::Map<const Eigen::Matrix<double, N, 1>>(vec.data());
-  }
-
-  template<int R, int C> Eigen::Matrix<double, R, C> to_eigen_matrix(const std::vector<double>& vec) {
-    if (vec.size() != R * C) {
-      RCLCPP_ERROR(this->get_logger(), "Bad matrix parameter passed to controller!");
-      throw std::runtime_error("Bad matric parameter passed to controller.");
-    }
-
-    return Eigen::Map<const Eigen::Matrix<double, R, C, Eigen::RowMajor>>(vec.data());
-  }
-
 private:
   rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr sim_motor_publishers_[8];
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_subscription_;
@@ -183,7 +165,7 @@ private:
       std::vector<double> vec;
 
       this->get_parameter("motor_coefficients", vec);
-      params->motor_coefficients = to_eigen_matrix<6, N_MOTORS>(vec);
+      params->motor_coefficients = to_motor_coefficients<N_MOTORS>(vec);
       this->get_parameter("motor_lower_bounds", vec);
       params->motor_lower_bounds = to_eigen_vec<N_MOTORS>(vec);
       this->get_parameter("motor_upper_bounds", vec);
@@ -209,6 +191,38 @@ private:
 
       this->get_parameter("center_of_buoyancy", vec);
       params->center_of_buoyancy = Eigen::Vector3d(vec[0], vec[1], vec[2]);
+  }
+
+  template<int N> Eigen::Vector<double, N> to_eigen_vec(const std::vector<double>& vec) {
+    if (vec.size() != N) {
+      RCLCPP_ERROR(this->get_logger(), "Bad vector parameter passed to controller!");
+      throw std::runtime_error("Bad parameter passed to controller.");
+    }
+
+    return Eigen::Map<const Eigen::Matrix<double, N, 1>>(vec.data());
+  }
+
+  template<int R, int C> Eigen::Matrix<double, R, C> to_eigen_matrix(const std::vector<double>& vec) {
+    if (vec.size() != R * C) {
+      RCLCPP_ERROR(this->get_logger(), "Bad matrix parameter passed to controller!");
+      throw std::runtime_error("Bad matrxc parameter passed to controller.");
+    }
+
+    return Eigen::Map<const Eigen::Matrix<double, R, C, Eigen::RowMajor>>(vec.data());
+  }
+
+  template <int N> Eigen::Matrix<double, 6, N> to_motor_coefficients(const std::vector<double>& flat5N) {
+    Eigen::Matrix<double, 6, N> M;
+    for (int i = 0; i < N; ++i) {
+      const double x     = flat5N[5*i + 0];
+      const double y     = flat5N[5*i + 1];
+      const double z     = flat5N[5*i + 2];
+      const double phi   = flat5N[5*i + 3];
+      const double theta = flat5N[5*i + 4];
+      M.col(i) = get_single_motor_coefficients(x, y, z, phi, theta);
+    }
+
+    return M;
   }
 };
 

@@ -250,8 +250,8 @@ void ChassisController::update_parameters(ChassisControllerParams parameters) {
   this->pose_pid[5].set_gains(params_.pid_gains_pose_angular[0], params_.pid_gains_pose_angular[1], params_.pid_gains_pose_angular[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
 }
 
-ChassisController::ChassisControllerParams ChassisController::get_params() {
-  return this->params_;
+ChassisController::ChassisControllerParams *ChassisController::get_params() {
+  return &this->params_;
 }
 
 Eigen::Vector<double, N_MOTORS> ChassisController::get_motor_thrusts() {

@@ -29,8 +29,8 @@ public:
     this->declare_parameter<std::vector<double>>("pid_gains_pose_linear", std::vector<double>{0.0, 0.0, 0.0});
     this->declare_parameter<std::vector<double>>("pid_gains_pose_angular", std::vector<double>{0.0, 0.0, 0.0});
     this->declare_parameter<std::vector<double>>("pose_lock_deadband", std::vector<double>(6, 0.0));
-    this->declare_parameter<std::vector<double>>("drag_coefficients", std::vector<double>(3, 0.0));
-    this->declare_parameter<std::vector<double>>("drag_areas", std::vector<double>(3, 0.0));
+    this->declare_parameter<std::vector<double>>("drag_coefficients", std::vector<double>(6, 0.0));
+    this->declare_parameter<std::vector<double>>("drag_areas", std::vector<double>(6, 0.0));
     this->declare_parameter<std::vector<double>>("drag_effect_matrix", std::vector<double>(6 * 6, 0.0)); // flattened 6x6
     this->declare_parameter<double>("water_density", 0.0);
     this->declare_parameter<double>("robot_volume", 0.0);
@@ -42,7 +42,7 @@ public:
 
     ChassisController::ChassisControllerParams parameters;
 
-    parameters.drag_effect_matrix = Eigen::Matrix<double, 6, 6>::Identity();
+    load_params_(&parameters);
 
     this->param_subscriber_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
 
@@ -55,25 +55,24 @@ public:
         const auto value = rclcpp::Parameter::from_parameter_msg(param);
 
         auto controller_params = this->controller->get_params();
-        if (name == "motor_coefficients") controller_params.motor_coefficients = to_eigen_matrix<6, N_MOTORS>(value.as_double_array());
-        else if (name == "motor_lower_bounds") controller_params.motor_lower_bounds = to_eigen_vec<N_MOTORS>(value.as_double_array());
-        else if (name == "motor_upper_bounds") controller_params.motor_upper_bounds = to_eigen_vec<N_MOTORS>(value.as_double_array());
-        //else if (name == "axis_weight_matrix") // just an identity matrix, cannot change
-        else if (name == "pid_gains_vel_linear") controller_params.pid_gains_vel_linear = value.as_double_array();
-        else if (name == "pid_gains_vel_angular") controller_params.pid_gains_vel_angular = value.as_double_array();
-        else if (name == "pid_gains_pose_linear") controller_params.pid_gains_pose_linear = value.as_double_array();
-        else if (name == "pid_gains_pose_angular") controller_params.pid_gains_pose_angular = value.as_double_array();
-        else if (name == "pose_lock_deadband") controller_params.pose_lock_deadband = to_eigen_vec<6>(value.as_double_array());
-        else if (name == "drag_coefficients") controller_params.drag_coefficients = to_eigen_vec<6>(value.as_double_array());
-        else if (name == "drag_areas") controller_params.drag_areas = to_eigen_vec<6>(value.as_double_array());
-        else if (name == "drag_effect_matrix") controller_params.drag_effect_matrix = to_eigen_matrix<6, 6>(value.as_double_array());
-        else if (name == "water_density") controller_params.water_density = value.as_double();
-        else if (name == "robot_volume") controller_params.robot_volume = value.as_double();
-        else if (name == "robot_mass") controller_params.robot_mass = value.as_double();
+        if (name == "motor_coefficients") controller_params->motor_coefficients = to_eigen_matrix<6, N_MOTORS>(value.as_double_array());
+        else if (name == "motor_lower_bounds") controller_params->motor_lower_bounds = to_eigen_vec<N_MOTORS>(value.as_double_array());
+        else if (name == "motor_upper_bounds") controller_params->motor_upper_bounds = to_eigen_vec<N_MOTORS>(value.as_double_array());
+        else if (name == "pid_gains_vel_linear") controller_params->pid_gains_vel_linear = value.as_double_array();
+        else if (name == "pid_gains_vel_angular") controller_params->pid_gains_vel_angular = value.as_double_array();
+        else if (name == "pid_gains_pose_linear") controller_params->pid_gains_pose_linear = value.as_double_array();
+        else if (name == "pid_gains_pose_angular") controller_params->pid_gains_pose_angular = value.as_double_array();
+        else if (name == "pose_lock_deadband") controller_params->pose_lock_deadband = to_eigen_vec<6>(value.as_double_array());
+        else if (name == "drag_coefficients") controller_params->drag_coefficients = to_eigen_vec<6>(value.as_double_array());
+        else if (name == "drag_areas") controller_params->drag_areas = to_eigen_vec<6>(value.as_double_array());
+        else if (name == "drag_effect_matrix") controller_params->drag_effect_matrix = to_eigen_matrix<6, 6>(value.as_double_array());
+        else if (name == "water_density") controller_params->water_density = value.as_double();
+        else if (name == "robot_volume") controller_params->robot_volume = value.as_double();
+        else if (name == "robot_mass") controller_params->robot_mass = value.as_double();
         else if (name == "center_of_buoyancy") {
           auto& vec = value.as_double_array();
-          controller_params.center_of_buoyancy = Eigen::Vector3<double>(vec[0], vec[1], vec[2]);
-        } else if (name == "qp_epsilon") controller_params.qp_epsilon = value.as_double();
+          controller_params->center_of_buoyancy = Eigen::Vector3<double>(vec[0], vec[1], vec[2]);
+        } else if (name == "qp_epsilon") controller_params->qp_epsilon = value.as_double();
       }
     };
     this->param_event_callback_handle_ = param_subscriber_->add_parameter_event_callback(param_callback);
@@ -178,6 +177,39 @@ private:
 
   T200Interface* thruster_interface;
   ChassisController* controller;
+
+
+  void load_params_(ChassisController::ChassisControllerParams* params) {
+      std::vector<double> vec;
+
+      this->get_parameter("motor_coefficients", vec);
+      params->motor_coefficients = to_eigen_matrix<6, N_MOTORS>(vec);
+      this->get_parameter("motor_lower_bounds", vec);
+      params->motor_lower_bounds = to_eigen_vec<N_MOTORS>(vec);
+      this->get_parameter("motor_upper_bounds", vec);
+      params->motor_upper_bounds = to_eigen_vec<N_MOTORS>(vec);
+      params->drag_effect_matrix = Eigen::Matrix<double, 6, 6>::Identity();
+      this->get_parameter("pid_gains_vel_linear", params->pid_gains_vel_linear);
+      this->get_parameter("pid_gains_vel_angular", params->pid_gains_vel_angular);
+      this->get_parameter("pid_gains_pose_linear", params->pid_gains_pose_linear);
+      this->get_parameter("pid_gains_pose_angular", params->pid_gains_pose_angular);
+      this->get_parameter("pose_lock_deadband", vec);
+      params->pose_lock_deadband = to_eigen_vec<6>(vec);
+      this->get_parameter("drag_coefficients", vec);
+      params->drag_coefficients = to_eigen_vec<6>(vec);
+      this->get_parameter("drag_areas", vec);
+      params->drag_areas = to_eigen_vec<6>(vec);
+      this->get_parameter("drag_effect_matrix", vec);
+      params->drag_effect_matrix = to_eigen_matrix<6, 6>(vec);
+
+      this->get_parameter("water_density", params->water_density);
+      this->get_parameter("robot_volume",  params->robot_volume);
+      this->get_parameter("robot_mass",    params->robot_mass);
+      this->get_parameter("qp_epsilon", params->qp_epsilon);
+
+      this->get_parameter("center_of_buoyancy", vec);
+      params->center_of_buoyancy = Eigen::Vector3d(vec[0], vec[1], vec[2]);
+  }
 };
 
 int main(int argc, char * argv[]) {

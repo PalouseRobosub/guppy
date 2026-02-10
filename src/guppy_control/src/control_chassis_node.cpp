@@ -20,23 +20,24 @@ public:
   ControlChassis() : Node("control_chassis") {
     thruster_interface = new T200Interface("can0", {101, 102, 103, 104, 105, 106, 107, 108});
 
-    this->declare_parameter<std::vector<double>>("motor_coefficients"); // flattened bc nested vector wouldn't work, size of 6 * N_MOTORS
-    this->declare_parameter<std::vector<double>>("motor_lower_bounds"); // size of N_MOTORS
-    this->declare_parameter<std::vector<double>>("motor_upper_bounds"); // size of N_MOTORS
+    this->declare_parameter<std::vector<double>>("motor_coefficients", std::vector<double>(6 * N_MOTORS, 0.0)); // flattened 6xN
+    this->declare_parameter<std::vector<double>>("motor_lower_bounds", std::vector<double>(N_MOTORS, 0.0));
+    this->declare_parameter<std::vector<double>>("motor_upper_bounds", std::vector<double>(N_MOTORS, 0.0));
     // this->declare_parameter<std::vector<std::vector<double, 6>, 6>>("axis_weight_matrix"); // just an identity matrix so won't need to be updated?
-    this->declare_parameter<std::vector<double>>("pid_gains_vel_linear"); // size of 3
-    this->declare_parameter<std::vector<double>>("pid_gains_vel_angular"); // size of 3
-    this->declare_parameter<std::vector<double>>("pid_gains_pose_linear"); // size of 3
-    this->declare_parameter<std::vector<double>>("pid_gains_pose_angular"); // size of 3
-    this->declare_parameter<std::vector<double>>("pose_lock_deadband"); // size of 6
-    this->declare_parameter<std::vector<double>>("drag_coefficients"); // size of 3
-    this->declare_parameter<std::vector<double>>("drag_areas"); // size of 3
-    this->declare_parameter<std::vector<double>>("drag_effect_matrix"); // only has 5 parameters? flattened size of 6 * 6
-    this->declare_parameter<double>("water_density"); // does this need to be changed?
-    this->declare_parameter<double>("robot_volume");
-    this->declare_parameter<double>("robot_mass");
-    this->declare_parameter<std::vector<double>>("center_of_buoyancy"); // size of 3
-    this->declare_parameter<double>("qp_epsilon");
+    this->declare_parameter<std::vector<double>>("pid_gains_vel_linear", std::vector<double>{0.0, 0.0, 0.0});
+    this->declare_parameter<std::vector<double>>("pid_gains_vel_angular", std::vector<double>{0.0, 0.0, 0.0});
+    this->declare_parameter<std::vector<double>>("pid_gains_pose_linear", std::vector<double>{0.0, 0.0, 0.0});
+    this->declare_parameter<std::vector<double>>("pid_gains_pose_angular", std::vector<double>{0.0, 0.0, 0.0});
+    this->declare_parameter<std::vector<double>>("pose_lock_deadband", std::vector<double>(6, 0.0));
+    this->declare_parameter<std::vector<double>>("drag_coefficients", std::vector<double>(3, 0.0));
+    this->declare_parameter<std::vector<double>>("drag_areas", std::vector<double>(3, 0.0));
+    this->declare_parameter<std::vector<double>>("drag_effect_matrix", std::vector<double>(6 * 6, 0.0)); // flattened 6x6
+    this->declare_parameter<double>("water_density", 0.0);
+    this->declare_parameter<double>("robot_volume", 0.0);
+    this->declare_parameter<double>("robot_mass", 0.0);
+    this->declare_parameter<std::vector<double>>("center_of_buoyancy", std::vector<double>{0.0, 0.0, 0.0});
+    this->declare_parameter<double>("qp_epsilon", 0.0);
+
 
     // setup parameters...
 

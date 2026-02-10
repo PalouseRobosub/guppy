@@ -4,4 +4,5 @@
     <include file="$(find-pkg-share guppy_can)/launch/sim.xml" />
     <include file="$(find-pkg-share guppy_localization)/launch/sim.xml" />
     <include file="$(find-pkg-share guppy_description)/launch/sim.xml" />
+    <include file="$(find-pkg-share guppy_state)/launch/sim.xml" />
 </launch>

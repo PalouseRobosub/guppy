@@ -4,4 +4,5 @@
     <include file="$(find-pkg-share guppy_can)/launch/core.xml" />
     <include file="$(find-pkg-share guppy_localization)/launch/core.xml" />
     <include file="$(find-pkg-share guppy_description)/launch/core.xml" />
+    <include file="$(find-pkg-share guppy_state)/launch/core.xml" />
 </launch>

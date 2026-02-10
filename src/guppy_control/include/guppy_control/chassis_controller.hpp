@@ -148,6 +148,11 @@ public:
     void update_parameters(ChassisControllerParams parameters);
 
     /*
+        @brief get a copy of the configuration paramters
+    */
+    ChassisControllerParams get_params();
+
+    /*
         @brief initializes hardware interface and starts the control thread
     */
     void start();

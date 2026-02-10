@@ -1,6 +1,6 @@
 control_node:
   ros__parameters:
-    motor_coefficients : [
+    motor_coefficients: [
        -1,   1,   0,  0,    135,
         1,   1,   0,  0,   -135,
         1,  -1,   0,  0,    -45,
@@ -8,19 +8,19 @@ control_node:
         0,   1,   0,  90,     0,
         1,   0,   0,  90,     0,
         0,  -1,   0,  90,     0,
-       -1,   0,   0,  90,     0
-     ] # flattend 6 * 8 matrix
-     motor_lower_bounds : [ -49.42552, -49.42552, -49.42552, -49.42552, -49.42552, -49.42552, -49.42552, -49.42552 ]
-     motor_upper_bounds : [ 64.23356, 64.23356, 64.23356, 64.23356, 64.23356, 64.23356, 64.23356, 64.23356 ]
-     pid_gains_vel_linear : [ 100.0, 0.0, 0.0 ]
-     pid_gains_vel_angular : [ 10.,0, 0.0, 0.0 ]
-     pid_gains_pose_linear : [ 0.0, 0.0, 0.0 ]
-     pid_gains_pose_angular : [ 20.0, 0.0, 1.0 ]
-     drag_coefficients : [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]
-     drag_areas : [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 ]
-     water_density : 1000.0 # kg/m^3
-     robot_volume : 0.020 # m^3
-     robot_mass : 15.0 # kg
-     center_of_buoyancy : [ 0.0, 0.0, 0.0 ]
-     qp_epsilon : 0.001
-     pose_lock_deadband : [ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 ]
+       -1,   0,   0,  90,     0,
+    ] # flattend 6 * 8 matrix
+    motor_lower_bounds: [ -49.42552, -49.42552, -49.42552, -49.42552, -49.42552, -49.42552, -49.42552, -49.42552 ]
+    motor_upper_bounds: [ 64.23356, 64.23356, 64.23356, 64.23356, 64.23356, 64.23356, 64.23356, 64.23356 ]
+    pid_gains_vel_linear: [ 100.0, 0.0, 0.0 ]
+    pid_gains_vel_angular: [ 10.,0, 0.0, 0.0 ]
+    pid_gains_pose_linear: [ 0.0, 0.0, 0.0 ]
+    pid_gains_pose_angular: [ 20.0, 0.0, 1.0 ]
+    pose_lock_deadband: [ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 ]
+    drag_coefficients: [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]
+    drag_areas: [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 ]
+    water_density: 1000.0 # kg/m^3
+    robot_volume: 0.020 # m^3
+    robot_mass: 15.0 # kg
+    center_of_buoyancy: [ 0.0, 0.0, 0.0 ]
+    qp_epsilon: 0.001

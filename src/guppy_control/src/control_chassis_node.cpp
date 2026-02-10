@@ -20,7 +20,7 @@ public:
   ControlChassis() : Node("control_chassis") {
     thruster_interface = new T200Interface("can0", {101, 102, 103, 104, 105, 106, 107, 108});
 
-    this->declare_parameter<std::vector<double>>("motor_coeff_matrix"); // flattened bc nested vector wouldn't work, size of 6 * N_MOTORS
+    this->declare_parameter<std::vector<double>>("motor_coefficients"); // flattened bc nested vector wouldn't work, size of 6 * N_MOTORS
     this->declare_parameter<std::vector<double>>("motor_lower_bounds"); // size of N_MOTORS
     this->declare_parameter<std::vector<double>>("motor_upper_bounds"); // size of N_MOTORS
     // this->declare_parameter<std::vector<std::vector<double, 6>, 6>>("axis_weight_matrix"); // just an identity matrix so won't need to be updated?
@@ -55,7 +55,7 @@ public:
         const auto value = rclcpp::Parameter::from_parameter_msg(param);
 
         auto controller_params = this->controller->get_params();
-        if (name == "motor_coeff_matrix") controller_params.motor_coefficients = to_eigen_matrix<6, N_MOTORS>(value.as_double_array());
+        if (name == "motor_coefficients") controller_params.motor_coefficients = to_eigen_matrix<6, N_MOTORS>(value.as_double_array());
         else if (name == "motor_lower_bounds") controller_params.motor_lower_bounds = to_eigen_vec<N_MOTORS>(value.as_double_array());
         else if (name == "motor_upper_bounds") controller_params.motor_upper_bounds = to_eigen_vec<N_MOTORS>(value.as_double_array());
         //else if (name == "axis_weight_matrix") // just an identity matrix, cannot change

@@ -53,12 +53,12 @@ public:
     typedef struct chassis_controller_params_ {
         
         /* A 6XN_MOTORS matrix of coefficients corresponding to each motor */
-        Eigen::Matrix<double, 6, N_MOTORS> motor_coefficients = Eigen::Matrix<double, 6, N_MOTORS>::Identity();
+        Eigen::Matrix<double, 6, N_MOTORS> motor_coefficients = Eigen::Matrix<double, 6, N_MOTORS>::Zero();
         /* A vector of ordered motor lower bounds in Newtons of thrust. */
-        Eigen::Vector<double, N_MOTORS> motor_lower_bounds = Eigen::Vector<double, N_MOTORS>::Identity();
+        Eigen::Vector<double, N_MOTORS> motor_lower_bounds = Eigen::Vector<double, N_MOTORS>::Zero();
 
         /* A vector of ordered motor upper bounds in Newtons of thrust. */
-        Eigen::Vector<double, N_MOTORS> motor_upper_bounds = Eigen::Vector<double, N_MOTORS>::Identity();
+        Eigen::Vector<double, N_MOTORS> motor_upper_bounds = Eigen::Vector<double, N_MOTORS>::Zero();
 
         // control parameters
         /* A diagonal matrix of weights between Fx,Fy,Fz,Tx,Ty,Tz in the QP problem */
@@ -77,14 +77,14 @@ public:
         std::vector<double> pid_gains_pose_angular = {1, 0, 0};
 
         /* Six deadband values for when an axis should be considered locked */
-        Eigen::Vector<double, 6> pose_lock_deadband = Eigen::Vector<double, 6>::Identity();
+        Eigen::Vector<double, 6> pose_lock_deadband = Eigen::Vector<double, 6>::Zero();
 
         // robot setup
         /* Drag coefficients for movement in all six axes */
-        Eigen::Vector<double, 6> drag_coefficients = Eigen::Vector<double, 6>::Identity();
+        Eigen::Vector<double, 6> drag_coefficients = Eigen::Vector<double, 6>::Zero();
 
         /* Drag areas of all six "axes" */
-        Eigen::Vector<double, 6> drag_areas = Eigen::Vector<double, 6>::Identity();
+        Eigen::Vector<double, 6> drag_areas = Eigen::Vector<double, 6>::Zero();
 
         /*
             A 6x6 matrix which is multiplied by drag force to predict offsets in movement
@@ -112,7 +112,7 @@ public:
         double robot_mass; // kg
 
         /* center of buoyancy arm from CM (in meters)*/
-        Eigen::Vector3<double> center_of_buoyancy = Eigen::Vector3<double>::Identity();
+        Eigen::Vector3<double> center_of_buoyancy = Eigen::Vector3<double>::Zero();
 
         // qp solver
         /* QP convergence epsilon */
@@ -149,7 +149,7 @@ public:
     /*
         @brief get a copy of the configuration paramters
     */
-    ChassisControllerParams* get_params();
+    ChassisControllerParams get_param_struct();
 
     /*
         @brief initializes hardware interface and starts the control thread

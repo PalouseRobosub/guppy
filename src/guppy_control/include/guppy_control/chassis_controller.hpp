@@ -53,13 +53,12 @@ public:
     typedef struct chassis_controller_params_ {
         
         /* A 6XN_MOTORS matrix of coefficients corresponding to each motor */
-        Eigen::Matrix<double, 6, N_MOTORS> motor_coefficients;
-
+        Eigen::Matrix<double, 6, N_MOTORS> motor_coefficients = Eigen::Matrix<double, 6, N_MOTORS>::Zero();
         /* A vector of ordered motor lower bounds in Newtons of thrust. */
-        Eigen::Vector<double, N_MOTORS> motor_lower_bounds;
+        Eigen::Vector<double, N_MOTORS> motor_lower_bounds = Eigen::Vector<double, N_MOTORS>::Zero();
 
         /* A vector of ordered motor upper bounds in Newtons of thrust. */
-        Eigen::Vector<double, N_MOTORS> motor_upper_bounds;
+        Eigen::Vector<double, N_MOTORS> motor_upper_bounds = Eigen::Vector<double, N_MOTORS>::Zero();
 
         // control parameters
         /* A diagonal matrix of weights between Fx,Fy,Fz,Tx,Ty,Tz in the QP problem */
@@ -78,14 +77,14 @@ public:
         std::vector<double> pid_gains_pose_angular = {1, 0, 0};
 
         /* Six deadband values for when an axis should be considered locked */
-        Eigen::Vector<double, 6> pose_lock_deadband;
+        Eigen::Vector<double, 6> pose_lock_deadband = Eigen::Vector<double, 6>::Zero();
 
         // robot setup
         /* Drag coefficients for movement in all six axes */
-        Eigen::Vector<double, 6> drag_coefficients;
+        Eigen::Vector<double, 6> drag_coefficients = Eigen::Vector<double, 6>::Zero();
 
         /* Drag areas of all six "axes" */
-        Eigen::Vector<double, 6> drag_areas;
+        Eigen::Vector<double, 6> drag_areas = Eigen::Vector<double, 6>::Zero();
 
         /*
             A 6x6 matrix which is multiplied by drag force to predict offsets in movement
@@ -101,7 +100,7 @@ public:
 
             The above matrix would mean that pitch is changed by 0.2Fx movement.
         */
-        Eigen::Matrix<double, 6, 6> drag_effect_matrix;
+        Eigen::Matrix<double, 6, 6> drag_effect_matrix = Eigen::Matrix<double, 6, 6>::Identity();
 
         /* water density in kg/m^3 */
         double water_density = 1000; // kg/m^3
@@ -113,7 +112,7 @@ public:
         double robot_mass; // kg
 
         /* center of buoyancy arm from CM (in meters)*/
-        Eigen::Vector3<double> center_of_buoyancy;
+        Eigen::Vector3<double> center_of_buoyancy = Eigen::Vector3<double>::Zero();
 
         // qp solver
         /* QP convergence epsilon */
@@ -148,9 +147,14 @@ public:
     void update_parameters(ChassisControllerParams parameters);
 
     /*
+        @brief get a copy of the configuration paramters
+    */
+    ChassisControllerParams get_param_struct();
+
+    /*
         @brief initializes hardware interface and starts the control thread
     */
-    void start();
+    void start(bool debug);
 
     /*
         @brief shuts down interface and ends the control thread
@@ -226,18 +230,18 @@ public:
         @brief calculates the orientation lock logic
         @return a Vector3d of additional torque "nudges" to hold position lock
     */
-    Eigen::Vector3d calculate_rotational_nudge();
+    Eigen::Vector3d calculate_rotational_nudge(bool debug);
 
     /*
         @brief the main control loop
         @return a boolean of whether or not the write to the hardware interface was successful
     */
-    bool control_loop();
+    bool control_loop(bool debug);
 
     /*
         @brief a wrapper for the control_loop() function which loops it and handles timing
     */
-    void loop_runner();
+    void loop_runner(bool debug);
 };
 
 }

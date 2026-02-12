@@ -3,7 +3,7 @@
 
 namespace chassis_controller {
 
-bool ChassisController::control_loop() {
+bool ChassisController::control_loop(bool debug) {
   // helper to square the magnitude while maintaining direction
   Eigen::Vector<double, 6> desired_squared = desired_velocity_state_.cwiseAbs().array() * desired_velocity_state_.array();
   
@@ -28,10 +28,6 @@ bool ChassisController::control_loop() {
   Eigen::Vector<double, 6> buoyancy_wrench;
   buoyancy_wrench << -buoyancy_force_rotated[0], -buoyancy_force_rotated[1], buoyancy_force_rotated[2], buoyancy_torque;
 
-  // DEBUGGING std::cout << "buoyancy_wrench: " << buoyancy_wrench.transpose() << std::endl;
-  // DEBUGGING std::cout << "gravity_wrench: " << gravity_wrench.transpose() << std::endl;
-  // DEBUGGING std::cout << "drag_wrench: " << drag_wrench.transpose() << std::endl;
-
   // calculate total feedforward
   Eigen::Vector<double, 6> feedforward = -(drag_wrench + buoyancy_wrench + gravity_wrench);
 
@@ -41,9 +37,6 @@ bool ChassisController::control_loop() {
     velocity_feedback[i] = -1 * velocity_pid[i].compute_command(desired_velocity_state_[i] - current_velocity_state_[i], (dt_us_ / 1000000.0));
     if (i == 5 || i == 2) velocity_feedback[i] *= -1;
   }
-
-  // DEBUGGING std::cout << "velocity_feedback: " << velocity_feedback.transpose() << std::endl;
-
 
   // calculate position and orientation pid
 
@@ -64,18 +57,11 @@ bool ChassisController::control_loop() {
   // position_nudge = Eigen::Vector3d(-position_nudge[0], -position_nudge[1], position_nudge[2]);
   
   // orientation...
-  Eigen::Vector3d rotational_nudge = calculate_rotational_nudge();
+  Eigen::Vector3d rotational_nudge = calculate_rotational_nudge(debug);
   added_pose_nudge << position_nudge, rotational_nudge;
-
-  // DEBUGGING std::cout << "c pos: " << current_position_state_.transpose() << std::endl;
-  // DEBUGGING std::cout << "d pos: " << desired_position_state_.transpose() << std::endl;
-  // DEBUGGING std::cout << "pose_nudge: " << added_pose_nudge.transpose() << std::endl;
-  // DEBUGGING std::cout << std::endl;
 
   // allocate thrust
   auto local_wrench = feedforward + velocity_feedback + added_pose_nudge;
-  // DEBUGGING std::cout << "local_wrench: " << local_wrench.transpose() << std::endl;
-  // DEBUGGING std::cout << std::endl;
   motor_forces_ = allocate_thrust(local_wrench);
 
   // convert the Newtons of thrust to -1/1 throttle values
@@ -85,13 +71,29 @@ bool ChassisController::control_loop() {
     motor_throttles[i] = motor_forces_[i] / abs(max_in_dir);
   }
 
+  if (debug) {
+    std::cout << "buoyancy_wrench: " << buoyancy_wrench.transpose() << std::endl;
+    std::cout << "gravity_wrench: " << gravity_wrench.transpose() << std::endl;
+    std::cout << "drag_wrench: " << drag_wrench.transpose() << std::endl;
+
+    std::cout << "velocity_feedback: " << velocity_feedback.transpose() << std::endl;
+
+    std::cout << "c pos: " << current_position_state_.transpose() << std::endl;
+    std::cout << "d pos: " << desired_position_state_.transpose() << std::endl;
+    std::cout << "pose_nudge: " << added_pose_nudge.transpose() << std::endl;
+    std::cout << std::endl;
+
+    std::cout << "local_wrench: " << local_wrench.transpose() << std::endl;
+    std::cout << std::endl;
+  }
+
   // write to hardware interface
   bool success = interface_->write(motor_throttles);
 
   return success;
 }
 
-Eigen::Vector3d ChassisController::calculate_rotational_nudge() {
+Eigen::Vector3d ChassisController::calculate_rotational_nudge(bool debug) {
   // the new state flags of the rotational locks
   int new_orientation_lock = ALL_FREE; // == 0
 
@@ -106,9 +108,6 @@ Eigen::Vector3d ChassisController::calculate_rotational_nudge() {
     current_orientation_lock_ = (OrientationLockState)new_orientation_lock;
   }
 
-  // DEBUGGING std::cout << "lock_state: " << (int)new_orientation_lock << std::endl;
-  // DEBUGGING std::cout << "old_state: " << (int)current_orientation_lock_ << std::endl;
-
   // calculate the error quaternion
   Eigen::Quaternion q_err = current_orientation_state_.inverse() * desired_orientation_state_;
   Eigen::Vector3d axis_err = q_err.vec();
@@ -116,15 +115,20 @@ Eigen::Vector3d ChassisController::calculate_rotational_nudge() {
   // // flip to achieve shortest rotation
   // if (q_err.w() < 0) axis_err = -axis_err;
 
-  // DEBUGGING std::cout << "c: " << current_orientation_state_.w() << " " << current_orientation_state_.vec().transpose() << std::endl;
-  // DEBUGGING std::cout << "d: " << desired_orientation_state_.w() << " " << desired_orientation_state_.vec().transpose() << std::endl;
-  // DEBUGGING std::cout << "axis_err: " << axis_err.transpose() << std::endl;
-
   // calculate the output nudge with PID
   Eigen::Vector3d output_nudge = Eigen::Vector3d::Zero();
   if (ROLL_LOCK & current_orientation_lock_) output_nudge[0] = -1 * pose_pid[3].compute_command(axis_err[0], (dt_us_ / 1000000.0));
   if (PITCH_LOCK & current_orientation_lock_) output_nudge[1] = -1 * pose_pid[4].compute_command(axis_err[1], (dt_us_ / 1000000.0));
   if (YAW_LOCK & current_orientation_lock_) output_nudge[2] = pose_pid[5].compute_command(axis_err[2], (dt_us_ / 1000000.0));
+
+  if (debug) {
+    std::cout << "lock_state: " << (int)new_orientation_lock << std::endl;
+    std::cout << "old_state: " << (int)current_orientation_lock_ << std::endl;
+
+    std::cout << "c: " << current_orientation_state_.w() << " " << current_orientation_state_.vec().transpose() << std::endl;
+    std::cout << "d: " << desired_orientation_state_.w() << " " << desired_orientation_state_.vec().transpose() << std::endl;
+    std::cout << "axis_err: " << axis_err.transpose() << std::endl;
+  }
 
   return output_nudge;
 }
@@ -259,7 +263,7 @@ Eigen::Vector<double, N_MOTORS> ChassisController::get_motor_thrusts() {
   return this->motor_forces_;
 }
 
-void ChassisController::loop_runner() {
+void ChassisController::loop_runner(bool debug) {
   // init interface (send 0 to all...)
   interface_->initialize();
 
@@ -274,19 +278,20 @@ void ChassisController::loop_runner() {
     auto start = high_resolution_clock::now();
 
     // actually run the control code here
-    bool okay = control_loop();
+    bool okay = control_loop(debug);
 
     // time the loop
     auto stop = high_resolution_clock::now();
     int duration_us = duration_cast<microseconds>(stop - start).count();
-    // DEBUGGING std::cout << duration_us << " us total loop time" << std::endl;
 
     // update min/max
     if (duration_us < min_us) min_us = duration_us;
     if (duration_us > max_us) max_us = duration_us;
 
-    // warn if error?
-    // DEBUGGING NOT NEEDED IN SIM if (!okay) std::cerr << "ERROR WRITING TO HARDWARE INTERFACE" << std::endl;
+    if (debug) {
+      std::cout << duration_us << " us total loop time" << std::endl;
+      if (!okay) std::cerr << "ERROR WRITING TO HARDWARE INTERFACE" << std::endl;
+    }
 
     // wait until next loop to maintain dt_us consistency
     std::this_thread::sleep_until(next_wake);
@@ -295,13 +300,14 @@ void ChassisController::loop_runner() {
   // shutdown interface (send 0 to all...)
   interface_->shutdown();
 
-  // DEBUGGING std::cout << "\t\t min_us:" << min_us << "\tmax_us: " << max_us << std::endl;
+  if (debug)
+    std::cout << "\t\t min_us:" << min_us << "\tmax_us: " << max_us << std::endl;
 }
 
-void ChassisController::start() {
+void ChassisController::start(bool debug) {
   // startup the thread
   THREAD_RUNNING_.store(true);
-  control_thread_ = std::thread(&ChassisController::loop_runner, this);
+  control_thread_ = std::thread(&ChassisController::loop_runner, this, debug);
 }
 
 void ChassisController::stop() {

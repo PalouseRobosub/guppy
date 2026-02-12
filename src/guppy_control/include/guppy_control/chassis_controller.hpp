@@ -154,7 +154,7 @@ public:
     /*
         @brief initializes hardware interface and starts the control thread
     */
-    void start();
+    void start(bool debug);
 
     /*
         @brief shuts down interface and ends the control thread
@@ -230,18 +230,18 @@ public:
         @brief calculates the orientation lock logic
         @return a Vector3d of additional torque "nudges" to hold position lock
     */
-    Eigen::Vector3d calculate_rotational_nudge();
+    Eigen::Vector3d calculate_rotational_nudge(bool debug);
 
     /*
         @brief the main control loop
         @return a boolean of whether or not the write to the hardware interface was successful
     */
-    bool control_loop();
+    bool control_loop(bool debug);
 
     /*
         @brief a wrapper for the control_loop() function which loops it and handles timing
     */
-    void loop_runner();
+    void loop_runner(bool debug);
 };
 
 }

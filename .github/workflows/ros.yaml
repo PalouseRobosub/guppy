@@ -15,5 +15,4 @@ jobs:
       - name: Build and run tests
         uses: ros-tooling/action-ros-ci@v0.4
         with:
-          package-name: guppy
           target-ros2-distro: jazzy

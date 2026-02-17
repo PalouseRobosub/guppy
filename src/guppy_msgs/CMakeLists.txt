@@ -14,6 +14,7 @@ find_package(builtin_interfaces REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/CanFrame.msg"
   "srv/SendCan.srv"
+  "srv/SendClaw.srv"
   "msg/State.msg"
   "srv/ChangeState.srv"
   

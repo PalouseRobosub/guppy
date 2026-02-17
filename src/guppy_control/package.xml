@@ -12,6 +12,7 @@
   <depend>ros2_control</depend>
   <depend>proxsuite</depend>
   <depend>control_toolbox</depend>
+  <depend>guppy_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

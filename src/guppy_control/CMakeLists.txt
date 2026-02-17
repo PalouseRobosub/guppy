@@ -18,8 +18,12 @@ if(NOT CMAKE_CXX_STANDARD)
     find_package(nav_msgs REQUIRED)
     find_package(eigen3_cmake_module REQUIRED)
     find_package(Eigen3)    
+    find_package(guppy_msgs REQUIRED)
 
     include_directories(include)
+
+    add_executable(claw_control src/claw_control.cpp)
+    ament_target_dependencies(claw_control rclcpp guppy_msgs)
 
     add_executable(control_chassis src/control_chassis_node.cpp src/chassis_controller.cpp src/t200_interface.cpp)
     ament_target_dependencies(control_chassis control_toolbox geometry_msgs nav_msgs Eigen3 proxsuite)

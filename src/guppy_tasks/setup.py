@@ -28,6 +28,7 @@ setup(
         'console_scripts': [
              'fcs_camera_listener = guppy_tasks.src.fcs_camera_listener:main',
              'fcs_target_tracker = guppy_tasks.src.fcs_target_tracker:main',
+             'fcs_rangefinder = guppy_tasks.src.fcs_rangefinder:main'
         ],
     },
 )

@@ -7,9 +7,31 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+
+# Spinnaker paths
+set(SPINNAKER_INCLUDE_DIR /opt/spinnaker/include)
+set(SPINNAKER_LIBRARY /opt/spinnaker/lib/libSpinnaker.so)
+
+# Create imported library target
+add_library(Spinnaker::Spinnaker SHARED IMPORTED)
+
+set_target_properties(Spinnaker::Spinnaker PROPERTIES
+        IMPORTED_LOCATION ${SPINNAKER_LIBRARY}
+        INTERFACE_INCLUDE_DIRECTORIES ${SPINNAKER_INCLUDE_DIR}
+)
+
+add_executable(ack
+        src/ack.cpp)
+
+add_executable(camera_utils src/camera_utils.cpp)
+
+target_link_libraries(ack
+        Spinnaker::Spinnaker
+)
+
+target_link_libraries(camera_utils
+        Spinnaker::Spinnaker
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

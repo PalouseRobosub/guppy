@@ -11,5 +11,7 @@
         "/workspaces/guppy/install/guppy_tasks/lib/python3.12/site-packages",
         "/workspaces/guppy/install/guppy_msgs/lib/python3.12/site-packages",
         "/opt/ros/jazzy/lib/python3.12/site-packages"
-    ]
+    ],
+    "ros.distro": "jazzy",
+    "github.copilot.chat.codeGeneration.useInstructionFiles": true
 }

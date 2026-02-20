@@ -6,12 +6,12 @@ package_name = 'guppy_tasks'
 setup(
     name=package_name,
     version='0.0.0',
-    packages=find_packages(exclude=['test']),
+    packages=['guppy_tasks', 'guppy_tasks.src'],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        ('share/' + package_name + '/launch', glob('launch/*.py')),
+        ('share/' + package_name + '/launch', glob('launch/*.xml'),),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -26,6 +26,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
+             'fcs_camera_listener = guppy_tasks.src.fcs_camera_listener:main',
+             'fcs_target_tracker = guppy_tasks.src.fcs_target_tracker:main',
         ],
     },
 )

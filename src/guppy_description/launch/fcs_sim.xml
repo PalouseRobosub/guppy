@@ -1,0 +1,7 @@
+<launch>
+    <include file="$(find-pkg-share gncea_description)/launch/fcs_launch.py">
+        <arg name="model" value="$(find-pkg-share guppy_description)/urdf/guppy.urdf"/>
+        <arg name="model_package" value="guppy_description"/>
+        <arg name="name" value="guppy"/>
+    </include>
+</launch>

@@ -13,5 +13,4 @@
         "/opt/ros/jazzy/lib/python3.12/site-packages"
     ],
     "ros.distro": "jazzy",
-    "github.copilot.chat.codeGeneration.useInstructionFiles": true
 }

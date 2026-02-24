@@ -6,10 +6,10 @@
 #include "std_msgs/msg/u_int8.hpp"
 #include "guppy_msgs/srv/send_can.hpp"
 
-class MinimalSubscriber : public rclcpp::Node
+class LEDStatePublisher : public rclcpp::Node
 {
 public:
-  MinimalSubscriber() : Node("minimal_subscriber")
+  LEDStatePublisher() : Node("led_state")
   {
     auto topic_callback =
       [this](std_msgs::msg::UInt8::UniquePtr msg) -> void {
@@ -32,7 +32,7 @@ private:
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<MinimalSubscriber>());
+  rclcpp::spin(std::make_shared<LEDStatePublisher>());
   rclcpp::shutdown();
   return 0;
 }

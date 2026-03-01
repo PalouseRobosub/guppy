@@ -40,9 +40,10 @@ void CameraManager::takePicture(CameraPtr pCam) {
 
     cout << "Grabbed image: width = " << width << ", height = " << height << endl;
 
-    ImagePtr convertedImage = processor.Convert(pResultImage, PixelFormat_RGB8);
+    // ImagePtr convertedImage = processor.Convert(pResultImage, PixelFormat_BayerRG8);
+    // convertedImage->Save("saved.png");
 
-    convertedImage->Save("saved.png");
+    std::cout << pResultImage->GetData() << std::endl;
 
     pResultImage->Release();
     pCam->EndAcquisition();

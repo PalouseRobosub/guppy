@@ -529,7 +529,7 @@
     <topic>/guppy/camera</topic>
 
     <camera>
-      <horizontal_fov>1.047</horizontal_fov>
+      <horizontal_fov>3.14</horizontal_fov>
 
       <image>
         <width>640</width>
@@ -600,8 +600,7 @@
 
 <!-- Gazebo camera sensor -->
 <gazebo reference="cam_fl_link">
-  <sensor name="cam_fl" type="camera">
-    <always_on>true</always_on>
+  <sensor name="cam_fl" type="wideanglecamera">    <always_on>true</always_on>
     <update_rate>30</update_rate>
     <visualize>true</visualize>
 
@@ -609,7 +608,13 @@
     <topic>/guppy/raw_1</topic>
 
     <camera>
-      <horizontal_fov>1.047</horizontal_fov>
+      <horizontal_fov>3.14</horizontal_fov>
+      <lens>
+      <type>stereographic</type>
+      <scale_to_hfov>true</scale_to_hfov>
+      <cutoff_angle>1.5707</cutoff_angle>
+      <env_texture_size>512</env_texture_size>
+    </lens>
       <image>
         <width>640</width>
         <height>480</height>
@@ -660,15 +665,20 @@
 </joint>
 
 <gazebo reference="cam_fr_link">
-  <sensor name="cam_fr" type="camera">
-    <always_on>true</always_on>
+  <sensor name="cam_fr" type="wideanglecamera">    <always_on>true</always_on>
     <update_rate>30</update_rate>
     <visualize>true</visualize>
     <!-- FR -->
     <topic>/guppy/raw_2</topic> 
 
     <camera>
-      <horizontal_fov>1.047</horizontal_fov>
+      <horizontal_fov>3.14</horizontal_fov>
+      <lens>
+      <type>stereographic</type>
+      <scale_to_hfov>true</scale_to_hfov>
+      <cutoff_angle>1.5707</cutoff_angle>
+      <env_texture_size>512</env_texture_size>
+    </lens>
       <image>
         <width>640</width>
         <height>480</height>
@@ -717,15 +727,20 @@
 </joint>
 
 <gazebo reference="cam_rl_link">
-  <sensor name="cam_rl" type="camera">
-    <always_on>true</always_on>
+  <sensor name="cam_rl" type="wideanglecamera">    <always_on>true</always_on>
     <update_rate>30</update_rate>
     <visualize>true</visualize>
     <!-- RL -->
     <topic>/guppy/raw_3</topic>
 
     <camera>
-      <horizontal_fov>1.047</horizontal_fov>
+      <horizontal_fov>3.14</horizontal_fov>
+      <lens>
+      <type>stereographic</type>
+      <scale_to_hfov>true</scale_to_hfov>
+      <cutoff_angle>1.5707</cutoff_angle>
+      <env_texture_size>512</env_texture_size>
+    </lens>
       <image>
         <width>640</width>
         <height>480</height>
@@ -774,15 +789,14 @@
 </joint>
 
 <gazebo reference="cam_rr_link">
-  <sensor name="cam_rr" type="camera">
-    <always_on>true</always_on>
+  <sensor name="cam_rr" type="wideanglecamera">    <always_on>true</always_on>
     <update_rate>30</update_rate>
     <visualize>true</visualize>
     <!-- RR -->
     <topic>/guppy/raw_4</topic>
 
     <camera>
-      <horizontal_fov>1.047</horizontal_fov>
+      <horizontal_fov>3.14</horizontal_fov>
       <image>
         <width>640</width>
         <height>480</height>
@@ -869,7 +883,13 @@
     <visualize>true</visualize>
     <topic>/guppy/FCS_camera</topic>
     <camera>
-      <horizontal_fov>1.047</horizontal_fov>
+      <horizontal_fov>3.14</horizontal_fov>
+      <lens>
+      <type>stereographic</type>
+      <scale_to_hfov>true</scale_to_hfov>
+      <cutoff_angle>1.5707</cutoff_angle>
+      <env_texture_size>512</env_texture_size>
+    </lens>
       <image>
         <width>640</width>
         <height>480</height>

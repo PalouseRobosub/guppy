@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <arg name="controller_debug" default="false" />
+    <!-- to launch with controller debugging enabled use 'ros2 launch guppy sim.xml controller_debug:=true' -->
+
+    <include file="$(find-pkg-share guppy_control)/launch/sim.xml">
+        <arg name="controller_debug" value="$(var controller_debug)" />
+    </include>
+    <include file="$(find-pkg-share guppy_can)/launch/sim.xml" />
+    <include file="$(find-pkg-share guppy_localization)/launch/sim.xml" />
+    <include file="$(find-pkg-share guppy_description)/launch/cv_sim.xml" />
+    <include file="$(find-pkg-share guppy_state)/launch/sim.xml" />
+</launch>

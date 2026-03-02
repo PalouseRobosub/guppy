@@ -15,4 +15,12 @@
   <export>
     <build_type>ament_cmake</build_type>
   </export>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <exec_depend>ros2launch</exec_depend>
+
+  <depend>cv_bridge</depend>
+  <depend>sensor_msgs</depend>
+  <depend>rclcpp</depend>
+  <build_depend>libopencv-dev</build_depend>
 </package>

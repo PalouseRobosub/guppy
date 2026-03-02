@@ -6,6 +6,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "guppy_msgs/srv/change_state.hpp"                                                                                              
 #include "std_msgs/msg/u_int8.hpp"
+#include "guppy_msgs/msg/state.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
 
@@ -13,8 +14,8 @@ using namespace std::chrono_literals;
 
 class StateManager : public rclcpp::Node {
     public:
-        StateManager() : Node("state_manager"), current_state_(guppy_msgs::srv::ChangeState::Request::INITIAL) {
-            state_publisher_ = this->create_publisher<std_msgs::msg::UInt8>("state", 10); // what should the queue size be?
+        StateManager() : Node("state_manager"), current_state_(guppy_msgs::msg::State::STARTUP) {
+            state_publisher_ = this->create_publisher<guppy_msgs::msg::State>("state", 10); // what should the queue size be?
             state_service_ = this->create_service<guppy_msgs::srv::ChangeState>(
                 "change_state",
                 std::bind(&StateManager::transition_callback, this, std::placeholders::_1, std::placeholders::_2)
@@ -25,9 +26,9 @@ class StateManager : public rclcpp::Node {
             auto task_callback      = [this](geometry_msgs::msg::Twist::UniquePtr msg) -> void { this->task_twist_ = *msg; };
             auto teleop_callback    = [this](geometry_msgs::msg::Twist::UniquePtr msg) -> void { this->teleop_twist_ = *msg; };
 
-            this->nav_subscription_     = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel/nav", 10, nav_callback);
-            this->task_subscription_    = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel/task", 10, task_callback);
-            this->teleop_subscription_  = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel/teleop", 10, teleop_callback);
+            this->nav_subscription_     = this->create_subscription<geometry_msgs::msg::Twist>("cmd_vel/nav", 10, nav_callback);
+            this->task_subscription_    = this->create_subscription<geometry_msgs::msg::Twist>("cmd_vel/task", 10, task_callback);
+            this->teleop_subscription_  = this->create_subscription<geometry_msgs::msg::Twist>("cmd_vel/teleop", 10, teleop_callback);
 
             cmd_vel_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10); // this one too
 
@@ -35,15 +36,15 @@ class StateManager : public rclcpp::Node {
         }
     
     private:
-        bool is_valid_state(uint8_t state) {
+         bool is_valid_state(uint8_t state) {
             switch (state) {
-                case guppy_msgs::srv::ChangeState::Request::INITIAL:
-                case guppy_msgs::srv::ChangeState::Request::HOLDING:
-                case guppy_msgs::srv::ChangeState::Request::NAV:
-                case guppy_msgs::srv::ChangeState::Request::TASK:
-                case guppy_msgs::srv::ChangeState::Request::TELEOP:
-                case guppy_msgs::srv::ChangeState::Request::DISABLED:
-                case guppy_msgs::srv::ChangeState::Request::FAULT:
+                case guppy_msgs::msg::State::STARTUP:
+                case guppy_msgs::msg::State::HOLDING:
+                case guppy_msgs::msg::State::NAV:
+                case guppy_msgs::msg::State::TASK:
+                case guppy_msgs::msg::State::TELEOP:
+                case guppy_msgs::msg::State::DISABLED:
+                case guppy_msgs::msg::State::FAULT:
                     return true;
                 default:
                     return false;
@@ -56,41 +57,47 @@ class StateManager : public rclcpp::Node {
         ) {
             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "State transition request...");   
             
-            if (!is_valid_state(request->state)) {
-                RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Invalid state passed in transition service!");
+            if (!is_valid_state(request->new_state.state)) {
+                RCLCPP_ERROR(this->get_logger(), "Invalid state passed in transition service!");
+                response->success = false;
+                return;
+            }
+
+            if (this->current_state_ == guppy_msgs::msg::State::FAULT) {
+                RCLCPP_ERROR(this->get_logger(), "You can't exit the fault state!"); // TODO fix loggers!
                 response->success = false;
                 return;
             }
 
             // TODO switch logic should be handled here NOT in StateManager#publishState()
             
-            response->success = this->publish_state(request->state);                                                                                 
+            response->success = this->publish_state(request->new_state.state);                                                                                 
         }
 
         bool publish_state(uint8_t state) {
-            auto message = std_msgs::msg::UInt8();
-            message.data = state;
+            auto message = guppy_msgs::msg::State();
+            message.state = state;
             this->state_publisher_->publish(message);
             this->current_state_ = state;
-            return true;                                                                                  
+            return true;
         }
 
         void on_timer() {
             switch (this->current_state_) {
-                case guppy_msgs::srv::ChangeState::Request::INITIAL:    this->handle_initial();     break;
-                case guppy_msgs::srv::ChangeState::Request::HOLDING:    this->handle_holding();     break;
-                case guppy_msgs::srv::ChangeState::Request::NAV:        this->handle_nav();         break;
-                case guppy_msgs::srv::ChangeState::Request::TASK:       this->handle_task();        break;
-                case guppy_msgs::srv::ChangeState::Request::TELEOP:     this->handle_teleop();      break;
-                case guppy_msgs::srv::ChangeState::Request::DISABLED:   this->handle_disabled();    break;
-                case guppy_msgs::srv::ChangeState::Request::FAULT:      this->handle_fault();       break;
+                case guppy_msgs::msg::State::STARTUP:    this->handle_startup();     break;
+                case guppy_msgs::msg::State::HOLDING:    this->handle_holding();     break;
+                case guppy_msgs::msg::State::NAV:        this->handle_nav();         break;
+                case guppy_msgs::msg::State::TASK:       this->handle_task();        break;
+                case guppy_msgs::msg::State::TELEOP:     this->handle_teleop();      break;
+                case guppy_msgs::msg::State::DISABLED:   this->handle_disabled();    break;
+                case guppy_msgs::msg::State::FAULT:      this->handle_fault();       break;
             }
         }
 
         // state handlers
-        void handle_initial() {
+        void handle_startup() {
             // TODO may just break? pseudo init state
-            this->publish_state(guppy_msgs::srv::ChangeState::Request::TELEOP); // just move straight to teleop for sim purposes until proper pipeline is created
+            this->publish_state(guppy_msgs::msg::State::TELEOP); // just move straight to teleop for sim purposes until proper pipeline is created
         }
 
         void handle_holding() {
@@ -121,7 +128,7 @@ class StateManager : public rclcpp::Node {
         }
         
         uint8_t current_state_;
-        rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr state_publisher_;
+        rclcpp::Publisher<guppy_msgs::msg::State>::SharedPtr state_publisher_;
         rclcpp::Service<guppy_msgs::srv::ChangeState>::SharedPtr state_service_;
         rclcpp::TimerBase::SharedPtr timer_;
 

@@ -1,0 +1,19 @@
+module ui
+
+Main 1.0 Main.qml
+
+WorkspaceCanvas 1.0 canvas/WorkspaceCanvas.qml
+CanvasWidget 1.0 canvas/CanvasWidget.qml
+CircleButton 1.0 canvas/CircleButton.qml
+
+CollapsibleSection 1.0 canvas/CollapsibleSection.qml
+FieldRowRepeater 1.0 canvas/FieldRowRepeater.qml
+
+# parameter widget helpers
+MotorSection 1.0 widgets/parameter/MotorSection.qml
+PIDSection 1.0 widgets/parameter/PIDSection.qml
+DragSection 1.0 widgets/parameter/DragSection.qml
+PhysicalSection 1.0 widgets/parameter/PhysicalSection.qml
+
+Sidebar 1.0 sidebar/Sidebar.qml
+singleton SidebarProperties 1.0 sidebar/SidebarProperties.qml

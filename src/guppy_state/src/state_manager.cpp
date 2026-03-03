@@ -1,11 +1,9 @@
 #include <chrono>
 #include <memory>
-#include <cstdint>
 #include <optional>
 
 #include "rclcpp/rclcpp.hpp"
-#include "guppy_msgs/srv/change_state.hpp"                                                                                              
-#include "std_msgs/msg/u_int8.hpp"
+#include "guppy_msgs/srv/change_state.hpp"
 #include "guppy_msgs/msg/state.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/vector3.hpp"

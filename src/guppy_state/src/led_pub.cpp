@@ -3,8 +3,8 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
-#include "std_msgs/msg/u_int8.hpp"
 #include "guppy_msgs/srv/send_can.hpp"
+#include "guppy_msgs/msg/state.hpp"
 
 class LEDStatePublisher : public rclcpp::Node
 {
@@ -12,11 +12,11 @@ public:
   LEDStatePublisher() : Node("led_pub")
   {
     auto topic_callback =
-      [this](std_msgs::msg::UInt8::UniquePtr msg) -> void {
-        current_state = msg->data;
+      [this](guppy_msgs::msg::State::UniquePtr msg) -> void {
+        current_state = msg->state;
       };
 
-    subscription_ = this->create_subscription<std_msgs::msg::UInt8>("state", 10, topic_callback);
+    subscription_ = this->create_subscription<guppy_msgs::msg::State>("state", 10, topic_callback);
     client_ = this->create_client<guppy_msgs::srv::SendCan>("can_tx");
 
 
@@ -27,13 +27,12 @@ public:
         request->id = 0x201;
         request->data = { current_state };
         client_->async_send_request(request);
-      
       }
     );
   }
 private:
   uint8_t current_state = 0;
-  rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr subscription_;
+  rclcpp::Subscription<guppy_msgs::msg::State>::SharedPtr subscription_;
   rclcpp::Client<guppy_msgs::srv::SendCan>::SharedPtr client_;
   rclcpp::TimerBase::SharedPtr timer;
 };

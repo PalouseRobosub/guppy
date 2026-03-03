@@ -3,7 +3,7 @@
 
   <gazebo><disableFixedJointLumping>true</disableFixedJointLumping></gazebo>
 
-  <!-- Global material: opaque red -->
+  <!-- Global material opaque red -->
   <material name="opaque_red">
     <color rgba="1 0 0 1"/>
   </material>

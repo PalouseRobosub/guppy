@@ -298,7 +298,7 @@
     <yV>-10.0</yV>
     <zW>-10.0</zW>
     
-    <!-- Quadratic damping (Note: use xUabsU for Gazebo Garden+ ) -->
+    <!-- Quadratic damping (Note use xUabsU for Gazebo Garden+ ) -->
     <xUabsU>-3.0</xUabsU>
     <yVabsV>-3.0</yVabsV>
     <zWabsW>-3.0</zWabsW>
@@ -326,7 +326,7 @@
 
   <!-- Per-thruster plugins -->
   <!-- Per-thruster plugins -->
-  <!-- THRUSTER OFFSET: "0.27819 0.24536 -0.019075" -->
+  <!-- THRUSTER OFFSET "0.27819 0.24536 -0.019075" -->
   <gazebo>
     <plugin name="wasd_body_thrust_plugin" filename="libwasd_body_thrust_plugin.so">
       <link_name>base_link</link_name>
@@ -337,7 +337,7 @@
       <phi>0</phi>
     </plugin>
 
-  <!-- THRUSTER OFFSET: "0.2903 0 -0.013798" -->
+  <!-- THRUSTER OFFSET "0.2903 0 -0.013798" -->
     <plugin name="wasd_body_thrust_plugin" filename="libwasd_body_thrust_plugin.so">
       <link_name>base_link</link_name>
       <motor_name>m4</motor_name>
@@ -347,7 +347,7 @@
       <phi>90</phi>
     </plugin>
 
-  <!-- THRUSTER OFFSET: "0.27819 -0.24536 -0.019025" -->
+  <!-- THRUSTER OFFSET "0.27819 -0.24536 -0.019025" -->
     <plugin name="wasd_body_thrust_plugin" filename="libwasd_body_thrust_plugin.so">
       <link_name>base_link</link_name>
       <motor_name>m1</motor_name>
@@ -357,7 +357,7 @@
       <phi>0</phi>
     </plugin>
 
-  <!-- THRUSTER OFFSET: "0 -0.2649 -0.013798" -->
+  <!-- THRUSTER OFFSET "0 -0.2649 -0.013798" -->
     <plugin name="wasd_body_thrust_plugin" filename="libwasd_body_thrust_plugin.so">
       <link_name>base_link</link_name>
       <motor_name>m5</motor_name>
@@ -367,7 +367,7 @@
       <phi>90</phi>
     </plugin>
 
-  <!-- THRUSTER OFFSET: "-0.27819 -0.24536 -0.019075" -->
+  <!-- THRUSTER OFFSET "-0.27819 -0.24536 -0.019075" -->
     <plugin name="wasd_body_thrust_plugin" filename="libwasd_body_thrust_plugin.so">
       <link_name>base_link</link_name>
       <motor_name>m2</motor_name>
@@ -377,7 +377,7 @@
       <phi>0</phi>
     </plugin>
 
-  <!-- THRUSTER OFFSET: "-0.2903 0 -0.013798" -->
+  <!-- THRUSTER OFFSET "-0.2903 0 -0.013798" -->
     <plugin name="wasd_body_thrust_plugin" filename="libwasd_body_thrust_plugin.so">
       <link_name>base_link</link_name>
       <motor_name>m6</motor_name>
@@ -387,7 +387,7 @@
       <phi>90</phi>
     </plugin>
 
-  <!-- THRUSTER OFFSET: "-0.27819 0.24536 -0.019075" -->
+  <!-- THRUSTER OFFSET "-0.27819 0.24536 -0.019075" -->
     <plugin name="wasd_body_thrust_plugin" filename="libwasd_body_thrust_plugin.so">
       <link_name>base_link</link_name>
       <motor_name>m6</motor_name>
@@ -397,7 +397,7 @@
       <phi>0</phi>
     </plugin>
 
-  <!-- THRUSTER OFFSET: "0 0.2649 -0.013798" -->
+  <!-- THRUSTER OFFSET "0 0.2649 -0.013798" -->
     <plugin name="wasd_body_thrust_plugin" filename="libwasd_body_thrust_plugin.so">
       <link_name>base_link</link_name>
       <motor_name>m7</motor_name>
@@ -521,7 +521,7 @@
     <update_rate>30</update_rate>
     <visualize>true</visualize>
 
-    <!-- Base Gazebo Transport topic; publishes:
+    <!-- Base Gazebo Transport topic publishes
          /guppy/camera/image
          /guppy/camera/depth_image
          /guppy/camera/points
@@ -824,7 +824,7 @@
   </collision>
 </link>
 
-<!-- Fixed joint: base_link -> dvl_link -->
+<!-- Fixed joint base_link -> dvl_link -->
 <joint name="dvl_joint" type="fixed">
   <parent link="base_link"/>
   <child link="dvl_link"/>

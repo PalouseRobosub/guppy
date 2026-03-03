@@ -36,6 +36,7 @@ if(NOT CMAKE_CXX_STANDARD)
     )
     install(TARGETS
       control_chassis
+      claw_control
 
       DESTINATION lib/${PROJECT_NAME}
     )

@@ -22,17 +22,10 @@ void send(const std::shared_ptr<guppy_msgs::srv::SendClaw::Request> request,
   rclcpp::Client<guppy_msgs::srv::SendCan>::SharedPtr client,
   std::shared_ptr<rclcpp::Node> node
 ) {
-  
     // create a request
     auto can_request = std::make_shared<guppy_msgs::srv::SendCan::Request>();
     can_request->id = 0x000;
 
-
-    // this was not working:
-    //memcpy(&(can_request->data), &(request->degrees), 8);
-
-
-    // this maybe is working (?):
     can_request->data.resize(sizeof(double));
     std::memcpy(
         can_request->data.data(),
@@ -40,16 +33,23 @@ void send(const std::shared_ptr<guppy_msgs::srv::SendClaw::Request> request,
         sizeof(double)
     );
 
-
-
     // send the request
     auto result = client->async_send_request(can_request);
-
     // await the result
-    rclcpp::spin_until_future_complete(node, result);
+    if (rclcpp::spin_until_future_complete(node, result)
+      == rclcpp::FutureReturnCode::SUCCESS)
+    {
+      RCLCPP_INFO(node->get_logger(), "CAN call succeeded");
+    }    
+    else
+    {
+      RCLCPP_ERROR(node->get_logger(), "CAN call failed or timed out");
+    }
 
-    // response
-    // ?
+    RCLCPP_INFO(node->get_logger(), "Received degrees: %f", request->degrees);
+
+    // response set to true
+    response->success = true;
 }
 
 int main(int argc, char** argv) {
@@ -64,17 +64,17 @@ int main(int argc, char** argv) {
   rclcpp::Client<guppy_msgs::srv::SendCan>::SharedPtr client =
     node->create_client<guppy_msgs::srv::SendCan>("can_tx");
 
-
-  //youll need to edit this to be your srv type
-  // guppy_msgs/srv
+  // this callback signature not valid with 4 parameters, (request, response, client, node)
+  // so i gave it client and node as external variables, and the 2 parameters callback should work
   auto service = node->create_service<guppy_msgs::srv::SendClaw>(
-      "claw_tx", [](
+      "claw_tx", 
+      [client, node]( // external variables (client and node)
         const std::shared_ptr<guppy_msgs::srv::SendClaw::Request> request,
-        std::shared_ptr<guppy_msgs::srv::SendClaw::Response> response,
-        rclcpp::Client<guppy_msgs::srv::SendCan>::SharedPtr client,
-        std::shared_ptr<rclcpp::Node> node)
-          { send(request, response, client, node); }, 10);
-      //look at the docs for how to make this simpler
+        std::shared_ptr<guppy_msgs::srv::SendClaw::Response> response)
+          {
+             send(request, response, client, node); 
+          }
+       );
 
   RCLCPP_INFO(node->get_logger(), "CLAW TX service ready"); // example for how to do logging
 

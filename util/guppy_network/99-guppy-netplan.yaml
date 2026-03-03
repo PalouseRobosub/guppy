@@ -1,0 +1,15 @@
+# netplan for guppy
+network:
+  version: 2
+  renderer: NetworkManager
+
+# assign address blocks to interfaces for dhcp via dnsmasq
+  ethernets:
+    enp2s0:
+      dhcp4: no
+      addresses:
+        - 192.168.3.1/24
+    enp1s0:
+      dhcp4: no
+      addresses:
+        - 192.168.3.1/24

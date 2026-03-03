@@ -272,7 +272,7 @@
   <joint name="imu_joint" type="fixed">
     <parent link="base_link"/>
     <child link="imu_link"/>
-    <origin xyz="0 0 0.05" rpy="0 0 0"/>
+    <origin xyz="0.22 0.0625 0.125" rpy="0 0 0"/>
   </joint>
 
   <gazebo>
@@ -828,7 +828,7 @@
 <joint name="dvl_joint" type="fixed">
   <parent link="base_link"/>
   <child link="dvl_link"/>
-  <origin xyz="0.0 0.0 -0.05" rpy="0 0 0"/>
+  <origin xyz="-0.2 0.0 -0.125" rpy="0 0 0"/>
 </joint>
 <!-- DVL sensor -->
 
@@ -871,6 +871,6 @@
   <odom_frame>world</odom_frame>
   <dimensions>3</dimensions>
   <publish_tf>true</publish_tf>
-  <robot_base_frame>imu_link</robot_base_frame>
+  <robot_base_frame>dvl_link</robot_base_frame>
 </plugin></gazebo>
 </robot>

@@ -32,6 +32,8 @@ RUN apt install -y \
     python3-rosdep \
     python3-pip
 
+RUN pip install PySide6 --break-system-packages
+
 # Install extra utilities
 RUN apt install -y \
     net-tools \

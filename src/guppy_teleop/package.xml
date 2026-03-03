@@ -13,6 +13,7 @@
   <test_depend>python3-pytest</test_depend>
 
   <depend>pygame</depend>
+  <depend>PySide6</depend>
 
   <export>
     <build_type>ament_python</build_type>

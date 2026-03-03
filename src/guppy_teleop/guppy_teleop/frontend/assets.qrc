@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/assets">
+        <file>icons/close.svg</file>
+        <file>icons/cog.svg</file>
+        <file>icons/menu.svg</file>
+        <file>icons/controller.svg</file>
+        <file>icons/snap_enabled.svg</file>
+        <file>icons/snap_disabled.svg</file>
+        <file>icons/home.svg</file>
+        <file>icons/save.svg</file>
+        <file>icons/upload.svg</file>
+    </qresource>
+    <qresource prefix="/widgets">
+        <file>ui/widgets/TextWidget.qml</file>
+        <file>ui/widgets/StateWidget.qml</file>
+        <file>ui/widgets/ParameterWidget.qml</file>
+    </qresource>
+</RCC>

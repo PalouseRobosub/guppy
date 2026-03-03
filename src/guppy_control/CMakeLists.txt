@@ -32,6 +32,7 @@ if(NOT CMAKE_CXX_STANDARD)
     )
     install(DIRECTORY
       launch
+      
       DESTINATION share/${PROJECT_NAME}/
     )
     install(TARGETS
@@ -39,5 +40,10 @@ if(NOT CMAKE_CXX_STANDARD)
       claw_control
 
       DESTINATION lib/${PROJECT_NAME}
+    )
+    install(DIRECTORY 
+      config
+
+      DESTINATION share/${PROJECT_NAME}/
     )
     ament_package()

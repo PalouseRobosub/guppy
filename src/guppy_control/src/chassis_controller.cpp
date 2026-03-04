@@ -72,18 +72,15 @@ bool ChassisController::control_loop(bool debug) {
   }
 
   if (debug) {
-    std::cout << "buoyancy_wrench: " << buoyancy_wrench.transpose() << std::endl;
-    std::cout << "gravity_wrench: " << gravity_wrench.transpose() << std::endl;
-    std::cout << "drag_wrench: " << drag_wrench.transpose() << std::endl;
-
+    std::cout << "buoyancy_wrench:   " << buoyancy_wrench.transpose() << std::endl;
+    std::cout << "gravity_wrench:    " << gravity_wrench.transpose() << std::endl;
+    std::cout << "drag_wrench:       " << drag_wrench.transpose() << std::endl;
     std::cout << "velocity_feedback: " << velocity_feedback.transpose() << std::endl;
-
-    std::cout << "c pos: " << current_position_state_.transpose() << std::endl;
-    std::cout << "d pos: " << desired_position_state_.transpose() << std::endl;
-    std::cout << "pose_nudge: " << added_pose_nudge.transpose() << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "local_wrench: " << local_wrench.transpose() << std::endl;
+    std::cout << "c pos:             " << current_position_state_.transpose() << std::endl;
+    std::cout << "d pos:             " << desired_position_state_.transpose() << std::endl;
+    std::cout << "pose_nudge:        " << added_pose_nudge.transpose() << std::endl;
+    // std::cout << std::endl;
+    std::cout << "local_wrench:      " << local_wrench.transpose() << std::endl;
     std::cout << std::endl;
   }
 

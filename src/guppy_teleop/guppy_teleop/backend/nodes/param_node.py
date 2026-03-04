@@ -1,14 +1,22 @@
-import rclpy
+import rclpy, ast
 
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.parameter_event_handler import ParameterEventHandler
+from rclpy.parameter_client import AsyncParameterClient
+from rclpy.task import Future
 
 from rcl_interfaces.msg import ParameterEvent
 from rcl_interfaces.srv import ListParameters, GetParameters
+from rcl_interfaces.srv import SetParameters
+from rcl_interfaces.msg import SetParametersResult
 
 from guppy_teleop.backend.nodes.node import Node as BaseNode
 from guppy_teleop.backend.registry import Registry
+
+from rclpy.logging import get_logger
+
+logger = get_logger("guppy_teleop.param_node")
 
 class ParameterNode(Node, BaseNode):
     @property
@@ -19,6 +27,8 @@ class ParameterNode(Node, BaseNode):
         Node.__init__(self, "parameter_widget")
         self._registry: Registry = registry
         self._params = {}
+
+        self.client = AsyncParameterClient(self, "control_chassis")
 
         self._load_parameters()
 
@@ -61,10 +71,14 @@ class ParameterNode(Node, BaseNode):
         arguments = payload.get("arguments", {})
 
         if action == "change_param":
+
+            logger.info(f"I GOT A FREAKIN COMMAND! the action was {action}")
+
             param_name = arguments.get("parameter")
+            type = arguments.get("type")
             value = arguments.get("value")
 
-            self._change_param(param_name, value)
+            self._change_param(param_name, self._convert_type(value, type))
     
     def _on_param_change(self, event: ParameterEvent):
         for param in event.changed_parameters:
@@ -75,7 +89,35 @@ class ParameterNode(Node, BaseNode):
     def _change_param(self, name: str, value) -> bool:
         try:
             param = Parameter(name=name, value=value)
-            self.set_parameters([param])
+
+            if not self.client.wait_for_services(timeout_sec=2.0):
+                raise RuntimeError("parameter service not available")
+            
+            future: Future[SetParametersResult] = self.client.set_parameters([param])
+            rclpy.spin_until_future_complete(self, future)
+
+            response: SetParameters.Response = future.result()
+
+            results: list[SetParametersResult] = response.results
+
+            for result in results:
+                if not result.successful:
+                    raise (Exception(result.reason))
+
             return True
-        except:
-            return False
+        except Exception as err:
+            logger.error(f"failed to update parameter {name}: {str(err)}!")
+
+        return False
+    
+    def _convert_type(self, value, type: str):
+        logger.info(type)
+        match type:
+            case "float":
+                return float(value)
+            case "list":
+                parsed = ast.literal_eval(value) if isinstance(value, str) else value
+                
+                return [float(i) for i in parsed]
+            case "str":
+                return value

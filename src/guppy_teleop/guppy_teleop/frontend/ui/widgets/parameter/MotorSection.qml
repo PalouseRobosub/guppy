@@ -42,10 +42,15 @@ CollapsibleSection {
                         horizontalAlignment: Text.AlignHCenter
                         validator: DoubleValidator {}
 
-                        text: {
-                            const data = root.params?.motor_positions
+                        property int i: index
 
-                            return (data && index < data.length) ? String(data[index]) : "0.0"
+                        text: root.params?.motor_positions?.[i] ?? "0.0"
+
+                        onEditingFinished: {
+                            if (!root.params.motor_positions)
+                                root.params.motor_positions = []
+
+                            root.params.motor_positions[i] = parseFloat(text)
                         }
                     }
                 }
@@ -64,11 +69,7 @@ CollapsibleSection {
             FieldRowRepeater {
                 count: 8
 
-                getValue: (i) => {
-                    const data = root.params?.motor_upper_bounds
-
-                    return (data && i < data.length) ? String(data[i]) : "0.0"
-                }
+                values: root.params.motor_upper_bounds
             }
 
             Label {
@@ -80,11 +81,7 @@ CollapsibleSection {
             FieldRowRepeater {
                 count: 8
 
-                getValue: (i) => {
-                    const data = root.params?.motor_lower_bounds
-
-                    return (data && i < data.length) ? String(data[i]) : "0.0"
-                }
+                values: root.params.motor_lower_bounds
             }
         }
     }

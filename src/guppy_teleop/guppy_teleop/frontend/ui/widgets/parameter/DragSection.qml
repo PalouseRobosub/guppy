@@ -45,10 +45,15 @@ CollapsibleSection {
                             horizontalAlignment: Text.AlignHCenter
                             validator: DoubleValidator {}
 
-                            text: {
-                                const data = root.params?.axis_weight_matrix
+                            property int i: index
 
-                                return (data && index < data.length) ? String(data[index]) : "0.0"
+                            text: root.params?.axis_weight_matrix?.[i] ?? "0.0"
+
+                            onEditingFinished: {
+                                if (!root.params.axis_weight_matrix)
+                                    root.params.axis_weight_matrix = []
+
+                                root.params.axis_weight_matrix[i] = parseFloat(text)
                             }
                         }
                     }
@@ -83,10 +88,15 @@ CollapsibleSection {
                             horizontalAlignment: Text.AlignHCenter
                             validator: DoubleValidator {}
 
-                            text: {
-                                const data = root.params?.drag_effect_matrix
+                            property int i: index
 
-                                return (data && index < data.length) ? String(data[index]) : "0.0"
+                            text: root.params?.drag_effect_matrix?.[i] ?? "0.0"
+
+                            onEditingFinished: {
+                                if (!root.params.drag_effect_matrix)
+                                    root.params.drag_effect_matrix = []
+
+                                root.params.drag_effect_matrix[i] = parseFloat(text)
                             }
                         }
                     }
@@ -107,11 +117,7 @@ CollapsibleSection {
                 FieldRowRepeater {
                     count: 6
 
-                    getValue: (i) => {
-                        const data = root.params?.drag_coefficients
-
-                        return (data && i < data.length) ? String(data[i]) : "0.0"
-                    }
+                    values: root.params.drag_coefficients
                 }
             }
 
@@ -125,11 +131,7 @@ CollapsibleSection {
                 FieldRowRepeater {
                     count: 6
 
-                    getValue: (i) => {
-                        const data = root.params?.drag_areas
-
-                        return (data && i < data.length) ? String(data[i]) : "0.0"
-                    }
+                    values: root.params.drag_areas
                 }
             }
         }

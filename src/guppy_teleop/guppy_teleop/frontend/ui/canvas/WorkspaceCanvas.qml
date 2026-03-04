@@ -120,7 +120,7 @@ Item {
                 context.lineTo(x, height)
             }
 
-            for (var y = oy; y < height; y += step) {
+            for (var y = oy; y < height; y += step) { 
                 context.moveTo(0, y)
                 context.lineTo(width, y)
             }

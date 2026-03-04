@@ -22,7 +22,7 @@ control_chassis:
     ] # flattend 6 * 6 matrix
     pid_gains_vel_linear: [ 0.01, 0.0, 0.0 ]
     pid_gains_vel_angular: [ 100.0, 0.0, 0.0 ]
-    pid_gains_pose_linear: [ 100.0, 0.0, 0.0 ]
+    pid_gains_pose_linear: [ 10000.0, 0.0, 0.0 ]
     pid_gains_pose_angular: [ 0.0, 0.0, 0.0 ]
     pose_lock_deadband: [ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 ]
     drag_effect_matrix: [

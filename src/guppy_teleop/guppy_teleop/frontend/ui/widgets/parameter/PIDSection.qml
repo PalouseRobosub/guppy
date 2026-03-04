@@ -28,11 +28,7 @@ CollapsibleSection {
                 FieldRowRepeater {
                     count: 3
 
-                    getValue: (i) => {
-                        const data = root.params?.pid_gains_vel_linear
-
-                        return (data && i < data.length) ? String(data[i]) : "0.0"
-                    }
+                    values: root.params.pid_gains_vel_linear
                 }
             }
 
@@ -46,11 +42,7 @@ CollapsibleSection {
                 FieldRowRepeater {
                     count: 3
 
-                    getValue: (i) => {
-                        const data = root.params?.pid_gains_vel_angular
-
-                        return (data && i < data.length) ? String(data[i]) : "0.0"
-                    }
+                    values: root.params.pid_gains_vel_angular
                 }
             }
         }
@@ -68,11 +60,7 @@ CollapsibleSection {
                 FieldRowRepeater {
                     count: 3
 
-                    getValue: (i) => {
-                        const data = root.params?.pid_gains_pose_linear
-
-                        return (data && i < data.length) ? String(data[i]) : "0.0"
-                    }
+                    values: root.params.pid_gains_pose_linear
                 }
             }
 
@@ -86,11 +74,7 @@ CollapsibleSection {
                 FieldRowRepeater {
                     count: 3
 
-                    getValue: (i) => {
-                        const data = root.params?.pid_gains_pose_angular
-
-                        return (data && i < data.length) ? String(data[i]) : "0.0"
-                    }
+                    values: root.params.pid_gains_pose_angular
                 }
             }
         }
@@ -104,11 +88,7 @@ CollapsibleSection {
         FieldRowRepeater {
             count: 6
 
-            getValue: (i) => {
-                const data = root.params?.pose_lock_deadband
-
-                return (data && i < data.length) ? String(data[i]) : "0.0"
-            }
+            values: root.params.pose_lock_deadband
         }
     }
 

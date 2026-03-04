@@ -33,11 +33,9 @@ CollapsibleSection {
 
                     validator: DoubleValidator {}
 
-                    text: {
-                        const data = root.params?.robot_volume
+                    text: root.params.robot_volume ?? "0.0"
 
-                        return (data) ? String(data) : "0.0"
-                    }
+                    onEditingFinished: root.params.robot_volume = parseFloat(text)
                 }
             }
 
@@ -56,11 +54,9 @@ CollapsibleSection {
 
                     validator: DoubleValidator {}
 
-                    text: {
-                        const data = root.params?.robot_mass
+                    text: root.params.robot_mass ?? "0.0"
 
-                        return (data) ? String(data) : "0.0"
-                    }
+                    onEditingFinished: root.params.robot_mass = parseFloat(text)
                 }
             }
         }
@@ -76,11 +72,7 @@ CollapsibleSection {
             FieldRowRepeater {
                 count: 3
 
-                getValue: (i) => {
-                    const data = root.params?.center_of_buoyancy
-
-                    return (data && i < data.length) ? String(data[i]) : "0.0"
-                }
+                values: root.params.center_of_buoyancy
             }
         }
 
@@ -102,11 +94,9 @@ CollapsibleSection {
 
                     validator: DoubleValidator {}
 
-                    text: {
-                        const data = root.params?.water_density
+                    text: root.params.water_density ?? "0.0"
 
-                        return (data) ? String(data) : "0.0"
-                    }
+                    onEditingFinished: root.params.water_density = parseFloat(text)
                 }
             }
 
@@ -125,11 +115,9 @@ CollapsibleSection {
 
                     validator: DoubleValidator {}
 
-                    text: {
-                        const data = root.params?.qp_epsilon
+                    text: root.params.qp_epsilon ?? "0.0"
 
-                        return (data) ? String(data) : "0.0"
-                    }
+                    onEditingFinished: root.params.qp_epsilon = parseFloat(text)
                 }
             }
         }

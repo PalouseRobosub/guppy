@@ -1,4 +1,4 @@
-import os
+import os, json
 
 from PySide6.QtCore import Property, Signal, Slot
 
@@ -33,11 +33,25 @@ class ParameterWidget(Widget):
     def parameters(self):
         return self._parameters
 
-    @Slot(str, str)
-    def pushParameter(self, param_name: str, value: str):
+    @Slot("QVariantMap")
+    def pushParameters(self, params: dict):
+        for key, value in params.items():
+            dirty = False
+            
+            if isinstance(value, list):
+                convert = [float(i) for i in self._parameters[key]]
+                dirty = not value.__eq__(convert)
+            else:
+                dirty = not value.__eq__((type(value))(self._parameters[key]))
+
+            if dirty:
+                self._push_parameter(key, str(value), type(value).__name__)
+
+    def _push_parameter(self, param_name: str, value: str, type: str):
         arguments = {
             "parameter": param_name,
-            "value": value
+            "value": value,
+            "type": type
         }
 
         self._send("change_param", arguments)

@@ -8,7 +8,7 @@ RowLayout {
     spacing: 6
 
     property int count: 0
-    property var getValue: (i) => ""
+    property var values: []
 
     Repeater {
         model: root.count
@@ -21,7 +21,18 @@ RowLayout {
 
             validator: DoubleValidator {}
 
-            text: root.getValue(index)
+            property int i: index
+
+            text: (root.values && i < root.values.length)
+                ? String(root.values[i])
+                : "0.0"
+
+            onEditingFinished: {
+                if (!root.values)
+                    root.values = []
+                
+                root.values[i] = parseFloat(text)
+            }
         }
     }
 }

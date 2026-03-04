@@ -9,6 +9,8 @@
         <file>icons/home.svg</file>
         <file>icons/save.svg</file>
         <file>icons/upload.svg</file>
+        <file>icons/push.svg</file>
+        <file>icons/undo.svg</file>
     </qresource>
     <qresource prefix="/widgets">
         <file>ui/widgets/TextWidget.qml</file>

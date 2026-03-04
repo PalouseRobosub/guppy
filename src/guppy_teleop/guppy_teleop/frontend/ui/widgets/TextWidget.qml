@@ -27,4 +27,16 @@ CanvasWidget {
             verticalAlignment: Text.AlignTop
         }
     }
+
+    function serialize() {
+        return {
+            "type": "TextWidget",
+            "x": x,
+            "y": y,
+            "width": width,
+            "height": height,
+            "widgetLabel": widgetLabel,
+            "bodyText": bodyText
+        }
+    }
 }

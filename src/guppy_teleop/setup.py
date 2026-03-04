@@ -12,8 +12,8 @@ setup(
     package_data={
         'guppy_teleop.frontend' : ['assets.qrc', 'pyproject.toml'],
         'guppy_teleop.frontend.ui' : ['Main.qml', 'qmldir'],
-        'guppy_teleop.frontend.ui.canvas' : ['WorkspaceCanvas.qml', 'CanvasWidget.qml', 'CollapsibleSection.qml', 'FieldRowRepeater.qml', 'CircleButton.qml'],
-        'guppy_teleop.frontend.ui.sidebar' : ['Sidebar.qml', 'SidebarProperties.qml'],
+        'guppy_teleop.frontend.ui.canvas' : ['*.qml'],
+        'guppy_teleop.frontend.ui.sidebar' : ['*.qml'],
         'guppy_teleop.frontend.ui.widgets' : ['*.qml'],
         'guppy_teleop.frontend.ui.widgets.parameter' : ['*.qml'],
         'guppy_teleop.frontend.icons' : ['*.svg'],

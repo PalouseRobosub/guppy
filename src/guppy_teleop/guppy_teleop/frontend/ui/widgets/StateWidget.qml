@@ -64,4 +64,15 @@ CanvasWidget {
             }
         }
     }
+
+    function serialize() {
+        return {
+            "type": "StateWidget",
+            "x": x,
+            "y": y,
+            "width": width,
+            "height": height,
+            "readonly": readonly
+        }
+    }
 }

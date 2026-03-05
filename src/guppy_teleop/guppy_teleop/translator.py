@@ -2,6 +2,8 @@ import rclpy
 from geometry_msgs.msg import Twist
 from rclpy.node import Node
 from std_msgs.msg import Float32MultiArray, Int32MultiArray, String
+from guppy_msgs.srv._change_state import ChangeState
+from guppy_msgs.msg import State
 
 class Translator(Node):
     def __init__(self):
@@ -19,6 +21,8 @@ class Translator(Node):
         self.name_subscriber = self.create_subscription(
             String, "gamepad_name", self.name_callback, 10
         )
+        
+        self.state_client = self.create_client(ChangeState, "change_state")
 
         self.publisher = self.create_publisher(Twist, "/cmd_vel/teleop", 10)
 
@@ -44,6 +48,20 @@ class Translator(Node):
         self.controller_name = msg.data
 
     def update_controller_state(self):
+        if self.controller_state["buttons"] is not None and self.controller_state["buttons"][7] == 1:
+            msg = State()
+            msg.state = State.TELEOP
+            req = ChangeState.Request()
+            req.new_state = msg
+            self.state_client.call_async(req)
+            
+        if self.controller_state["buttons"] is not None and self.controller_state["buttons"][8] == 1:
+            msg = State()
+            msg.state = State.DISABLED
+            req = ChangeState.Request()
+            req.new_state = msg
+            self.state_client.call_async(req)
+            
         if (
             self.controller_state["dpad"] is not None
             and self.controller_state["axes"] is not None
@@ -72,9 +90,9 @@ class Translator(Node):
 def logitech_twist(controller_state):
     twist = Twist()
 
-    twist.linear.x = controller_state["axes"][4] if abs(controller_state["axes"][4]) > 0.05 else 0.0 # right stick vertical
-    twist.linear.y = controller_state["axes"][3] if abs(controller_state["axes"][3]) > 0.05 else 0.0 # right stick horizontal
-    twist.linear.z = -controller_state["axes"][1] if abs(controller_state["axes"][1]) > 0.05 else 0.0 # left stick vertical
+    twist.linear.x = controller_state["axes"][4] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # right stick vertical
+    twist.linear.y = controller_state["axes"][3] if abs(controller_state["axes"][3]) > 0.15 else 0.0 # right stick horizontal
+    twist.linear.z = -controller_state["axes"][1] if abs(controller_state["axes"][1]) > 0.15 else 0.0 # left stick vertical
     twist.angular.y = float(controller_state["dpad"][1]) # pitch
     twist.angular.x = -float(controller_state["dpad"][0]) # roll
     yaw_r = controller_state["axes"][5] # right trigger
@@ -87,9 +105,9 @@ def logitech_twist(controller_state):
 
 def series_x_twist(controller_state):
     twist = Twist()
-    twist.linear.x = controller_state["axes"][4] # right stick vertical
-    twist.linear.y = controller_state["axes"][3] # right stick horizontal
-    twist.linear.z = -controller_state["axes"][1] # left stick
+    twist.linear.x = controller_state["axes"][4] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # right stick vertical
+    twist.linear.y = controller_state["axes"][3] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # right stick horizontal
+    twist.linear.z = -controller_state["axes"][1] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # left stick
     twist.angular.y = float(controller_state["dpad"][1]) # pitch
     twist.angular.x = -float(controller_state["dpad"][0]) # roll
     yaw_r = controller_state["axes"][5] # right trigger

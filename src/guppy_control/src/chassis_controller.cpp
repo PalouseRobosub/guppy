@@ -157,7 +157,7 @@ Eigen::Vector<double, N_MOTORS> ChassisController::allocate_thrust(Eigen::Vector
   // turn the least squares problem solution set into a QP program
   Eigen::VectorXd qp_g = - ( params_.motor_coefficients.transpose() * params_.axis_weight_matrix * local_wrench );
 
-  qp_g += 0.001 * Eigen::MatrixXd::Identity(N_MOTORS, N_MOTORS);
+  qp_g += 1 * Eigen::MatrixXd::Identity(N_MOTORS, N_MOTORS);
 
   // update solver and solve
   qp_.update(std::nullopt, qp_g, std::nullopt, std::nullopt, std::nullopt, std::nullopt, std::nullopt);

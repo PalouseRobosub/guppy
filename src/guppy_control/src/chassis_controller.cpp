@@ -81,6 +81,7 @@ bool ChassisController::control_loop(bool debug) {
     std::cout << "pose_nudge:        " << added_pose_nudge.transpose() << std::endl;
     // std::cout << std::endl;
     std::cout << "local_wrench:      " << local_wrench.transpose() << std::endl;
+    std::cout << "motor_forces_:     " << motor_forces_.transpose() << std::endl;
     std::cout << std::endl;
   }
 

@@ -15,5 +15,9 @@ PIDSection 1.0 widgets/parameter/PIDSection.qml
 DragSection 1.0 widgets/parameter/DragSection.qml
 PhysicalSection 1.0 widgets/parameter/PhysicalSection.qml
 
+#toasts
+Toastify 1.0 toastify/Toastify.qml
+ToastifyDelegate 1.0 toastify/ToastifyDelegate.qml
+
 Sidebar 1.0 sidebar/Sidebar.qml
 singleton SidebarProperties 1.0 sidebar/SidebarProperties.qml

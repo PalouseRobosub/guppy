@@ -9,8 +9,6 @@ Item {
 
     clip: true
 
-    required property var manager
-
     property real zoom: 1.0
     property real minZoom: 0.2
     property real maxZoom: 4.0
@@ -77,7 +75,7 @@ Item {
         fileMode: FileDialog.SaveFile
 
         onAccepted: {
-            root.manager.saveWorkspace(selectedFile, workspace.children)
+            workspaceManager.saveWorkspace(selectedFile, workspace.children)
             // TODO transform children?
         }
     }
@@ -90,7 +88,7 @@ Item {
         nameFilters: ["JSON files (*.json)"]
         fileMode: FileDialog.OpenFile
 
-        onAccepted: root.manager.loadWorkspaceFromUrl(selectedFile)
+        onAccepted: workspaceManager.loadWorkspaceFromUrl(selectedFile)
     }
 
     Canvas {

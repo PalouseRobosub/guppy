@@ -16,7 +16,10 @@ setup(
         'guppy_teleop.frontend.ui.sidebar' : ['*.qml'],
         'guppy_teleop.frontend.ui.widgets' : ['*.qml'],
         'guppy_teleop.frontend.ui.widgets.parameter' : ['*.qml'],
+        'guppy_teleop.frontend.ui.toastify' : ['*.qml'],
+        'guppy_teleop.frontend.workspaces' : ['*.json'],
         'guppy_teleop.frontend.icons' : ['*.svg'],
+        'guppy_teleop.frontend.icons.toastify' : ['*.svg'],
         'guppy_teleop.frontend.workspaces' : ['*.json']
     },
     data_files=[

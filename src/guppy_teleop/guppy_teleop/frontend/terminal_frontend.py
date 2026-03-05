@@ -4,6 +4,7 @@ from pathlib import Path
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 from PySide6 import QtCore
+from PySide6.QtCore import QObject
 
 from guppy_teleop.frontend.widget_registry import WidgetRegistry
 from guppy_teleop.frontend.workspace_manager import WorkspaceManager
@@ -35,6 +36,14 @@ def main(args = None):
     if not engine.rootObjects():
         print("something went pretty wrong")
         sys.exit(-1)
+    
+    root = None
+    for object in engine.rootObjects():
+        if object.objectName() == "window":
+            root = object
+            break
+    
+    widget_registry.toastManager = root.findChild(QObject, "toastManager")
 
     try:
         app.exec()

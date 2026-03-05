@@ -59,7 +59,27 @@ CanvasWidget {
                 enabled: !stateWidgetUI.readonly
                 
                 onClicked: {
-                    var success = stateWidget.pushState(stateCombo.currentText)
+                    stateWidget.pushState(stateCombo.currentText)
+                    var success = true // response in the future?
+
+                    if (success)
+                        toastManager.createMessage("Pushed state change to guppy.", {
+                            type: "success",
+                            position: Qt.TopRightCorner,
+                            theme: "Dark",
+                            closeOnClick: true,
+                            autoClose: 5000,
+                            hideProgressBar: false,
+                        });
+                    else
+                        toastManager.createMessage("Failed to change state, see console!", {
+                            type: "error",
+                            position: Qt.TopRightCorner,
+                            theme: "Dark",
+                            closeOnClick: true,
+                            autoClose: 5000,
+                            hideProgressBar: false,
+                        });
                 }
             }
         }

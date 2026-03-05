@@ -57,7 +57,7 @@ class StateNode(Node, BaseNode):
 
             self._change_state(state)
     
-    def _on_state(self, message):
+    def _on_state(self, message: State):
         try:
             self._state = ValidState(message.state).name
         except ValueError:

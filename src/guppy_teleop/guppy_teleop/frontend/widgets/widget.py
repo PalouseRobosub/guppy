@@ -18,6 +18,9 @@ class Widget(QObject):
     @abstractmethod
     def handle_update(self, payload): ...
 
+    @abstractmethod
+    def handle_response(self, payload): ... # doesn't work yet :( but am refactoring so this will be redundant anyway!
+
     def _send(self, action: str, arguments=None):
         if self._send_callback is None:
             return

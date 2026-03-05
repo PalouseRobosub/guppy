@@ -222,7 +222,6 @@ void ChassisController::update_parameters(ChassisControllerParams parameters) {
   // recalculate the motor coefficients into a QP problem
   Eigen::MatrixXd qp_A = params_.motor_coefficients;
   Eigen::MatrixXd qp_H = qp_A.transpose() * params_.axis_weight_matrix * qp_A;
-  qp_H += 1 * Eigen::MatrixXd::Identity(N_MOTORS, N_MOTORS);
 
   // no equality constraints
   Eigen::MatrixXd qp_C = Eigen::MatrixXd::Identity(N_MOTORS, N_MOTORS);

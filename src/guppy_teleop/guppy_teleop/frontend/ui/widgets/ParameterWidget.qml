@@ -83,7 +83,18 @@
 
                     tooltip: "Reset fields to live parameters."
 
-                    onClicked: params = JSON.parse(JSON.stringify(parameterWidget.parameters))
+                    onClicked: {
+                        params = JSON.parse(JSON.stringify(parameterWidget.parameters))
+
+                        toastManager.createMessage("Reset fields to live parameters!", {
+                            type: "info",
+                            position: Qt.TopRightCorner,
+                            theme: "Dark",
+                            closeOnClick: true,
+                            autoClose: 5000,
+                            hideProgressBar: false,
+                        });
+                    }
                 }
 
                 CircleButton {
@@ -91,7 +102,18 @@
 
                     tooltip: "Push parameter changes to guppy."
 
-                    onClicked: parameterWidget.pushParameters(params)
+                    onClicked: {
+                        parameterWidget.pushParameters(params)
+
+                        toastManager.createMessage("Pushed parameter changes to guppy!", {
+                            type: "info",
+                            position: Qt.TopRightCorner,
+                            theme: "Dark",
+                            closeOnClick: true,
+                            autoClose: 5000,
+                            hideProgressBar: false,
+                        });
+                    }
                 }
             }
         }

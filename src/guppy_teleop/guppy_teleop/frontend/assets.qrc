@@ -17,4 +17,15 @@
         <file>ui/widgets/StateWidget.qml</file>
         <file>ui/widgets/ParameterWidget.qml</file>
     </qresource>
+    <qresource prefix="/toastify">
+        <file>icons/toastify/error-white.svg</file>
+        <file>icons/toastify/error.svg</file>
+        <file>icons/toastify/info-white.svg</file>
+        <file>icons/toastify/info.svg</file>
+        <file>icons/toastify/success-white.svg</file>
+        <file>icons/toastify/success.svg</file>
+        <file>icons/toastify/warning-white.svg</file>
+        <file>icons/toastify/warning.svg</file>
+        <file>ui/toastify/ToastifyDelegate.qml</file>
+    </qresource>
 </RCC>

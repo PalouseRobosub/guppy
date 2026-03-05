@@ -11,30 +11,35 @@ SOCKET_PATH = os.path.join("/tmp/terminal-ipc")
 
 connections = []
 
+logger = get_logger("guppy_terminal.terminal_backend")
+
 def client_handler(connection, registry: Registry):
-    registry.sync_client(connection)
+    registry.sync_client()
     
     try:
+        buffer = ""
         while True:
             try:
-                data = connection.recv(1024)
+                data = connection.recv(1024).decode()
             except ConnectionResetError:
                 break # client suddenly disconnected
             if not data:
                 break
-            
-            message = json.loads(data.decode())
 
-            if message.get("type") == "command":
-                registry.handle_command(message)
+            buffer += data
+            while "\n" in buffer:
+                line, buffer = buffer.split("\n", 1)
+
+                try:
+                    registry.route(json.loads(line))
+                except json.JSONDecodeError:
+                    logger.error("bad message sent")
     finally:
         if (connection in connections):
             connections.remove(connection)
         connection.close()
 
 def main(args = None):
-    logger = get_logger("rclpy")
-
     build.run()
 
     rclpy.init(args = args)

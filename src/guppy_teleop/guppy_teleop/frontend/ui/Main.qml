@@ -1,9 +1,11 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import ui
 
 ApplicationWindow {
     id: root
+    objectName: "window"
 
     width: 1400
     height: 800
@@ -12,6 +14,11 @@ ApplicationWindow {
 
     title: "Guppy Teleop"
     color: "#181818"
+
+    Toastify {
+        id: toastManager
+        objectName: "toastManager"
+    }
 
     RowLayout {
         anchors.fill: parent
@@ -25,8 +32,6 @@ ApplicationWindow {
 
         WorkspaceCanvas {
             id: canvas
-
-            manager: workspaceManager
 
             Layout.fillWidth: true
             Layout.fillHeight: true

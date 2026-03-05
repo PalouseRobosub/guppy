@@ -11,19 +11,27 @@ class Registry:
         self._nodes[node.name] = node
     
     def notify(self, name: str, payload: dict):
-        self._broadcast({"type": "update", "name": name, "payload": payload})
+        if self._broadcast is None:
+            return
+        
+        self._broadcast({
+            "type": "update",
+            "name": name,
+            "payload": payload
+        })
     
-    def sync_client(self, conncetion):
+    def sync_client(self):
+        if self._broadcast is None:
+            return
+        
         for name, node in self._nodes.items():
-            message = json.dumps({
+            self._broadcast({
                 "type": "sync",
                 "name": name,
                 "payload": node.get_payload()
-            }) + "\n"
-
-            conncetion.sendall(message.encode())
+            })
     
-    def handle_command(self, message: dict):
+    def route(self, message: dict):
         name = message.get("name")
         payload = message.get("payload", {})
 
@@ -32,3 +40,13 @@ class Registry:
             return
         
         node.handle_command(payload)
+
+    def send_command(self, name: str, action: str, arguments=None):
+        if self._broadcast is None:
+            return
+        
+        self._broadcast({
+            "type": "command",
+            "name": name,
+            "payload": {"action": action, "arguments": arguments}
+        })

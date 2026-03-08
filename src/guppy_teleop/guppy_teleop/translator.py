@@ -5,6 +5,8 @@ from std_msgs.msg import Float32MultiArray, Int32MultiArray, String
 from guppy_msgs.srv._change_state import ChangeState
 from guppy_msgs.msg import State
 
+MULTIPLIER = 1
+
 class Translator(Node):
     def __init__(self):
         super().__init__("translator")
@@ -90,31 +92,31 @@ class Translator(Node):
 def logitech_twist(controller_state):
     twist = Twist()
 
-    twist.linear.x = controller_state["axes"][4] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # right stick vertical
-    twist.linear.y = controller_state["axes"][3] if abs(controller_state["axes"][3]) > 0.15 else 0.0 # right stick horizontal
-    twist.linear.z = -controller_state["axes"][1] if abs(controller_state["axes"][1]) > 0.15 else 0.0 # left stick vertical
-    twist.angular.y = float(controller_state["dpad"][1]) # pitch
-    twist.angular.x = -float(controller_state["dpad"][0]) # roll
+    twist.linear.x = MULTIPLIER * controller_state["axes"][4] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # right stick vertical
+    twist.linear.y = MULTIPLIER * controller_state["axes"][3] if abs(controller_state["axes"][3]) > 0.15 else 0.0 # right stick horizontal
+    twist.linear.z = MULTIPLIER * -controller_state["axes"][1] if abs(controller_state["axes"][1]) > 0.15 else 0.0 # left stick vertical
+    twist.angular.y = MULTIPLIER * float(controller_state["dpad"][1]) # pitch
+    twist.angular.x = -MULTIPLIER * float(controller_state["dpad"][0]) # roll
     yaw_r = controller_state["axes"][5] # right trigger
     yaw_l = controller_state["axes"][2] # left trigger
     yaw_r = (yaw_r + 1) / 2
     yaw_l = (yaw_l + 1) / 2 * (-1)
-    twist.angular.z = -(yaw_r + yaw_l)
+    twist.angular.z = MULTIPLIER * -(yaw_r + yaw_l)
 
     return twist
 
 def series_x_twist(controller_state):
     twist = Twist()
-    twist.linear.x = controller_state["axes"][4] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # right stick vertical
-    twist.linear.y = controller_state["axes"][3] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # right stick horizontal
-    twist.linear.z = -controller_state["axes"][1] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # left stick
-    twist.angular.y = float(controller_state["dpad"][1]) # pitch
-    twist.angular.x = -float(controller_state["dpad"][0]) # roll
+    twist.linear.x = MULTIPLIER * controller_state["axes"][4] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # right stick vertical
+    twist.linear.y = MULTIPLIER * controller_state["axes"][3] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # right stick horizontal
+    twist.linear.z = MULTIPLIER * -controller_state["axes"][1] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # left stick
+    twist.angular.y = MULTIPLIER * float(controller_state["dpad"][1]) # pitch
+    twist.angular.x = MULTIPLIER * -float(controller_state["dpad"][0]) # roll
     yaw_r = controller_state["axes"][5] # right trigger
     yaw_l = controller_state["axes"][2] # left trigger
     yaw_r = (yaw_r + 1) / 2
     yaw_l = (yaw_l + 1) / 2 * (-1)
-    twist.angular.z = -(yaw_r + yaw_l)
+    twist.angular.z = MULTIPLIER * -(yaw_r + yaw_l)
     return twist
 
 def main(Args=None):

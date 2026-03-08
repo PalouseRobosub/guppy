@@ -93,7 +93,7 @@ public:
     };
     this->param_event_callback_handle_ = param_subscriber_->add_parameter_event_callback(param_callback);
 
-    thruster_interface = new T200Interface("can0", {101, 102, 103, 104, 105, 106, 107, 108});
+    thruster_interface = new T200Interface("can0", {0x411, 0x412, 0x413, 0x414, 0x415, 0x416, 0x417, 0x418});
 
     controller = new ChassisController(parameters, thruster_interface, 100000);
 
@@ -103,7 +103,7 @@ public:
     }
 
     // setup subscriptions
-    odom_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("/odom",10,std::bind(&ControlChassis::odom_callback, this, std::placeholders::_1));
+    odom_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("/waterlinked_dvl_driver/odom",10,std::bind(&ControlChassis::odom_callback, this, std::placeholders::_1));
     cmd_vel_subscription_ = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel",10,std::bind(&ControlChassis::cmdvel_callback, this, std::placeholders::_1));
 
     auto timer_callback = [this]() -> void {
@@ -585,7 +585,7 @@ private:
 
     // convert to rads
     double p = (90 - phi) * (M_PI / 180);
-    double t = (270 + theta) * (M_PI / 180);
+    double t = (theta) * (M_PI / 180);
     // calculate to reuse
     double sinp = sin(p);
     double sint = sin(t);

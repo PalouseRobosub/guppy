@@ -249,7 +249,7 @@
     <child link="thruster3M_link"/>
   </joint>
 
-<link name="imu_link">
+<link name="vectornav">
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <mass value="0"/>
@@ -271,7 +271,7 @@
 
   <joint name="imu_joint" type="fixed">
     <parent link="base_link"/>
-    <child link="imu_link"/>
+    <child link="vectornav"/>
     <origin xyz="0.22 0.0625 0.125" rpy="0 0 0"/>
   </joint>
 
@@ -408,7 +408,7 @@
     </plugin>
   </gazebo>
 
-  <gazebo reference="imu_link">
+  <gazebo reference="vectornav">
     <sensor name="imu_sensor" type="imu">
       <always_on>true</always_on>
       <update_rate>100</update_rate>

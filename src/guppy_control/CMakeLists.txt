@@ -30,6 +30,7 @@ if(NOT CMAKE_CXX_STANDARD)
     set_source_files_properties(src/chassis_controller.cpp PROPERTIES
       COMPILE_OPTIONS "-O3;-DNDEBUG;-DPROXSUITE_VECTORIZE"
     )
+
     install(DIRECTORY
       launch
       
@@ -46,4 +47,5 @@ if(NOT CMAKE_CXX_STANDARD)
 
       DESTINATION share/${PROJECT_NAME}/
     )
+    
     ament_package()

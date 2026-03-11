@@ -43,6 +43,10 @@ class cvud : public rclcpp::Node{
                 0.0,
                 img_size);
 
+            RCLCPP_INFO(this->get_logger(), "new_K: fx=%.3f fy=%.3f cx=%.3f cy=%.3f",
+            new_K.at<double>(0,0), new_K.at<double>(1,1),
+            new_K.at<double>(0,2), new_K.at<double>(1,2));
+
             cv::fisheye::initUndistortRectifyMap(
                 K, D,
                 cv::Mat::eye(3,3,CV_64F),

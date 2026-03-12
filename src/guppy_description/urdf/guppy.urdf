@@ -601,7 +601,7 @@
 <!-- Gazebo camera sensor -->
 <gazebo reference="cam_fl_link">
   <sensor name="cam_fl" type="wideanglecamera">    <always_on>true</always_on>
-    <update_rate>30</update_rate>
+    <update_rate>10</update_rate>
     <visualize>true</visualize>
 
     <!-- gz-transport base topic (FL)-->
@@ -666,7 +666,7 @@
 
 <gazebo reference="cam_fr_link">
   <sensor name="cam_fr" type="wideanglecamera">    <always_on>true</always_on>
-    <update_rate>30</update_rate>
+    <update_rate>10</update_rate>
     <visualize>true</visualize>
     <!-- FR -->
     <topic>/guppy/raw_2</topic> 
@@ -728,7 +728,7 @@
 
 <gazebo reference="cam_rl_link">
   <sensor name="cam_rl" type="wideanglecamera">    <always_on>true</always_on>
-    <update_rate>30</update_rate>
+    <update_rate>10</update_rate>
     <visualize>true</visualize>
     <!-- RL -->
     <topic>/guppy/raw_3</topic>
@@ -790,7 +790,7 @@
 
 <gazebo reference="cam_rr_link">
   <sensor name="cam_rr" type="wideanglecamera">    <always_on>true</always_on>
-    <update_rate>30</update_rate>
+    <update_rate>10</update_rate>
     <visualize>true</visualize>
     <!-- RR -->
     <topic>/guppy/raw_4</topic>
@@ -879,7 +879,7 @@
 <gazebo reference="FCS_camera_link">
   <sensor name="FCS_camera" type="camera">
     <always_on>true</always_on>
-    <update_rate>30</update_rate>
+    <update_rate>10</update_rate>
     <visualize>true</visualize>
     <topic>/guppy/FCS_camera</topic>
     <camera>

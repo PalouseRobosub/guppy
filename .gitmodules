@@ -11,6 +11,7 @@
 [submodule "vendor/gncea"]
 	path = vendor/gncea
 	url = https://github.com/palouserobosub/gncea
+	branch = greg/FCS_edits
 [submodule "vendor/slam-wrapper-v2"]
 	path = vendor/slam-wrapper-v2
 	url = https://github.com/BubbleRobotics/slam-wrapper-v2

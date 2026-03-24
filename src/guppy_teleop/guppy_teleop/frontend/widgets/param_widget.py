@@ -1,57 +1,102 @@
-import os, json
+import rclpy
+from rclpy.node import Node
+from rclpy.parameter import Parameter
+from rclpy.parameter_event_handler import ParameterEventHandler
+from rclpy.parameter_client import AsyncParameterClient
+from rclpy.task import Future
 
-from PySide6.QtCore import Property, Signal, Slot
+from rcl_interfaces.msg import ParameterEvent, SetParametersResult
+from rcl_interfaces.srv import ListParameters, GetParameters, SetParameters
 
-from guppy_teleop.frontend.widgets.widget import Widget
+from PySide6.QtCore import Property, Signal, Slot, QObject
 
-from rclpy.logging import get_logger
-
-SOCKET_PATH = os.path.join("/tmp/terminal-ipc")
-
-class ParameterWidget(Widget):
+class ParameterWidget(Node, QObject):
     parametersChanged = Signal()
-
-    @property
-    def name(self) -> str:
-        return "parameters"
 
     @property
     def qml_name(self) -> str:
         return "parameterWidget"
 
     def __init__(self, parent=None):
-        super().__init__(parent)
-        self._parameters = {}
-        get_logger("rclpy").info("widget created!")
+        Node.__init__(self, "parameter_widget")
+        QObject.__init__(self, parent)
+        self._params = {}
+
+        self.client = AsyncParameterClient(self, "control_chassis")
+
+        self._load_parameters()
+
+        self.handler = ParameterEventHandler(self)
+        self.event_callback_handle = self.handler.add_parameter_event_callback(callback=self._on_param_change)
+
+    def _load_parameters(self):
+        list_client = self.create_client(ListParameters, "control_chassis/list_parameters")
+        get_client = self.create_client(GetParameters, "control_chassis/get_parameters")
+
+        if not list_client.wait_for_service(timeout_sec=2.0):
+            self.get_logger().error("parameter widget couldn't list control parameters!")
+            return
+
+        if not get_client.wait_for_service(timeout_sec=2.0):
+            self.get_logger().error("parameter widget couldn't get control parameters!")
+            return
+
+        list_request = ListParameters.Request()
+        future = list_client.call_async(list_request)
+        rclpy.spin_until_future_complete(self, future)
+
+        names = future.result().result.names
+
+        get_request = GetParameters.Request()
+        get_request.names = names
+        future = get_client.call_async(get_request)
+        rclpy.spin_until_future_complete(self, future)
+
+        values = future.result().values
+        
+        for name, value in zip(names, values):
+            self._params[name] = rclpy.parameter.parameter_value_to_python(value)
     
-    def handle_update(self, payload: dict):
-        get_logger("rclpy").info("update!")
-        self._parameters = payload.get("parameters", {})
+    def _on_param_change(self, event: ParameterEvent):
+        for param in event.changed_parameters:
+            self._params[param.name] = rclpy.parameter.parameter_value_to_python(param.value)
+        
         self.parametersChanged.emit()
 
     @Property("QVariantMap", notify=parametersChanged)
     def parameters(self):
-        return self._parameters
+        return self._params
 
     @Slot("QVariantMap")
-    def pushParameters(self, params: dict):
-        for key, value in params.items():
-            dirty = False
+    def pushParameters(self, params: dict) -> bool:
+        try:
+            requests: Parameter = []
+
+            for key, value in params.items():
+                if not value.__eq__(self._params[key]):
+                    requests.append(Parameter(name=key, value=value))
+
+            if len(requests) == 0:
+                return True
             
-            if isinstance(value, list):
-                convert = [float(i) for i in self._parameters[key]]
-                dirty = not value.__eq__(convert)
-            else:
-                dirty = not value.__eq__((type(value))(self._parameters[key]))
+            print(requests)
+            
+            if not self.client.wait_for_services(timeout_sec=2.0):
+                raise RuntimeError("parameter service not available")
+            
+            future: Future[SetParametersResult] = self.client.set_parameters(requests)
+            rclpy.spin_until_future_complete(self, future)
 
-            if dirty:
-                self._push_parameter(key, str(value), type(value).__name__)
+            response: SetParameters.Response = future.result()
 
-    def _push_parameter(self, param_name: str, value: str, type: str):
-        arguments = {
-            "parameter": param_name,
-            "value": value,
-            "type": type
-        }
+            results: list[SetParametersResult] = response.results
 
-        self._send("change_param", arguments)
+            for result in results:
+                if not result.successful:
+                    raise (Exception(result.reason))
+
+        except Exception as err:
+            self.get_logger().error(f"failed to update parameters: {str(err)}!")
+            return False
+
+        return True

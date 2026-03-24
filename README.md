@@ -61,6 +61,8 @@ Or if using `direnv`, run:
 direnv allow
 ```
 
+This is made possible using the [nix-ros-overlay](https://github.com/lopsided98/nix-ros-overlay)
+
 ## Organization
 The code is broken up into several ROS 2 packages, in the [`src/`](./src/) directory:
 - [**`guppy`**](./src/guppy/#readme): A metapackage that contains dependencies of all other packages, as well as bringup and launch scripts.

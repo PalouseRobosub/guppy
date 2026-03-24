@@ -48,6 +48,19 @@ The included `Dockerfile` and `devcontainer.json` allow the guppy repo to be ope
 
 To interact with the Docker contaner graphically, you can visit [localhost:6080/vnc.html](https://localhost:6080/vnc.html), or connect with a VCN client to [localhost:5901](vnc://localhost:5091)
 
+### Nix & NixOS
+
+The included `flake.nix` allows for development, sim, and operation to run on any x86 machine with Nix or NixOS installed.
+
+After cloning, simply run:
+```bash
+nix develop
+```
+Or if using `direnv`, run:
+```bash
+direnv allow
+```
+
 ## Organization
 The code is broken up into several ROS 2 packages, in the [`src/`](./src/) directory:
 - [**`guppy`**](./src/guppy/#readme): A metapackage that contains dependencies of all other packages, as well as bringup and launch scripts.

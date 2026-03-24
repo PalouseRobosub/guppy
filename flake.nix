@@ -1,0 +1,77 @@
+{
+  inputs = {
+    nix-ros-overlay.url = "github:lopsided98/nix-ros-overlay/master";
+    nixpkgs.follows = "nix-ros-overlay/nixpkgs";  # IMPORTANT!!!
+  };
+  outputs = { self, nix-ros-overlay, nixpkgs }:
+    nix-ros-overlay.inputs.flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ nix-ros-overlay.overlays.default ];
+        };
+      in {
+        devShells.default = pkgs.mkShell {
+          name = "guppy_ros";
+          packages = [
+            # non ros
+            
+            # build
+            pkgs.colcon
+            pkgs.cmake
+            pkgs.clang-tools
+            
+            # deps
+            pkgs.proxsuite
+            pkgs.python3Packages.pygame
+            pkgs.python3Packages.pip
+            
+            # extra
+            pkgs.fastfetch
+            
+            (with pkgs.rosPackages.jazzy; buildEnv {
+              # ros packages
+              paths = [
+                # ros base
+                ros-core
+                ros-base
+                rclcpp
+                rclpy
+                
+                # ros msgs
+                std-msgs
+                geometry-msgs
+                sensor-msgs
+                nav-msgs
+      
+                # rqt
+                rqt
+                rqt-common-plugins
+                
+                # build
+                ament-cmake
+                ament-cmake-python
+                ament-lint-auto
+                
+                # launch
+                launch
+                launch-ros
+                launch-xml
+                
+                # deps
+                ros2-control
+                control-toolbox
+              ];
+            })
+          ];
+          shellHook = ''
+            export ROS_DOMAIN_ID=0
+            fastfetch -l ./.github/guppy.txt
+          '';
+        };
+      });
+  nixConfig = {
+    extra-substituters = [ "https://ros.cachix.org" ];
+    extra-trusted-public-keys = [ "ros.cachix.org-1:dSyZxI8geDCJrwgvCOHDoAfOm5sV1wCPjBkKL+38Rvo=" ];
+  };
+}

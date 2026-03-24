@@ -28,6 +28,7 @@
             
             # extra
             pkgs.fastfetch
+            pkgs.can-utils
             
             (with pkgs.rosPackages.jazzy; buildEnv {
               # ros packages
@@ -50,6 +51,7 @@
                 
                 # build
                 ament-cmake
+                ament-cmake-core # vectornav_msgs
                 ament-cmake-python
                 ament-lint-auto
                 
@@ -61,6 +63,12 @@
                 # deps
                 ros2-control
                 control-toolbox
+                ros-gz-interfaces # gncea_autonomy
+                python-cmake-module # vecornav_msgs
+                marine-acoustic-msgs # waterlinked_dvl_driver
+                ros-gz-sim # gncea_description
+                ros-gz-bridge # sim
+                joint-state-publisher # sim
               ];
             })
           ];

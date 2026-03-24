@@ -43,8 +43,7 @@ setup(
             'raw_controller = guppy_teleop.raw_controller:main',
             'translator = guppy_teleop.translator:main',
             'keyboard = guppy_teleop.keyboard:main',
-            'terminal_backend = guppy_teleop.backend.terminal_backend:main',
-            'terminal_frontend = guppy_teleop.frontend.terminal_frontend:main'
+            'terminal = guppy_teleop.frontend.terminal:main'
         ],
     },
 )

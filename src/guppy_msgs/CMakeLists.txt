@@ -16,6 +16,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SendCan.srv"
   "msg/State.msg"
   "srv/ChangeState.srv"
+  "msg/Toast.msg"
   
   DEPENDENCIES builtin_interfaces
 )

@@ -1,9 +1,11 @@
+#include <rclcpp/subscription.hpp>
 #include "rclcpp/rclcpp.hpp"
 #include "guppy_control/chassis_controller.hpp"
 #include "guppy_control/t200_interface.hpp"
 
 #include "std_msgs/msg/float32.hpp"
 #include "std_msgs/msg/float64.hpp"
+#include "guppy_msgs/msg/state.hpp"
 
 using namespace std::chrono_literals;
 using namespace t200_interface;
@@ -38,7 +40,7 @@ public:
     load_params_(&parameters); // load parameters from configuration file
 
     this->param_subscriber_ = std::make_shared<rclcpp::ParameterEventHandler>(this); // subscribe to parameter change event
-
+    
     // parameter callback to update parameters on event
 
     auto param_callback = [this](const rcl_interfaces::msg::ParameterEvent & parameter_event) {
@@ -105,6 +107,7 @@ public:
     // setup subscriptions
     odom_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("/odometry/filtered",10,std::bind(&ControlChassis::odom_callback, this, std::placeholders::_1));
     cmd_vel_subscription_ = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel",10,std::bind(&ControlChassis::cmdvel_callback, this, std::placeholders::_1));
+    state_subscription_ = this->create_subscription<guppy_msgs::msg::State>("/state", 10, std::bind(&ControlChassis::state_callback, this, std::placeholders::_1));
 
     auto timer_callback = [this]() -> void {
       auto thrusts = controller->get_motor_thrusts();
@@ -139,11 +142,20 @@ public:
   void cmdvel_callback(geometry_msgs::msg::Twist::SharedPtr msg) {
     controller->update_desired_state(msg);
   }
+  
+  void state_callback(guppy_msgs::msg::State::SharedPtr msg) {
+      if (msg->state == guppy_msgs::msg::State::DISABLED) {
+          this->thruster_interface->set_enabled(false);
+      } else {
+          this->thruster_interface->set_enabled(true);
+      }
+  }
 
 private:
   rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr sim_motor_publishers_[8];
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_subscription_;
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_subscription_;
+  rclcpp::Subscription<guppy_msgs::msg::State>::SharedPtr state_subscription_;
   rclcpp::TimerBase::SharedPtr timer_;
 
   std::shared_ptr<rclcpp::ParameterEventHandler> param_subscriber_;

@@ -216,7 +216,6 @@ activemq-data/
 
 # Environments
 .env
-.envrc
 .venv
 env/
 venv/
@@ -323,3 +322,6 @@ __marimo__/
 # debug information files
 *.dwo
 compile_commands.json
+
+# NixOS stuff
+.direnv

@@ -36,8 +36,11 @@ bool T200Interface::write(Eigen::VectorXd throttles) {
 
     bool okay = true;
     for (size_t i=0; i < n; i++) {
-        okay = okay && send_to_can(can_ids[i], (float)throttles[i]);
-        // std::cout << can_ids[i] << "\t" << (float)throttles[i] << "\t" << okay << std::endl;
+        if (this->enabled_)
+            okay = okay && send_to_can(can_ids[i], throttles[i]);
+        else 
+            okay = okay && send_to_can(can_ids[i], 0);
+        // std::cout << can_ids[i] << "\t" << throttles[i] << "\t" << okay << std::endl;
     }
 
     return okay;
@@ -61,6 +64,10 @@ bool T200Interface::shutdown() {
         }
     }
     return okay;
+}
+
+void T200Interface::set_enabled(bool enabled) {
+    this->enabled_ = enabled;
 }
 
 }

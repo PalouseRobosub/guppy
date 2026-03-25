@@ -60,6 +60,9 @@
                 launch-ros
                 launch-xml
                 
+                # rviz
+                rviz2
+                
                 # deps
                 ros2-control
                 control-toolbox

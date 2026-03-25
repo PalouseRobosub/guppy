@@ -72,18 +72,16 @@ bool ChassisController::control_loop(bool debug) {
   }
 
   if (debug) {
-    std::cout << "buoyancy_wrench: " << buoyancy_wrench.transpose() << std::endl;
-    std::cout << "gravity_wrench: " << gravity_wrench.transpose() << std::endl;
-    std::cout << "drag_wrench: " << drag_wrench.transpose() << std::endl;
-
+    std::cout << "buoyancy_wrench:   " << buoyancy_wrench.transpose() << std::endl;
+    std::cout << "gravity_wrench:    " << gravity_wrench.transpose() << std::endl;
+    std::cout << "drag_wrench:       " << drag_wrench.transpose() << std::endl;
     std::cout << "velocity_feedback: " << velocity_feedback.transpose() << std::endl;
-
-    std::cout << "c pos: " << current_position_state_.transpose() << std::endl;
-    std::cout << "d pos: " << desired_position_state_.transpose() << std::endl;
-    std::cout << "pose_nudge: " << added_pose_nudge.transpose() << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "local_wrench: " << local_wrench.transpose() << std::endl;
+    std::cout << "c pos:             " << current_position_state_.transpose() << std::endl;
+    std::cout << "d pos:             " << desired_position_state_.transpose() << std::endl;
+    std::cout << "pose_nudge:        " << added_pose_nudge.transpose() << std::endl;
+    // std::cout << std::endl;
+    std::cout << "local_wrench:      " << local_wrench.transpose() << std::endl;
+    std::cout << "motor_forces_:     " << motor_forces_.transpose() << std::endl;
     std::cout << std::endl;
   }
 
@@ -224,6 +222,7 @@ void ChassisController::update_parameters(ChassisControllerParams parameters) {
   // recalculate the motor coefficients into a QP problem
   Eigen::MatrixXd qp_A = params_.motor_coefficients;
   Eigen::MatrixXd qp_H = qp_A.transpose() * params_.axis_weight_matrix * qp_A;
+  qp_H += Eigen::Matrix<double, N_MOTORS, N_MOTORS>::Identity() * 0.1;
 
   // no equality constraints
   Eigen::MatrixXd qp_C = Eigen::MatrixXd::Identity(N_MOTORS, N_MOTORS);

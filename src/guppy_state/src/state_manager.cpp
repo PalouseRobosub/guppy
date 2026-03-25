@@ -94,8 +94,8 @@ class StateManager : public rclcpp::Node {
 
         // state handlers
         void handle_startup() {
-            // TODO may just break? pseudo init state
-            this->publish_state(guppy_msgs::msg::State::TELEOP); // just move straight to teleop for sim purposes until proper pipeline is created
+            // start disabled (for now for testing at least)
+            this->publish_state(guppy_msgs::msg::State::DISABLED);
         }
 
         void handle_holding() {

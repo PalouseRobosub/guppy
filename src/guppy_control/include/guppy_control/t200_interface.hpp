@@ -40,7 +40,7 @@ class T200Interface {
         @param value the double value to send
         @return whether or not the operation was successful
     */
-    bool send_to_can(unsigned int id, double value);
+    bool send_to_can(unsigned int id, float value);
 
 public:
     /*

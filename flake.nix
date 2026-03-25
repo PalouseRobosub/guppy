@@ -73,7 +73,6 @@
             })
           ];
           shellHook = ''
-            export ROS_DOMAIN_ID=0
             fastfetch -l ./.github/guppy.txt
           '';
         };

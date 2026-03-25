@@ -63,6 +63,19 @@ direnv allow
 
 This is made possible using the [nix-ros-overlay](https://github.com/lopsided98/nix-ros-overlay)
 
+#### Nix Networking
+
+If you encounter issues, make sure to allow the UDP ports required by ROS in your `configuration.nix`:
+```nix
+networking.firewall = {
+  allowedUDPPorts = [ 7400 7401 ];
+  allowedUDPPortRanges = [
+    { from = 7410; to = 7500; }
+  ];
+};
+```
+
+
 ## Organization
 The code is broken up into several ROS 2 packages, in the [`src/`](./src/) directory:
 - [**`guppy`**](./src/guppy/#readme): A metapackage that contains dependencies of all other packages, as well as bringup and launch scripts.

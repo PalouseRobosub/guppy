@@ -103,7 +103,7 @@ public:
     }
 
     // setup subscriptions
-    odom_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("/waterlinked_dvl_driver/odom",10,std::bind(&ControlChassis::odom_callback, this, std::placeholders::_1));
+    odom_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("/odometry/filtered",10,std::bind(&ControlChassis::odom_callback, this, std::placeholders::_1));
     cmd_vel_subscription_ = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel",10,std::bind(&ControlChassis::cmdvel_callback, this, std::placeholders::_1));
 
     auto timer_callback = [this]() -> void {

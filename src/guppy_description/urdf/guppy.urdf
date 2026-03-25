@@ -272,7 +272,7 @@
   <joint name="imu_joint" type="fixed">
     <parent link="base_link"/>
     <child link="vectornav"/>
-    <origin xyz="0.22 0.0625 0.125" rpy="0 0 0"/>
+    <origin xyz="0.22 0.0625 0.125" rpy="0 0 -1.570796326"/>
   </joint>
 
   <gazebo>
@@ -801,7 +801,7 @@
 <!-- DVL link -->
 <link name="dvl_link">
   <inertial>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0 0 0" rpy="0 3.141592653 0"/>
     <mass value="0"/>
     <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
   </inertial>

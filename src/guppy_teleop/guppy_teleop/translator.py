@@ -5,7 +5,7 @@ from std_msgs.msg import Float32MultiArray, Int32MultiArray, String
 from guppy_msgs.srv._change_state import ChangeState
 from guppy_msgs.msg import State
 
-MULTIPLIER = 0.3
+MULTIPLIER = 1
 
 class Translator(Node):
     def __init__(self):

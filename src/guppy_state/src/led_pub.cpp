@@ -30,6 +30,7 @@ public:
       }
     );
   }
+  
 private:
   uint8_t current_state = 0;
   rclcpp::Subscription<guppy_msgs::msg::State>::SharedPtr subscription_;

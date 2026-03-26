@@ -118,7 +118,7 @@ class StateManager : public rclcpp::Node {
         }
 
         void handle_disabled() {
-            // TODO
+            this->publish_state(guppy_msgs::msg::State::DISABLED);
         }
 
         void handle_fault() {

@@ -1,8 +1,14 @@
 <launch>
     <node pkg="guppy_localization" exec="barometer_pub"/>
+    <node pkg="guppy_localization" exec="combine_sensors"/>
     <include file="$(find-pkg-share waterlinked_dvl_driver)/launch/dvl.launch.py"></include>
     <include file="$(find-pkg-share vectornav)/launch/vectornav.launch.py"></include>
-    <node pkg="robot_localization" exec="ekf_node" name="ekf_filter_node" output="screen">
+    <!-- <node pkg="robot_localization" exec="ekf_node" name="ekf_filter_node" output="screen">
         <param from="$(find-pkg-share guppy_localization)/config/ekf.yaml" />
+    </node> -->
+    <node pkg="odom_to_tf_ros2" exec="odom_to_tf">
+        <param name="frame_id" value="odom" />
+        <param name="child_frame_id" value="base_link" />
+        <param name="odom_topic" value="/odometry/filtered" />
     </node>
 </launch>

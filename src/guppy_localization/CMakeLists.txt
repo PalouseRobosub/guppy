@@ -13,12 +13,23 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(eigen3_cmake_module REQUIRED)
+find_package(Eigen3)
 
 add_executable(barometer_pub src/barometer_pub.cpp)
-ament_target_dependencies(barometer_pub rclcpp geometry_msgs std_msgs)
+add_executable(combine_sensors src/combine.cpp)
+ament_target_dependencies(barometer_pub rclcpp sensor_msgs geometry_msgs std_msgs)
+ament_target_dependencies(combine_sensors rclcpp sensor_msgs geometry_msgs nav_msgs std_msgs Eigen3)
 
 install(TARGETS
   barometer_pub
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(TARGETS
+  combine_sensors
   DESTINATION lib/${PROJECT_NAME}
 )
 

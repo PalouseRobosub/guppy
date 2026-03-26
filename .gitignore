@@ -325,3 +325,5 @@ compile_commands.json
 
 # NixOS stuff
 .direnv
+
+robot_localization_debug.txt

@@ -29,6 +29,8 @@ using namespace std::chrono;
 /* A controller that manages PID, feedforward and thrust allocation for the chassis */
 class ChassisController {
 public:
+    int first_run = 0;
+
     /* strange chatgpt magic to bypass the deprecated constructor... */
     inline static const control_toolbox::AntiWindupStrategy antiwindup_strat = [] {
         control_toolbox::AntiWindupStrategy a;

@@ -45,8 +45,10 @@ bool ChassisController::control_loop(bool debug) {
 
   // positions...
   for (int i=0; i<3; i++) {
+    Eigen::Vector3d position_err = current_position_state_ - desired_position_state_;
+    position_err = current_orientation_state_ * position_err;
     if (abs(desired_velocity_state_[i]) < params_.pose_lock_deadband[i]) {
-      position_nudge[i] = -1 * pose_pid[i].compute_command(desired_position_state_[i] - current_position_state_[i], (dt_us_ / 1000000.0));
+      position_nudge[i] = -1 * pose_pid[i].compute_command(position_err[i], (dt_us_ / 1000000.0));
       if (i == 2) position_nudge[i] *= -1;
     } else {
       desired_position_state_[i] = current_position_state_[i];
@@ -101,7 +103,8 @@ Eigen::Vector3d ChassisController::calculate_rotational_nudge(bool debug) {
   if (abs(desired_velocity_state_[5]) < params_.pose_lock_deadband[5]) new_orientation_lock |= YAW_LOCK;
   
   // make sure to update the desired orientation if needed
-  if ((int)current_orientation_lock_ != new_orientation_lock) {
+  if (((int)current_orientation_lock_ != new_orientation_lock) || first_run < 10) {
+    if (first_run < 10) first_run++;
     desired_orientation_state_ = current_orientation_state_;
     current_orientation_lock_ = (OrientationLockState)new_orientation_lock;
   }
@@ -246,10 +249,10 @@ void ChassisController::update_parameters(ChassisControllerParams parameters) {
   this->velocity_pid[5].set_gains(params_.pid_gains_vel_angular[0], params_.pid_gains_vel_angular[1], params_.pid_gains_vel_angular[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
 
   this->pose_pid[0].set_gains(params_.pid_gains_pose_linear[0], params_.pid_gains_pose_linear[1], params_.pid_gains_pose_linear[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
-  this->pose_pid[1].set_gains(params_.pid_gains_pose_linear[0], params_.pid_gains_pose_linear[1], params_.pid_gains_pose_linear[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
+  this->pose_pid[1].set_gains(-1 * params_.pid_gains_pose_linear[0], params_.pid_gains_pose_linear[1], params_.pid_gains_pose_linear[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
   this->pose_pid[2].set_gains(params_.pid_gains_pose_linear[0], params_.pid_gains_pose_linear[1], params_.pid_gains_pose_linear[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
-  this->pose_pid[3].set_gains(params_.pid_gains_pose_angular[0], params_.pid_gains_pose_angular[1], params_.pid_gains_pose_angular[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
-  this->pose_pid[4].set_gains(params_.pid_gains_pose_angular[0], params_.pid_gains_pose_angular[1], params_.pid_gains_pose_angular[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
+  this->pose_pid[3].set_gains(-1 * params_.pid_gains_pose_angular[0], params_.pid_gains_pose_angular[1], params_.pid_gains_pose_angular[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
+  this->pose_pid[4].set_gains(-1 * params_.pid_gains_pose_angular[0], params_.pid_gains_pose_angular[1], params_.pid_gains_pose_angular[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
   this->pose_pid[5].set_gains(params_.pid_gains_pose_angular[0], params_.pid_gains_pose_angular[1], params_.pid_gains_pose_angular[2], std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiwindup_strat);
 }
 

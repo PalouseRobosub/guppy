@@ -28,7 +28,8 @@ setup(
         'console_scripts': [
             'raw_controller = guppy_teleop.raw_controller:main',
             'translator = guppy_teleop.translator:main',
-            'keyboard = guppy_teleop.keyboard:main'
+            'keyboard = guppy_teleop.keyboard:main',
+            'ksed = guppy_teleop.ksed:main'
         ],
     },
 )

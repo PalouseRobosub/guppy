@@ -58,7 +58,7 @@ class RawController:
 
     def update(self) -> Dict[str, Any]:
         if self._joystick is None:
-            raise ValueError("No controller found")
+            raise ControllerError("No controller found")
         pygame.event.pump()
         state = {}
         state["axes"] = [self._joystick.get_axis(i) for i in range(self.numaxes)]
@@ -72,11 +72,11 @@ class RawController:
 # converts logitech controller input to twist
 def logitech_twist(controller_state: Dict) -> Twist:
     twist = Twist()
-
     twist.linear.x = MULTIPLIER * controller_state["axes"][4] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # right stick vertical
     twist.linear.y = MULTIPLIER * controller_state["axes"][3] if abs(controller_state["axes"][3]) > 0.15 else 0.0 # right stick horizontal
     # DISABLE Z MOVEMENT FOR KSED
     # twist.linear.z = MULTIPLIER * -controller_state["axes"][1] if abs(controller_state["axes"][1]) > 0.15 else 0.0 # left stick vertical
+    twist.linear.z = 0
     twist.angular.y = MULTIPLIER * float(controller_state["dpad"][1]) # pitch
     twist.angular.x = -MULTIPLIER * float(controller_state["dpad"][0]) # roll
     yaw_r = controller_state["axes"][5] # right trigger
@@ -84,24 +84,23 @@ def logitech_twist(controller_state: Dict) -> Twist:
     yaw_r = (yaw_r + 1) / 2
     yaw_l = (yaw_l + 1) / 2 * (-1)
     twist.angular.z = MULTIPLIER * -(yaw_r + yaw_l)
-
     return twist
 
 # converts series x controller input to twist
-def series_x_twist(controller_state: Dict) -> Twist:
+def series_x_twist(controller_state):
     twist = Twist()
-    twist.linear.x = MULTIPLIER * controller_state["axes"][4] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # right stick vertical
-    twist.linear.y = MULTIPLIER * controller_state["axes"][3] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # right stick horizontal
-    twist.linear.z = MULTIPLIER * -controller_state["axes"][1] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # left stick
+    twist.linear.x = MULTIPLIER * controller_state["axes"][3] if abs(controller_state["axes"][3]) > 0.15 else 0.0 # right stick vertical
+    twist.linear.y = MULTIPLIER * controller_state["axes"][2] if abs(controller_state["axes"][2]) > 0.15 else 0.0 # right stick horizontal
+    twist.linear.z = MULTIPLIER * -controller_state["axes"][1] if abs(controller_state["axes"][1]) > 0.15 else 0.0 # left stick
     twist.angular.y = MULTIPLIER * float(controller_state["dpad"][1]) # pitch
     twist.angular.x = MULTIPLIER * -float(controller_state["dpad"][0]) # roll
-    yaw_r = controller_state["axes"][5] # right trigger
-    yaw_l = controller_state["axes"][2] # left trigger
+    yaw_r = controller_state["axes"][4] # right trigger
+    yaw_l = controller_state["axes"][5] # left trigger
     yaw_r = (yaw_r + 1) / 2
     yaw_l = (yaw_l + 1) / 2 * (-1)
     twist.angular.z = MULTIPLIER * -(yaw_r + yaw_l)
     return twist
-
+    
 class KsedTeleop(Node):
     def __init__(self) -> None:
         super().__init__("raw_controller")
@@ -132,10 +131,7 @@ class KsedTeleop(Node):
         self._kid_logitech = None
         self._kid_joystick = None
         
-        try:
-            self._kid_logitech = RawController("Logitech Gamepad F310")
-        except ControllerError:
-            pass
+        self._kid_logitech = RawController("Logitech Gamepad F310")
         
         self.timer = self.create_timer(0.05, self._update_controller)  # 20 Hz
         
@@ -170,7 +166,11 @@ class KsedTeleop(Node):
         if parent_state["buttons"] is not None and parent_state["buttons"][3] == 1:
             self._kid_enabled = False
         
-        self._publish_twist(parent_state)
+        logi_state = None
+        if self._kid_logitech is not None:
+            logi_state = self._kid_logitech.update()
+        
+        self._publish_twist(parent_state, logi_state)
         
         self._update_display()
 
@@ -243,11 +243,11 @@ class KsedTeleop(Node):
             state_str = "TELEOP"
             state_color = COLOR_TELEOP
             
+        pygame.draw.rect(self._display, state_color, (400, 0, 400, 400))
+            
         state_text = self._font.render(state_str, True, (0, 0, 0))
         self._display.blit(state_text, (600 - state_text.get_width() / 2, 200 - state_text.get_height() / 2))
-        
-        pygame.draw.rect(self._display, state_color, (400, 0, 400, 400))
-        
+                
         # update display
         pygame.display.flip()
 

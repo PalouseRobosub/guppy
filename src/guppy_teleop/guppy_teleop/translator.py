@@ -50,14 +50,14 @@ class Translator(Node):
         self.controller_name = msg.data
 
     def update_controller_state(self):
-        if self.controller_state["buttons"] is not None and self.controller_state["buttons"][7] == 1:
+        if self.controller_state["buttons"] is not None and self.controller_state["buttons"][11] == 1:
             msg = State()
             msg.state = State.TELEOP
             req = ChangeState.Request()
             req.new_state = msg
             self.state_client.call_async(req)
             
-        if self.controller_state["buttons"] is not None and self.controller_state["buttons"][8] == 1:
+        if self.controller_state["buttons"] is not None and self.controller_state["buttons"][12] == 1:
             msg = State()
             msg.state = State.DISABLED
             req = ChangeState.Request()
@@ -107,13 +107,13 @@ def logitech_twist(controller_state):
 
 def series_x_twist(controller_state):
     twist = Twist()
-    twist.linear.x = MULTIPLIER * controller_state["axes"][4] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # right stick vertical
-    twist.linear.y = MULTIPLIER * controller_state["axes"][3] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # right stick horizontal
-    twist.linear.z = MULTIPLIER * -controller_state["axes"][1] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # left stick
+    twist.linear.x = MULTIPLIER * controller_state["axes"][3] if abs(controller_state["axes"][3]) > 0.15 else 0.0 # right stick vertical
+    twist.linear.y = MULTIPLIER * controller_state["axes"][2] if abs(controller_state["axes"][2]) > 0.15 else 0.0 # right stick horizontal
+    twist.linear.z = MULTIPLIER * -controller_state["axes"][1] if abs(controller_state["axes"][1]) > 0.15 else 0.0 # left stick
     twist.angular.y = MULTIPLIER * float(controller_state["dpad"][1]) # pitch
     twist.angular.x = MULTIPLIER * -float(controller_state["dpad"][0]) # roll
-    yaw_r = controller_state["axes"][5] # right trigger
-    yaw_l = controller_state["axes"][2] # left trigger
+    yaw_r = controller_state["axes"][4] # right trigger
+    yaw_l = controller_state["axes"][5] # left trigger
     yaw_r = (yaw_r + 1) / 2
     yaw_l = (yaw_l + 1) / 2 * (-1)
     twist.angular.z = MULTIPLIER * -(yaw_r + yaw_l)

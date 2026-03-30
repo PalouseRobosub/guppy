@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Shapes
 import Qt5Compat.GraphicalEffects
+import ui
 
 Item {
     id: root
@@ -33,10 +34,10 @@ Item {
                                  position === Qt.BottomEdge        ? mainRect.width / 2 - width / 2 :
                                  -1
         property real endPosX: 0
-        property color accent: type === "info"    ? "#3498db" :
-                               type === "success" ? "#07bc0c" :
-                               type === "warning" ? "#f1c40f" :
-                               type === "error"   ? "#e74c3c" :
+        property color accent: type === "info"    ? Theme.semanticInfo :
+                               type === "success" ? Theme.semanticSuccess :
+                               type === "warning" ? Theme.semanticWarning :
+                               type === "error"   ? Theme.semanticError :
                                                   "#000000"
     }
 
@@ -91,7 +92,7 @@ Item {
                 font.weight: theme === "Light" ? Font.Normal : Font.Medium
                 text: message
                 color: theme === "Light" ? "#000000" :
-                       theme === "Dark"  ? "#ffffff" :
+                       theme === "Dark"  ? Theme.textPrimary :
                                  "white"
             }
         }

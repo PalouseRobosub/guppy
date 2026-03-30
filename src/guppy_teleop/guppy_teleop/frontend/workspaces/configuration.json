@@ -1,5 +1,5 @@
 {
-    "name": "Teleop",
+    "name": "Configuration",
     "icon": "qrc:/assets/icons/controller.svg",
     "widgets": [
         {
@@ -20,11 +20,12 @@
             "bodyText": "thrusters fell off and guppy exploded"
         },
         {
-            "type": "InputWidget",
+            "type": "ParameterWidget",
             "x": 80,
             "y": 300,
             "width": 1050,
-            "height": 400
+            "height": 400,
+            "readonly": false
         }
     ]
 }

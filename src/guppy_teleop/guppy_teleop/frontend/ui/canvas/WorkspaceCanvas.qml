@@ -22,7 +22,8 @@ Item {
     property var widgetRegistry: ({
         "TextWidget": "qrc:/widgets/ui/widgets/TextWidget.qml",
         "StateWidget": "qrc:/widgets/ui/widgets/StateWidget.qml",
-        "ParameterWidget": "qrc:/widgets/ui/widgets/ParameterWidget.qml"
+        "ParameterWidget": "qrc:/widgets/ui/widgets/ParameterWidget.qml",
+        "InputWidget": "qrc:/widgets/ui/widgets/InputWidget.qml"
     })
 
     function centerOn(x, y) {
@@ -44,36 +45,32 @@ Item {
 
             var component = Qt.createComponent(path)
             if (component.status === Component.Error)
-                console.error("rrror loading component... ", component.errorString())
+                console.error("errror loading component... ", component.errorString())
 
             var properties = {}
             for (var key in json) if (key !== "type")
                 properties[key] = json[key]
             
+            properties.canvasZoom = Qt.binding(function(){ return root.zoom })
             properties.snapToGrid = Qt.binding(function(){ return root.snapToGrid })
             properties.gridStep = Qt.binding(function(){ return root.gridStep })
 
             var object = component.createObject(workspace, properties)
-
             object.closeRequested.connect(function() { object.destroy() })
         })
     }
 
     function clearWidgets() {
         workspace.children.forEach(function(child) {
-            if (typeof child.closeRequested !== "undefined")
-                child.destroy()
+            if (typeof child.closeRequested !== "undefined") child.destroy()
         })
     }
 
     FileDialog {
         id: saveDialog
-
         title: "Save Workspace"
-
         nameFilters: ["JSON files (*.json)"]
         fileMode: FileDialog.SaveFile
-
         onAccepted: {
             workspaceManager.saveWorkspace(selectedFile, workspace.children)
             // TODO transform children?
@@ -82,12 +79,9 @@ Item {
 
     FileDialog {
         id: loadDialog
-
         title: "Load Workspace"
-
         nameFilters: ["JSON files (*.json)"]
         fileMode: FileDialog.OpenFile
-
         onAccepted: workspaceManager.loadWorkspaceFromUrl(selectedFile)
     }
 
@@ -95,21 +89,26 @@ Item {
         id: grid
 
         anchors.fill: parent
-
         z: -1
-
         opacity: 0.4
+
+
+        Connections {
+            target: root
+            function onZoomChanged(){ grid.requestPaint() }
+            function onOffsetXChanged(){ grid.requestPaint() }
+            function onOffsetYChanged(){ grid.requestPaint() }
+        }
 
         onPaint: {
             const context = getContext("2d")
             context.clearRect(0, 0, width, height)
 
-            let step = Math.max(4, root.gridStep * root.zoom) // step offset in pixels
-
+            const step = Math.max(4, root.gridStep * root.zoom) // step offset in pixels
             const ox = ((root.offsetX % step) + step) % step
             const oy = ((root.offsetY % step) + step) % step
 
-            context.strokeStyle = "#2e2e2e"
+            context.strokeStyle = Theme.canvasGrid
             context.lineWidth = 1
             context.beginPath()
 
@@ -125,30 +124,6 @@ Item {
 
             context.stroke()
         }
-
-        Connections {
-            target: root
-            
-            function onZoomChanged() {
-                grid.requestPaint()
-            }
-        }
-
-        Connections {
-            target: root
-            
-            function onOffsetXChanged() {
-                grid.requestPaint()
-            }
-        }
-
-        Connections {
-            target: root
-            
-            function onOffsetYChanged() {
-                grid.requestPaint()
-            }
-        }
     }
 
     Item {
@@ -161,15 +136,12 @@ Item {
         y: root.offsetY
 
         transformOrigin: Item.TopLeft
-
         scale: root.zoom
         
         Item {
             id: workspace
-
             width: 100000
             height: 100000
-
             clip: false
         }
     }
@@ -181,8 +153,9 @@ Item {
     }
 
     DragHandler {
-        target: null
+        id: panHandler
 
+        target: null
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchScreen | PointerDevice.TouchPad
         acceptedButtons: Qt.LeftButton
         grabPermissions: PointerHandler.TakeOverForbidden
@@ -209,12 +182,27 @@ Item {
         target: null
 
         onScaleChanged: (delta) => {
-            let newZoom = Math.max(root.minZoom, Math.min(root.maxZoom, root.zoom * delta))
+            const newZoom = Math.max(root.minZoom, Math.min(root.maxZoom, root.zoom * delta))
+            const ratio = newZoom / root.zoom
+            const cx = centroid.position.x
+            const cy = centroid.position.y
 
-            let ratio = newZoom / root.zoom
+            root.offsetX += (1 - ratio) * (cx - root.offsetX)
+            root.offsetY += (1 - ratio) * (cy - root.offsetY)
+            root.zoom = newZoom
+        }
+    }
 
-            let cx = centroid.position.x
-            let cy = centroid.position.y
+    WheelHandler {
+        target: null
+        acceptedDevices: PointerDevice.Mouse
+
+        onWheel: (event) => {
+            const delta = event.angleDelta.y > 0 ? 1.1 : (1 / 1.1)
+            const newZoom = Math.max(root.minZoom, Math.min(root.maxZoom, root.zoom * delta))
+            const ratio = newZoom / root.zoom
+            const cx = point.position.x
+            const cy = point.position.y
 
             root.offsetX += (1 - ratio) * (cx - root.offsetX)
             root.offsetY += (1 - ratio) * (cy - root.offsetY)
@@ -234,7 +222,6 @@ Item {
 
         radius: 18
         color: '#AA222222'
-
         z: 1000
 
         Row {
@@ -242,22 +229,17 @@ Item {
             
             anchors.fill: parent
             anchors.margins: 8
-
             spacing: 8
 
             CircleButton {
                 iconSource: root.snapToGrid ? "qrc:/assets/icons/snap_enabled.svg" : "qrc:/assets/icons/snap_disabled.svg"
-
                 tooltip: root.snapToGrid ? "Disable grid snapping." : "Enable grid snapping."
-
                 onClicked: root.snapToGrid = !root.snapToGrid
             }
 
             CircleButton {
                 iconSource: "qrc:/assets/icons/home.svg"
-
                 tooltip: "Return to the center of the workspace."
-
                 onClicked: {
                     root.offsetX = 0
                     root.offsetY = 0
@@ -268,17 +250,13 @@ Item {
 
             CircleButton {
                 iconSource: "qrc:/assets/icons/save.svg"
-
                 tooltip: "Save workspace to file."
-
                 onClicked: saveDialog.open()
             }
 
             CircleButton {
                 iconSource: "qrc:/assets/icons/upload.svg"
-
                 tooltip: "Load workspace from file."
-
                 onClicked: loadDialog.open()
             }
         }

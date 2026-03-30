@@ -3,48 +3,36 @@ import QtQuick.Controls
 import QtQuick.VectorImage
 import ui
 
-Rectangle {
-    id: control
+Button {
+    id: button
 
     width: 36
     height: 36
-
-    radius: width / 2
-
-    color: hovered ? "#333333" : "#2A2A2A"
     
     opacity: 0.9
 
     property url iconSource: ""
-    signal clicked()
-    property bool hovered: false
-
     property int iconSize: 22
     property string tooltip: ""
 
-    VectorImage {
+    background: Rectangle {
+        color: hovered ? Theme.circleButtonHover : Theme.circleButton
+
+        radius: width / 2
+    }
+
+    contentItem: VectorImage {
         anchors.centerIn: parent
 
-        width: control.iconSize
-        height: control.iconSize
+        width: button.iconSize
+        height: button.iconSize
 
-        source: control.iconSource !== undefined ? control.iconSource : ""
+        source: button.iconSource !== undefined ? button.iconSource : ""
 
-        visible: control.iconSource !== ""
+        visible: button.iconSource !== ""
 
         fillMode: VectorImage.PreserveAspectFit
         smooth: true
-    }
-
-    MouseArea {
-        anchors.fill: parent
-
-        hoverEnabled: true
-
-        onEntered: control.hovered = true
-        onExited: control.hovered = false
-
-        onClicked: control.clicked()
     }
 
     ToolTip.visible: tooltip.length > 0 && hovered

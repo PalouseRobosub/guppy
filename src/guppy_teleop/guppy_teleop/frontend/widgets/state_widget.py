@@ -5,11 +5,13 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPo
 from guppy_msgs.msg import State
 from guppy_msgs.srv._change_state import ChangeState
 
-from PySide6.QtCore import Property, Signal, Slot, QObject
+from guppy_teleop.frontend.widgets.widget import Widget
+
+from PySide6.QtCore import Property, Signal, Slot
 
 from enum import Enum
 
-class ValidState(Enum):
+class ValidState(Enum): #TODO replace with State constants directly
     STARTUP = 0
     HOLDING = 1
     NAV = 2
@@ -18,7 +20,7 @@ class ValidState(Enum):
     DISABLED = 5
     FAULT = 6
 
-class StateWidget(Node, QObject):
+class StateWidget(Node, Widget):
     stateChanged = Signal()
 
     @property
@@ -27,13 +29,13 @@ class StateWidget(Node, QObject):
 
     def __init__(self, parent=None):
         Node.__init__(self, "state_widget")
-        QObject.__init__(self, parent)
+        Widget.__init__(self, parent)
         self._state: str = "no state recieved"
 
         self._client = self.create_client(ChangeState, "change_state")
         self.req = None
         if not self._client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info("chage_state service not available")
+            self.get_logger().error("chage_state service not available")
         else:
             self.req = ChangeState.Request()
 
@@ -50,10 +52,13 @@ class StateWidget(Node, QObject):
     def state(self) -> str:
         return self._state
 
-    @Slot(str)
+    @Slot(str, result=bool)
     def pushState(self, new_state: str) -> bool:
         message = State()
         if (valid_state := getattr(ValidState, new_state, None)) is None:
+            return False
+        
+        if (self.req is None):
             return False
         
         message.state = valid_state.value

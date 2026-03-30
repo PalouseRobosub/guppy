@@ -1,6 +1,5 @@
 from pathlib import Path
-# from file 
-import json, glob
+import json
 from importlib.resources import files
 
 WORKSPACES_PATH = files("guppy_teleop.frontend.workspaces")
@@ -27,18 +26,13 @@ class WorkspaceManager(QObject):
     def loadWorkspaceFromUrl(self, filepath):
         path = Path(filepath)
 
-        print(f"attempting to load path... {path}")
-
         try:
             with open(path) as file:
                 data = json.load(file)
             
-            print(f"emitting workspaceLoaded with {len(data.get('widgets', []))} widgets")
             self.workspaceLoaded.emit(data)
-
         except FileNotFoundError:
             print("workspace not found!")
-
         except json.JSONDecodeError as err:
             print(f"bad json in {path}: {err}")
 
@@ -57,7 +51,6 @@ class WorkspaceManager(QObject):
             try:
                 with open(filepath) as f:
                     meta = json.load(f)
-
             except Exception:
                 meta = {}
 

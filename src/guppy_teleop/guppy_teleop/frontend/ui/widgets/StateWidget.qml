@@ -1,17 +1,52 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import ui
 
 CanvasWidget {
-    id: stateWidgetUI
+    id: root
     title: "State"
 
     property string currentState: stateWidget.state
-    property var availableStates: ["STARTUP", "HOLDING", "NAV", "TASK", "TELEOP", "DISABLED", "FAULT"]
-    property string outputMessage: ""
     property bool readonly: true
 
-    Column {
+    ColumnLayout {
+        anchors {
+            fill: parent
+            margins: 12
+        }
+
+        spacing: 10
+
+        StateButton { stateName: "STARTUP" }
+
+        ColumnLayout {
+            spacing: 2
+
+            Repeater {
+                model: [
+                    ["HOLDING", "NAV", "TASK"],
+                    ["TELEOP", "DISABLED"]
+                ]
+
+                delegate: RowLayout {
+                    spacing: 2
+
+                    Repeater {
+                        model: modelData
+
+                        delegate: StateButton {
+                            stateName: modelData
+                        }
+                    }
+                }
+            }
+        }
+
+        StateButton { stateName: "FAULT" }
+    }
+
+    /*Column {
         anchors.fill: parent
         spacing: 32
         padding: 12
@@ -83,7 +118,7 @@ CanvasWidget {
                 }
             }
         }
-    }
+    }*/
 
     function serialize() {
         return {

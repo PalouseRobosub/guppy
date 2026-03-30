@@ -4,7 +4,7 @@
     import ui
 
     CanvasWidget {
-        id: parameterWidgetUI
+        id: root
         title: "Parameters"
 
         property var params: JSON.parse(JSON.stringify(parameterWidget.parameters)) // TODO find better method of deep copy
@@ -28,30 +28,10 @@
                     }
                 }
 
-                MotorSection {
-                    params: parameterWidgetUI.params
-
-                    width: parent.width
-                }
-
-                PIDSection {
-                    params: parameterWidgetUI.params
-
-                    width: parent.width
-                }
-
-
-                DragSection {
-                    params: parameterWidgetUI.params
-
-                    width: parent.width
-                }
-
-                PhysicalSection {
-                    params: parameterWidgetUI.params
-
-                    width: parent.width
-                }
+                MotorSection { params: root.params }
+                PIDSection { params: root.params }
+                DragSection { params: root.params }
+                PhysicalSection { params: root.params }
             }
         }
 
@@ -84,6 +64,8 @@
                     tooltip: "Reset fields to live parameters."
 
                     onClicked: {
+                        Window.window.contentItem.forceActiveFocus()
+
                         params = JSON.parse(JSON.stringify(parameterWidget.parameters))
 
                         toastManager.createMessage("Reset fields to live parameters!", {

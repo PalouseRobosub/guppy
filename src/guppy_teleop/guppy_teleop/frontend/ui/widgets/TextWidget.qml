@@ -20,7 +20,7 @@ CanvasWidget {
             }
 
             text: root.bodyText
-            color: "#cccccc"
+            color: Theme.textPrimary
             font.pixelSize: 13
 
             wrapMode: Text.Wrap

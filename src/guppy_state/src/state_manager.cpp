@@ -1,11 +1,9 @@
 #include <chrono>
 #include <memory>
-#include <cstdint>
 #include <optional>
 
 #include "rclcpp/rclcpp.hpp"
-#include "guppy_msgs/srv/change_state.hpp"                                                                                              
-#include "std_msgs/msg/u_int8.hpp"
+#include "guppy_msgs/srv/change_state.hpp"
 #include "guppy_msgs/msg/state.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
@@ -96,8 +94,8 @@ class StateManager : public rclcpp::Node {
 
         // state handlers
         void handle_startup() {
-            // TODO may just break? pseudo init state
-            this->publish_state(guppy_msgs::msg::State::TELEOP); // just move straight to teleop for sim purposes until proper pipeline is created
+            // start disabled (for now for testing at least)
+            this->publish_state(guppy_msgs::msg::State::DISABLED);
         }
 
         void handle_holding() {

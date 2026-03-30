@@ -27,6 +27,9 @@ class T200Interface {
 
     /* the can interface (like can0 or vcan0) */
     std::string can_interface_;
+    
+    /* are thrusters enabled */
+    bool enabled_;
 
     /*
         @brief sets up the CAN interface and socket
@@ -40,7 +43,7 @@ class T200Interface {
         @param value the double value to send
         @return whether or not the operation was successful
     */
-    bool send_to_can(unsigned int id, double value);
+    bool send_to_can(unsigned int id, float value);
 
 public:
     /*
@@ -76,6 +79,11 @@ public:
         @return whether or not the operation was sucessful for all values
     */
     bool shutdown();
+    
+    /*
+        @brief sets thrusters to be enabled/disabled
+    */
+    void set_enabled(bool enabled);
 };
 }
 

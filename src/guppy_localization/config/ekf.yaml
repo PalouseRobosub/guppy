@@ -1,5 +1,5 @@
 ### ekf config file ###
-ekf_node:
+ekf_filter_node:
     ros__parameters:
         # The frequency, in Hz, at which the filter will output a position estimate. Note that the filter will not begin
         # computation until it receives at least one message from one of the inputs. It will then run continuously at the
@@ -36,7 +36,7 @@ ekf_node:
         debug: false
 
         # Defaults to "robot_localization_debug.txt" if unspecified. Please specify the full path.
-        debug_out_file: /path/to/debug/file.txt
+        # debug_out_file: /home/robosub/log.txt
 
         # Whether we'll allow old measurements to cause a re-publication of the updated state
         permit_corrected_publication: false
@@ -45,7 +45,7 @@ ekf_node:
         publish_acceleration: false
 
         # Whether to broadcast the transformation over the /tf topic. Defaults to true if unspecified.
-        publish_tf: false
+        publish_tf: true
 
         # REP-105 (http://www.ros.org/reps/rep-0105.html) specifies four principal coordinate frames: base_link, odom, map, and
         # earth. base_link is the coordinate frame that is affixed to the robot. Both odom and map are world-fixed frames.
@@ -66,17 +66,17 @@ ekf_node:
         #     3a. Set your "world_frame" to your map_frame value
         #     3b. MAKE SURE something else is generating the odom->base_link transform. Note that this can even be another state
         #         estimation node from robot_localization! However, that instance should *not* fuse the global data.
-        map_frame: map              # Defaults to "map" if unspecified
-        odom_frame: odom            # Defaults to "odom" if unspecified
-        base_link_frame: base_link  # Defaults to "base_link" if unspecified
-        world_frame: odom           # Defaults to the value of odom_frame if unspecified
+        # map_frame: map              # Defaults to "map" if unspecified
+        # odom_frame: odom            # Defaults to "odom" if unspecified
+        # base_link_frame: base_link  # Defaults to "base_link" if unspecified
+        # world_frame: odom           # Defaults to the value of odom_frame if unspecified
 
         # The filter accepts an arbitrary number of inputs from each input message type (nav_msgs/Odometry,
         # geometry_msgs/PoseWithCovarianceStamped, geometry_msgs/TwistWithCovarianceStamped,
         # sensor_msgs/Imu). To add an input, simply append the next number in the sequence to its "base" name, e.g., odom0,
         # odom1, twist0, twist1, imu0, imu1, imu2, etc. The value should be the topic name. These parameters obviously have no
         # default values, and must be specified.
-        odom0: /odom
+        odom0: /waterlinked_dvl_driver/odom
 
         # Each sensor reading updates some or all of the filter's state. These options give you greater control over which
         # values from each measurement are fed to the filter. For example, if you have an odometry message as input, but only
@@ -91,10 +91,10 @@ ekf_node:
         # do not provide some of the state variables estimated by the filter. For example, a TwistWithCovarianceStamped message
         # has no pose information, so the first six values would be meaningless in that case. Each vector defaults to all false
         # if unspecified, effectively making this parameter required for each sensor.
-        odom0_config: [true,  true,  false,
+        odom0_config: [false, false, false,
+                       true, true, true,
                        false, false, false,
                        false, false, false,
-                       false, false, true,
                        false, false, false]
 
         # If you have high-frequency data or are running with a low frequency parameter value, then you may want to increase
@@ -109,20 +109,20 @@ ekf_node:
         # data is converted to velocity data by differentiating the absolute pose measurements. These velocities are then
         # integrated as usual. NOTE: this only applies to sensors that provide pose measurements; setting differential to true
         # for twist measurements has no effect.
-        # odom0_differential: false
+        odom0_differential: false
 
         # [ADVANCED] When the node starts, if this parameter is true, then the first measurement is treated as a "zero point"
         # for all future measurements. While you can achieve the same effect with the differential paremeter, the key
         # difference is that the relative parameter doesn't cause the measurement to be converted to a velocity before
         # integrating it. If you simply want your measurements to start at 0 for a given sensor, set this to true.
-        # odom0_relative: false
+        odom0_relative: false
 
         # [ADVANCED] Whether to use the starting pose of child_frame_id as the origin of odometry.
         # Note: this is different from setting odom0_relative to true, as when child_frame is different from 
         # base_link_frame, the rotation of base_link will be coupled into the translation of child_frame.
         # Set to true for fusing secondary odometry sources that are rigidly connected to base_link but has a non-zero 
         # offset from base_link.
-        # odom0_pose_use_child_frame: false
+        odom0_pose_use_child_frame: true
 
         # [ADVANCED] If your data is subject to outliers, use these threshold settings, expressed as Mahalanobis distances, to
         # control how far away from the current vehicle state a sensor measurement is permitted to be. Each defaults to
@@ -133,18 +133,25 @@ ekf_node:
         # odom0_pose_rejection_threshold: 5.0
         # odom0_twist_rejection_threshold: 1.0
 
-        imu0: /imu
+        # x, y, z,
+        # roll, pitch, yaw,
+        # vx, vy, vz,
+        # vroll, vpitch, vyaw,
+        # ax, ay, az. 
+
+        imu0: /vectornav/imu
         imu0_config: [false, false, false,
                       true,  true,  true,
                       false, false, false,
                       true,  true,  true,
                       true,  true,  true]
         imu0_differential: false
-        imu0_relative: true
+        imu0_relative: false
         imu0_queue_size: 5
         imu0_pose_rejection_threshold: 0.8                 # Note the difference in parameter names
         imu0_twist_rejection_threshold: 0.8                #
         imu0_linear_acceleration_rejection_threshold: 0.8  #
+        imu0_pose_use_child_frame: true
 
         # [ADVANCED] Some IMUs automatically remove acceleration due to gravity, and others don't. If yours doesn't, please set
         # this to true, and *make sure* your data conforms to REP-103, specifically, that the data is in ENU frame.
@@ -162,17 +169,17 @@ ekf_node:
         # predicition. Note that if an acceleration measurement for the variable in question is available from one of the
         # inputs, the control term will be ignored.
         # Whether or not we use the control input during predicition. Defaults to false.
-        use_control: false
+        # use_control: false
 
-        # Whether the input (assumed to be cmd_vel) is a geometry_msgs/Twist or geometry_msgs/TwistStamped message. Defaults to
-        # false.
-        stamped_control: false
+        # # Whether the input (assumed to be cmd_vel) is a geometry_msgs/Twist or geometry_msgs/TwistStamped message. Defaults to
+        # # false.
+        # stamped_control: false
 
-        # The last issued control command will be used in prediction for this period. Defaults to 0.2.
-        control_timeout: 0.2
+        # # The last issued control command will be used in prediction for this period. Defaults to 0.2.
+        # control_timeout: 0.2
 
-        # Which velocities are being controlled. Order is vx, vy, vz, vroll, vpitch, vyaw.
-        control_config: [true, true, true, true, true, true]
+        # # Which velocities are being controlled. Order is vx, vy, vz, vroll, vpitch, vyaw.
+        # control_config: [true, true, true, true, true, true]
 
         # Places limits on how large the acceleration term will be. Should match your robot's kinematics.
         # acceleration_limits: [1.3, 0.0, 0.0, 0.0, 0.0, 3.4]

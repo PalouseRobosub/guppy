@@ -12,7 +12,7 @@
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
 
-  <depend>pygame</depend>
+  <depend>evdev</depend>
   <depend>PySide6</depend>
 
   <export>

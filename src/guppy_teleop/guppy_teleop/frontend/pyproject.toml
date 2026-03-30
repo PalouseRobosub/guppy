@@ -1,5 +1,0 @@
-[project]
-name = "Guppy Terminal"
-
-[tool.pyside6-project]
-files = ["assets.qrc", "main.py"]

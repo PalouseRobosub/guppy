@@ -1,5 +1,7 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.VectorImage
+import ui
 
 Item {
     id: root
@@ -8,6 +10,7 @@ Item {
     property bool selected: false
     default property alias content: contentArea.data
 
+    property real canvasZoom: 1.0
     property bool snapToGrid: false
     property int gridStep: 40
 
@@ -21,36 +24,16 @@ Item {
 
     readonly property int titleHeight: 28
     readonly property int cornerRadius: 8
-    readonly property color accentColor: "#3daee9"
-
-    readonly property color frameColor: "#2b2b2b"
-    readonly property color titleColor: selected ? "#184a6b" : "#313131"
-    readonly property color borderColor: selected ? accentColor : "#404040"
 
     Rectangle {
         id: frame
 
         anchors.fill: parent
-
         radius: cornerRadius
-
-        color: frameColor
-        border.color: borderColor
-        border.width: selected ? 2 : 1
-
+        color: Theme.widgetBackground
         clip: true
 
-        Behavior on border.color {
-            ColorAnimation {
-                duration: 120
-            }
-        }
-
-        Behavior on border.width {
-            NumberAnimation {
-                duration: 120
-            }
-        }
+        border.color: Theme.widgetBorder
 
         Rectangle {
             id: titleBar
@@ -60,42 +43,20 @@ Item {
 
             topLeftRadius: 4
             topRightRadius: 4
-
-            color: titleColor
-
-            Behavior on color {
-                ColorAnimation {
-                    duration: 120
-                } 
-            }
+            color: Theme.widgetTitleBar
 
             DragHandler {
-                target: null
+                target: root
 
-                property real lastX: 0
-                property real lastY: 0
+                grabPermissions: PointerHandler.CanTakeOverFromAnything
+
+                cursorShape: active ? Qt.ClosedHandCursor : Qt.ArrowCursor
 
                 onActiveChanged: {
-                    if (active) {
-                        lastX = 0
-                        lastY = 0
-                    } else if (root.snapToGrid) {
+                    if (!active && root.snapToGrid) {
                         root.x = Math.round(root.x / root.gridStep) * root.gridStep
                         root.y = Math.round(root.y / root.gridStep) * root.gridStep
                     }
-                }
-
-                onTranslationChanged: {
-                    const s = (root.parent && root.parent.scale) ? root.parent.scale : 1.0
-
-                    const dx = (activeTranslation.x - lastX) / s
-                    const dy = (activeTranslation.y - lastY) / s
-
-                    root.x += dx
-                    root.y += dy
-
-                    lastX = activeTranslation.x
-                    lastY = activeTranslation.y
                 }
             }
 
@@ -103,27 +64,23 @@ Item {
                 anchors {
                     left: parent.left
                     right: closeButton.left
-
                     leftMargin: 12
                     rightMargin: 8
-                    
                     verticalCenter: parent.verticalCenter
                 }
 
                 text: root.title
-                color: "#dddddd"
+                color: Theme.textPrimary
                 font.pixelSize: 14
                 font.weight: Font.Medium
                 elide: Text.ElideRight
             }
 
-            Rectangle {
+            Button {
                 id: closeButton
 
                 width: 20
                 height: 20
-
-                radius: 4
 
                 anchors {
                     right: parent.right
@@ -131,27 +88,13 @@ Item {
                     verticalCenter: parent.verticalCenter
                 }
 
-                color: closeArea.containsMouse ? "#ff0000" : "transparent"
-
-                MouseArea {
-                    id: closeArea
-
+                background: Rectangle {
                     anchors.fill: parent
-
-                    hoverEnabled: true
-
-                    onClicked: root.closeRequested()
+                    radius: 4
+                    color: closeButton.hovered ? Theme.semanticError : "transparent"
                 }
 
-                Behavior on color {
-                    ColorAnimation {
-                        duration: 100
-                    }
-                }
-
-                VectorImage {
-                    id: closeIcon
-
+                contentItem: VectorImage {
                     source: "qrc:/assets/icons/close.svg"
 
                     anchors.fill: parent
@@ -160,15 +103,8 @@ Item {
                     fillMode: VectorImage.PreserveAspectFit
                     smooth: true
                 }
-            }
 
-            Rectangle {
-                anchors.bottom: parent.bottom
-
-                width: parent.width
-                height: 1
-
-                color: "#00000040"
+                onClicked: root.closeRequested()
             }
         }
 
@@ -190,36 +126,24 @@ Item {
         width: 16
         height: 16
 
-        anchors {
-            right: parent.right
-            bottom: parent.bottom
-        }
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
 
         opacity: gripArea.containsMouse ? 0.6 : 0.15
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 120
-            }
-        }
+        Behavior on opacity { NumberAnimation { duration: 120 } }
 
         Rectangle {
             anchors.fill: parent
-
             radius: 3
-
-            border.color: "#666"
+            border.color: Theme.resizeGrip
             border.width: 1
             color: "transparent"
         }
 
         MouseArea {
             id: gripArea
-
             anchors.fill: parent
-
             hoverEnabled: true
-
             cursorShape: Qt.SizeFDiagCursor
         }
 
@@ -239,11 +163,9 @@ Item {
                 }
             }
 
-            onTranslationChanged: {
-                const s = (root.parent && root.parent.scale) ? root.parent.scale : 1.0
-                
-                const dx = (activeTranslation.x - lastX) / s
-                const dy = (activeTranslation.y - lastY) / s
+            onTranslationChanged: {              
+                const dx = (activeTranslation.x - lastX) / root.canvasZoom
+                const dy = (activeTranslation.y - lastY) / root.canvasZoom
 
                 root.width  = Math.max(root.minWidth, root.width + dx)
                 root.height = Math.max(root.minHeight, root.height + dy)

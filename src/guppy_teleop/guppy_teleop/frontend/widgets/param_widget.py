@@ -8,9 +8,11 @@ from rclpy.task import Future
 from rcl_interfaces.msg import ParameterEvent, SetParametersResult
 from rcl_interfaces.srv import ListParameters, GetParameters, SetParameters
 
-from PySide6.QtCore import Property, Signal, Slot, QObject
+from guppy_teleop.frontend.widgets.widget import Widget
 
-class ParameterWidget(Node, QObject):
+from PySide6.QtCore import Property, Signal, Slot
+
+class ParameterWidget(Node, Widget):
     parametersChanged = Signal()
 
     @property
@@ -19,7 +21,7 @@ class ParameterWidget(Node, QObject):
 
     def __init__(self, parent=None):
         Node.__init__(self, "parameter_widget")
-        QObject.__init__(self, parent)
+        Widget.__init__(self, parent)
         self._params = {}
 
         self.client = AsyncParameterClient(self, "control_chassis")

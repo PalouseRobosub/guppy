@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import ui
 
 RowLayout {
     id: root
@@ -20,6 +21,16 @@ RowLayout {
             horizontalAlignment: Text.AlignHCenter
 
             validator: DoubleValidator {}
+
+            placeholderTextColor: Theme.textPlaceholder
+            color: Theme.textSecondary // TODO add readonly
+
+            /*background: Rectangle {
+                implicitWidth: 200
+                implicitHeight: 40
+                color: control.enabled ? "transparent" : "#353637"
+                border.color: control.enabled ? "#21be2b" : "transparent"
+            }*/ //TODO CUSTOMIZE BACKGROUNDS
 
             property int i: index
 

@@ -11,51 +11,49 @@ Control {
     default property alias content: contentColumn.data
 
     readonly property int _headerHeight: 36
-    readonly property int _radius: 0
+    readonly property int _settledHeight: _headerHeight + (expanded ? contentColumn.implicitHeight + 2 * contentMargins : 0)
 
-    property int _contentImplicit: contentColumn.implicitHeight + 2 * contentMargins
-    property int _targetHeight: expanded ? _contentImplicit : 0
+    width: parent ? parent.width : 0
+    implicitHeight: _settledHeight
 
     Layout.fillWidth: true
-    Layout.preferredHeight: _headerHeight + _targetHeight
-    Layout.minimumHeight: _headerHeight
+    Layout.preferredHeight: _settledHeight
 
-    width: parent ? parent.width - 2 * contentMargins : 400
-    implicitWidth: 400
-    implicitHeight: _headerHeight + _targetHeight
+    contentItem: Item {
+        implicitHeight: root._settledHeight
 
-    contentItem: Column {
-        spacing: 0
+        Button {
+            id: headerButton
 
-        Rectangle {
-            id: headerBar
-
-            width: parent.width
+            anchors {
+                left: parent.left
+                right: parent.right
+                top: parent.top
+            }
             height: _headerHeight
 
-            radius: _radius
+            onClicked: root.expanded = !root.expanded
 
-            property bool hovered: false
-            property color baseColor: "#2a2a2a"
-            property color hoverColor: "#3a3a3a"
 
-            color: hovered ? hoverColor : baseColor
+            background: Rectangle {
+                color: hovered ? root.palette.midlight : root.palette.mid
+            }
 
-            RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: 12
-                anchors.rightMargin: 12
-
+            contentItem: RowLayout {
+                anchors {
+                    fill: parent
+                    leftMargin: 12
+                    rightMargin: 12
+                }
                 spacing: 8
 
                 Text {
                     id: headerText
 
                     text: "Section"
-                    color: "#e0e0e0"
+                    color: root.palette.windowText
                     font.pixelSize: 14
                     font.bold: true
-                    
                     elide: Text.ElideRight
 
                     Layout.fillWidth: true
@@ -63,40 +61,30 @@ Control {
                 }
 
                 Text {
-                    text: expanded ? "-" : "+"
-                    color: "#cccccc"
+                    text: root.expanded ? "\u2212" : "+"
+                    color: root.palette.windowText
                     font.pixelSize: 14
 
                     Layout.alignment: Qt.AlignVCenter
                 }
-            }
-
-            MouseArea {
-                anchors.fill: parent
-
-                cursorShape: Qt.PointingHandCursor
-
-                hoverEnabled: true
-                
-                onClicked: root.expanded = !root.expanded
-
-                onEntered: headerBar.hovered = true
-                onExited: headerBar.hovered = false
             }
         }
 
         Rectangle {
             id: contentDrawer
 
-            //anchors.top: headerBar.bottom
-            anchors.left: parent.left
-            anchors.right: parent.right
+            anchors {
+                left: parent.left
+                right: parent.right
+                top: headerButton.bottom
+            }
 
             color: "transparent"
-
             clip: true
 
-            height: root._targetHeight
+            height: expanded
+                ? contentColumn.implicitHeight + 2 * contentMargins
+                : 0
 
             Behavior on height {
                 NumberAnimation {
@@ -105,17 +93,16 @@ Control {
                 }
             }
 
-            Item {
-                anchors.fill: parent
-                anchors.margins: contentMargins
+            Column {
+                id: contentColumn
 
-                Column {
-                    id: contentColumn
-
-                    width: parent.width
-
-                    spacing: 8
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: parent.top
+                    margins: root.contentMargins
                 }
+                spacing: 8
             }
         }
     }

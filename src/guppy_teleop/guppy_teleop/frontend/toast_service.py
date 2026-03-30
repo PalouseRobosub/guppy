@@ -6,9 +6,9 @@ from guppy_msgs.msg import Toast
 
 from PySide6.QtCore import QObject
 
-class ToastWidget(Node): 
+class ToastService(Node): 
     def __init__(self):
-        Node.__init__(self, "toast_widget")
+        Node.__init__(self, "toast_service")
         self.toastManager: QObject = None
 
         toast_quality = QoSProfile(

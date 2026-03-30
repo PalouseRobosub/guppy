@@ -8,7 +8,6 @@ QtObject {
     readonly property int itemHeight: 48
     readonly property int leftMargin: 14
 
-
     readonly property int iconSize: 20
     readonly property string iconColor: "#ffffff"
 

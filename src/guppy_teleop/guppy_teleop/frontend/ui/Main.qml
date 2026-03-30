@@ -12,8 +12,8 @@ ApplicationWindow {
 
     visible: true
 
-    title: "Guppy Teleop"
-    color: "#181818"
+    title: "Guppy Terminal"
+    color: Theme.canvasBackground
 
     Toastify {
         id: toastManager
@@ -26,13 +26,11 @@ ApplicationWindow {
 
         Sidebar {
             id: sidebar
-
             Layout.fillHeight: true
         }
 
         WorkspaceCanvas {
             id: canvas
-
             Layout.fillWidth: true
             Layout.fillHeight: true
         }
@@ -46,9 +44,5 @@ ApplicationWindow {
         }
     }
 
-    Component.onCompleted: {
-        workspaceManager.loadWorkspace("default")
-
-        console.log("loaded!")
-    }
+    Component.onCompleted: workspaceManager.loadWorkspace("default")
 }

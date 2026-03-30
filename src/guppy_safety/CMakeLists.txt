@@ -23,4 +23,17 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+add_executable(checker src/subscriber_checker.cpp)
+
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+
+target_link_libraries(checker PUBLIC rclcpp::rclcpp ${std_msgs_TARGETS})
+
+install(
+  TARGETS
+    checker
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 ament_package()

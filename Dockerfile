@@ -50,10 +50,12 @@ RUN apt update && apt install -y \
     dbus-x11 terminator \
     wget
 
-RUN mkdir -p /root/.vnc && \
-    printf '#!/bin/sh\nunset SESSION_MANAGER\nunset DBUS_SESSION_BUS_ADDRESS\nexec startxfce4\n' \
-    > /root/.vnc/xstartup && \
-    chmod +x /root/.vnc/xstartup
+#RUN mkdir -p /root/.vnc && \
+#    printf '#!/bin/sh\nunset SESSION_MANAGER\nunset DBUS_SESSION_BUS_ADDRESS\nexec startxfce4\n' \
+#    > /root/.vnc/xstartup && \
+#    chmod +x /root/.vnc/xstartup
+
+RUN apt-get install xterm
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 

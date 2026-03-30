@@ -15,4 +15,8 @@
   <export>
     <build_type>ament_cmake</build_type>
   </export>
+
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+
 </package>

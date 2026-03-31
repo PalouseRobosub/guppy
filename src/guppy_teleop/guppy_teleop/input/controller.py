@@ -15,7 +15,7 @@ class Controller(InputDevice):
 
     BLACKLISTED_DEVICES = [] #["AT Translated Set 2 keyboard"]
 
-    DEADZONE = 0.1 # TODO, MAKE THIS BETTER. RAMPING FUNCTION SO IT MAXES OUT AND MINS OUT at 0.2 and 0.8
+    DEADZONE = [0.1, 0.9]
 
     LINEAR_MULTIPLIER = [1.0, 1.0, 1.0]
     ANGULAR_MULTIPLIER = [1.0, 1.0, 1.0]
@@ -146,21 +146,31 @@ class Controller(InputDevice):
                 if (self.handler):
                     self.handler.on_device_event(self._state.copy())
             
-            print(f"'{code_name}' -> {self._state[code_name]}")
-
+            #print(f"'{code_name}' -> {self._state[code_name]}")
             #print(categorize(event))
             #print(self._device.active_keys(verbose=True))
+        
+    def stick_deadzone(self, value: float, multiplier: float) -> float:
+        abs_value = abs(value)
+        dir = -1 if value < 0 else 1
+
+        if abs_value < self.DEADZONE[0]:
+            return 0.0
+        elif abs_value > self.DEADZONE[1]:
+            return multiplier
+
+        return dir * (abs_value - self.DEADZONE[0]) * (multiplier / (self.DEADZONE[1] - self.DEADZONE[0]))
 
     def transform(self, snapshot: dict) -> Twist:
         twist = Twist()
 
-        twist.linear.x = float(snapshot["right_stick_x"]) * self.LINEAR_MULTIPLIER[0]
-        twist.linear.y = -float(snapshot["right_stick_y"]) * self.LINEAR_MULTIPLIER[1]
-        twist.linear.z = float(snapshot["left_stick_y"]) * self.LINEAR_MULTIPLIER[2]
+        twist.linear.x = self.stick_deadzone(float(snapshot["right_stick_y"]), self.LINEAR_MULTIPLIER[0])
+        twist.linear.y = -self.stick_deadzone(float(snapshot["right_stick_x"]), self.LINEAR_MULTIPLIER[1])
+        twist.linear.z = -self.stick_deadzone(float(snapshot["left_stick_y"]), self.LINEAR_MULTIPLIER[2])
 
-        twist.angular.x = float(snapshot["dpad_x"]) * self.ANGULAR_MULTIPLIER[1]
-        twist.angular.y = -float(snapshot["dpad_y"]) * self.ANGULAR_MULTIPLIER[2]
-        twist.angular.z = float(snapshot["right_trigger"]) - float(snapshot["left_trigger"]) * self.ANGULAR_MULTIPLIER[3]
+        twist.angular.x = float(snapshot["dpad_x"]) * self.ANGULAR_MULTIPLIER[0]
+        twist.angular.y = -float(snapshot["dpad_y"]) * self.ANGULAR_MULTIPLIER[1]
+        twist.angular.z = (float(snapshot["left_trigger"]) - float(snapshot["right_trigger"])) * self.ANGULAR_MULTIPLIER[2]
 
         return twist
 

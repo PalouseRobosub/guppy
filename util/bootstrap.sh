@@ -33,7 +33,7 @@ sudo apt install -y \
     python3-evdev \
     python3-rosdep \
 
-echo "python3 -m pip install PySide6 --break-system-packages"
+sudo python3 -m pip install PySide6 --break-system-packages
 
 echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 

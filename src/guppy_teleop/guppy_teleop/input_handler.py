@@ -9,10 +9,24 @@ from guppy_teleop.util.device_priority import DevicePriority
 
 from geometry_msgs.msg import Twist
 
+from guppy_msgs.msg import State
+from guppy_msgs.srv._change_state import ChangeState
+
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
 
 from typing import Callable
+
+from enum import Enum
+
+class ValidState(Enum): #TODO replace with State constants directly
+    STARTUP = 0
+    HOLDING = 1
+    NAV = 2
+    TASK = 3
+    TELEOP = 4
+    DISABLED = 5
+    FAULT = 6
 
 class InputHandler(Node):
     TIMEOUT = 0.5
@@ -40,6 +54,13 @@ class InputHandler(Node):
         )
 
         self.publisher = self.create_publisher(Twist, "/cmd_vel/teleop", quality)
+
+        self._client = self.create_client(ChangeState, "change_state")
+        self.req = None
+        if not self._client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().error("chage_state service not available")
+        else:
+            self.req = ChangeState.Request()
 
         self.timer = self.create_timer(0.05, self._watchdog)
     
@@ -72,7 +93,7 @@ class InputHandler(Node):
             self._focus = device
         elif device.priority > self._focus.priority:
             self._focus = device
-        else:
+        elif self._focus != device:
             return
 
         if (self._update_widget_callback):
@@ -102,8 +123,20 @@ class InputHandler(Node):
         self._priority_lock = priority
         print(f"priority locked to '{priority}'!")
     
-    def push_state(self, state: str):
-        print(f"sending '{state}'!")
+    def push_state(self, new_state: str):
+        message = State()
+        if (valid_state := getattr(ValidState, new_state, None)) is None:
+            return False
+        
+        if (self.req is None):
+            return False
+        
+        message.state = valid_state.value
+        self.req.new_state = message
+
+        future = self._client.call_async(self.req)
+        rclpy.spin_until_future_complete(self, future)
+        return future.result().success
 
 
 def main(args=None):

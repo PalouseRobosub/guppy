@@ -6,6 +6,7 @@ from guppy_teleop.input.input_device import InputDevice
 from guppy_teleop.input.controller import find_controllers
 from guppy_teleop.input.keyboard import find_keyboards
 from guppy_teleop.util.device_priority import DevicePriority
+from guppy_teleop.util.device_mode import DeviceMode
 
 from geometry_msgs.msg import Twist
 
@@ -101,6 +102,7 @@ class InputHandler(Node):
 
         self.publisher.publish(self._focus.transform(snapshot))
 
+    # TODO test with multiple devices
     # this guy is NOT thread-safe and can cause a race-condition while attempting to mark the device inactive HOWEVER
     # that's okkkkkk. a zero twist message will STILL be published (preventing hanging) and focus will be lost essentially
     # eating a single input which kinda sucks but might happen. just call it a skill issue.
@@ -144,8 +146,8 @@ def main(args=None):
 
     devices: list[InputDevice] = []
 
-    devices.extend(find_controllers(True))
-    devices.extend(find_keyboards(True))
+    devices.extend(find_controllers(DeviceMode.INPUT))
+    devices.extend(find_keyboards(DeviceMode.COMMAND))
 
     handler = InputHandler(None)
 
@@ -165,9 +167,9 @@ def controller(args=None):
 
     devices: list[InputDevice] = []
 
-    devices.extend(find_controllers(True))
+    devices.extend(find_controllers(DeviceMode.INPUT))
 
-    handler = InputHandler(None) # TODO
+    handler = InputHandler(None)
 
     handler.add_device(*devices)
 
@@ -184,7 +186,7 @@ def keyboard(args=None):
     rclpy.init()
 
     devices: list[InputDevice] = []
-    devices.extend(find_keyboards(True))
+    devices.extend(find_keyboards(DeviceMode.INPUT))
 
     handler = InputHandler(None)
     handler.add_device(*devices)

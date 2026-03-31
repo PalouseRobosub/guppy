@@ -4,6 +4,7 @@ from geometry_msgs.msg import Twist
 
 from guppy_teleop.input.input_device import InputDevice
 from guppy_teleop.util.device_priority import DevicePriority
+from guppy_teleop.util.device_mode import DeviceMode
 from guppy_teleop.util.code_map import CodeMap
 
 from typing import Callable#, TYPE_CHECKING
@@ -11,9 +12,9 @@ from typing import Callable#, TYPE_CHECKING
 #    from guppy_teleop.input_handler import InputHandler
 
 class Controller(InputDevice):
-    COMMAND_KEYS = [ecodes.BTN_SELECT]
+    COMMAND_KEYS = [ecodes.BTN_SELECT, ecodes.BTN_MODE]
 
-    BLACKLISTED_DEVICES = [] #["AT Translated Set 2 keyboard"]
+    BLACKLISTED_DEVICES = []
 
     DEADZONE = [0.1, 0.9]
 
@@ -64,10 +65,10 @@ class Controller(InputDevice):
 
     _internal_code_map = CodeMap(CODE_MAP)
 
-    def __init__(self, handler, path: str, enabled = False, name = None, priority = DevicePriority.MEDIUM):
+    def __init__(self, handler, path: str, mode = DeviceMode.DISABLED, name = None, priority = DevicePriority.MEDIUM):
         self._device = EvdevDevice(path)
 
-        super().__init__(enabled, name if name else self._device.name, priority)
+        super().__init__(mode, name if name else self._device.name, priority)
 
         self.handler = handler
 
@@ -76,7 +77,8 @@ class Controller(InputDevice):
             lambda: self.handler.push_state("TELEOP"): [ecodes.BTN_SELECT, ecodes.BTN_A],
             lambda: self.handler.push_state("DISABLED"): [ecodes.BTN_SELECT, ecodes.BTN_X],
             lambda: self.handler.lock_priority(self.priority): [ecodes.BTN_SELECT, ecodes.BTN_TL],
-            lambda: self.handler.lock_priority(None): [ecodes.BTN_SELECT, ecodes.BTN_TR]
+            lambda: self.handler.lock_priority(None): [ecodes.BTN_SELECT, ecodes.BTN_TR],
+            lambda: self._cycle_mode(): [ecodes.BTN_MODE]
         }
 
         self._state = {
@@ -108,6 +110,9 @@ class Controller(InputDevice):
             self._process(event)
 
     def _process(self, event):
+        if self.mode == DeviceMode.DISABLED:
+            return
+        
         if event.type in self.VALID_TYPES:
             if self._command_mode:
                 if (event.value) == 0: # TODO use enum for key up?
@@ -135,6 +140,9 @@ class Controller(InputDevice):
                 if (event.code in self.COMMAND_KEYS):
                     self._command_mode = True
 
+                    return
+                
+                if (self.mode != DeviceMode.INPUT):
                     return
 
                 if (normalize := self.NORMALIZE_MAP.get(code_name)) is not None:
@@ -197,7 +205,7 @@ class Controller(InputDevice):
         }
 
 
-def find_controllers(handler, enabled: bool = False, priority: DevicePriority = DevicePriority.MEDIUM) -> list[Controller]:
+def find_controllers(handler, mode: DeviceMode = DeviceMode.DISABLED, priority: DevicePriority = DevicePriority.MEDIUM) -> list[Controller]:
     devices = []
 
     for path in list_devices():
@@ -209,11 +217,11 @@ def find_controllers(handler, enabled: bool = False, priority: DevicePriority = 
             and ecodes.BTN_MODE in capabilities[ecodes.EV_KEY]):
             devices.append(path)
 
-        print("\n\n")
-        print(device.name)
-        print(device.capabilities(verbose=True))
+            #print("\n\n")
+            #print(device.name)
+            #print(device.capabilities(verbose=True))
 
-    return [Controller(handler, path, enabled, None, priority) for path in devices]
+    return [Controller(handler, path, mode, None, priority) for path in devices]
     # TODO allow subclassing and determine whether to create instance of general controller or more specific one based on device name
 
 

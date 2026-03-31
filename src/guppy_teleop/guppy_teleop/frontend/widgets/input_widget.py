@@ -11,6 +11,7 @@ from guppy_teleop.frontend.widgets.widget import Widget
 from guppy_teleop.input_handler import InputHandler
 from guppy_teleop.input.controller import find_controllers
 from guppy_teleop.input.keyboard import find_keyboards
+from guppy_teleop.util.device_mode import DeviceMode
 
 class InputWidget(InputHandler, Widget):
     inputUpdated = Signal()
@@ -23,8 +24,8 @@ class InputWidget(InputHandler, Widget):
         InputHandler.__init__(self, self.update)
         Widget.__init__(self, parent)
 
-        self.add_device(*find_controllers(True))
-        self.add_device(*find_keyboards(True))
+        self.add_device(*find_controllers(DeviceMode.INPUT))
+        self.add_device(*find_keyboards(DeviceMode.COMMAND))
 
         self._input_package = {
             "name": "test keyboard",
@@ -47,8 +48,6 @@ class InputWidget(InputHandler, Widget):
 
         self.thread_start()
 
-        self.input_test_timer = self.create_timer(0.25, self._input_test)
-
     @Property("QVariantMap", notify=inputUpdated)
     def inputPackage(self) -> dict:
         return self._input_package
@@ -56,9 +55,4 @@ class InputWidget(InputHandler, Widget):
     def update(self, input_package: dict):
         self._input_package = input_package
         
-        self.inputUpdated.emit()
-
-    def _input_test(self):
-        key, value = random.choice(list(self._input_package["input"].items()))
-        self._input_package["input"][key] = KeyEvent.key_down if value == KeyEvent.key_up else KeyEvent.key_up
         self.inputUpdated.emit()

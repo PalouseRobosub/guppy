@@ -23,7 +23,7 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-add_executable(checker src/subscriber_checker.cpp)
+add_executable(checker src/checker.cpp)
 
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)

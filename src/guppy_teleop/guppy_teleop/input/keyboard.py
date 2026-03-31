@@ -5,6 +5,7 @@ from geometry_msgs.msg import Twist
 from guppy_teleop.input.input_device import InputDevice
 from guppy_teleop.util.code_map import CodeMap
 from guppy_teleop.util.device_priority import DevicePriority
+from guppy_teleop.util.device_mode import DeviceMode
 
 from typing import Callable#, TYPE_CHECKING
 #if TYPE_CHECKING:
@@ -13,7 +14,7 @@ from typing import Callable#, TYPE_CHECKING
 class Keyboard(InputDevice):
     COMMAND_KEYS = [ecodes.KEY_LEFTCTRL, ecodes.KEY_RIGHTCTRL, ecodes.KEY_LEFTALT, ecodes.KEY_RIGHTALT]
 
-    BLACKLISTED_DEVICES = ["ELAN2513:00 04F3:4302 Keyboard"] #("AT Translated Set 2 keyboard")
+    BLACKLISTED_DEVICES = []
 
     LINEAR_MULTIPLIER = [1.0, 1.0, 1.0]
     ANGULAR_MULTIPLIER = [1.0, 1.0, 1.0]
@@ -35,10 +36,10 @@ class Keyboard(InputDevice):
 
     _internal_code_map = CodeMap(CODE_MAP)
 
-    def __init__(self, handler, path: str, enabled = False, name = None, priority = DevicePriority.MEDIUM):
+    def __init__(self, handler, path: str, mode = DeviceMode.DISABLED, name = None, priority = DevicePriority.MEDIUM):
         self._device = EvdevDevice(path)
 
-        super().__init__(enabled, name if name else self._device.name, priority)
+        super().__init__(mode, name if name else self._device.name, priority)
 
         self.handler = handler
 
@@ -48,6 +49,7 @@ class Keyboard(InputDevice):
             lambda: self.handler.push_state(self, "DISABLED"): [ecodes.KEY_LEFTCTRL, ecodes.KEY_D],
             lambda: self.handler.lock_priority(self, self.priority): [ecodes.KEY_LEFTCTRL, ecodes.KEY_L],
             lambda: self.handler.lock_priority(self, None): [ecodes.KEY_LEFTCTRL, ecodes.KEY_K],
+            lambda: self.handler.lock_priority(self, None): [ecodes.KEY_LEFTCTRL, ecodes.KEY_E],
         }
 
         self._state = {
@@ -72,6 +74,9 @@ class Keyboard(InputDevice):
             self._process(event)
 
     def _process(self, event):
+        if (self.mode == DeviceMode.DISABLED):
+            return
+        
         if event.type == ecodes.EV_KEY:
             if self._command_mode:
                 if (event.value) != KeyEvent.key_down:
@@ -97,12 +102,15 @@ class Keyboard(InputDevice):
                         return
 
             if (code_name := self._internal_code_map[event.code]) is not None:
+                if (self.mode != DeviceMode.INPUT):
+                    return
+                
                 self._state[code_name] = event.value
 
                 self._mark_active()
                 if (self.handler):
                     self.handler.on_device_event(self, self._state.copy())
-            else:
+            else: # no overlap betweem command keys and input keys for keyboard
                 if (event.code in self.COMMAND_KEYS):
                     self._command_mode = True
             
@@ -143,7 +151,7 @@ class Keyboard(InputDevice):
         }
 
 
-def find_keyboards(handler, enabled: bool = False, priority = DevicePriority.MEDIUM) -> list[Keyboard]:
+def find_keyboards(handler, mode: DeviceMode = DeviceMode.DISABLED, priority = DevicePriority.MEDIUM) -> list[Keyboard]:
     devices = []
 
     for path in list_devices():
@@ -155,11 +163,12 @@ def find_keyboards(handler, enabled: bool = False, priority = DevicePriority.MED
             and ecodes.KEY_SPACE in capabilities[ecodes.EV_KEY]
             and device.name not in Keyboard.BLACKLISTED_DEVICES):
             devices.append(device)
+
             #print("\n\n")
             #print(device.name)
             #print(device.capabilities(verbose=True))
 
-    return [Keyboard(handler, path, enabled, None, priority) for path in devices]
+    return [Keyboard(handler, path, mode, None, priority) for path in devices]
 
 
 if __name__ == "__main__":

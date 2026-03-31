@@ -32,9 +32,9 @@ public:
     odom.pose.pose.position.x = position[0];
     odom.pose.pose.position.y = position[1];
     odom.pose.pose.position.z = position[2];
-    odom.twist.twist.linear.x = -1 * twist[0];
-    odom.twist.twist.linear.y = twist[1];
-    odom.twist.twist.linear.z = twist[2];
+    // odom.twist.twist.linear.x = -1 * twist[0];
+    // odom.twist.twist.linear.y = twist[1];
+    // odom.twist.twist.linear.z = twist[2];
     odom_pub_->publish(odom);
   }
 
@@ -55,9 +55,9 @@ public:
     odom.pose.pose.orientation.x = orientation.x();
     odom.pose.pose.orientation.y = orientation.y();
     odom.pose.pose.orientation.z = orientation.z();
-    odom.twist.twist.angular.x = twist[0];
-    odom.twist.twist.angular.y = twist[1];
-    odom.twist.twist.angular.z = twist[2];
+    // odom.twist.twist.angular.x = twist[0];
+    // odom.twist.twist.angular.y = twist[1];
+    // odom.twist.twist.angular.z = twist[2];
     odom_pub_->publish(odom);
   }
 

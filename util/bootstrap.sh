@@ -30,8 +30,10 @@ sudo apt install -y \
     ros-jazzy-proxsuite \
     ros-jazzy-marine-acoustic-msgs \
     python3-colcon-common-extensions \
-    python3-pygame \
+    python3-evdev \
     python3-rosdep \
+
+echo "python3 -m pip install PySide6 --break-system-packages"
 
 echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 

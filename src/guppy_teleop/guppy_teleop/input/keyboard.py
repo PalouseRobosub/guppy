@@ -74,10 +74,16 @@ class Keyboard(InputDevice):
     def _process(self, event):
         if event.type == ecodes.EV_KEY:
             if self._command_mode:
+                if (event.value) != KeyEvent.key_down:
+                    return
+                
                 active_keys = self._device.active_keys()
 
                 if any(key in active_keys for key in self.COMMAND_KEYS):
                     for command, keys in self.COMMAND_MAP.items():
+                        if (event.code not in keys):
+                            return
+                        
                         if all(key in active_keys for key in keys):
                             command() # remember to use try catch in your commands or it will crash with no error!
 

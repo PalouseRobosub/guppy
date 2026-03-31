@@ -110,10 +110,16 @@ class Controller(InputDevice):
     def _process(self, event):
         if event.type in self.VALID_TYPES:
             if self._command_mode:
+                if (event.value) == 0: # TODO use enum for key up?
+                    return
+
                 active_keys = self._device.active_keys()
 
                 if any(key in active_keys for key in self.COMMAND_KEYS):
-                    for command, keys in self.COMMAND_MAP.items(): # TODO fix sending command on press of another button (should only fire if event key is part of command and key action is key_down)
+                    for command, keys in self.COMMAND_MAP.items():
+                        if (event.code not in keys):
+                            return
+                        
                         if all(key in active_keys for key in keys):
                             command() # remember to use try catch in your commands or it will crash with no error!
 

@@ -16,8 +16,8 @@ class Keyboard(InputDevice):
 
     BLACKLISTED_DEVICES = []
 
-    LINEAR_MULTIPLIER = [1.0, 1.0, 1.0]
-    ANGULAR_MULTIPLIER = [1.0, 1.0, 1.0]
+    LINEAR_MULTIPLIER = [8.0, 8.0, 8.0]
+    ANGULAR_MULTIPLIER = [8.0, 8.0, 8.0]
 
     CODE_MAP = {
         "q": ecodes.KEY_Q,
@@ -26,8 +26,8 @@ class Keyboard(InputDevice):
         "a": ecodes.KEY_A,
         "s": ecodes.KEY_S,
         "d": ecodes.KEY_D,
-        "o": ecodes.KEY_O,
-        "p": ecodes.KEY_P,
+        "shift": ecodes.KEY_LEFTSHIFT,
+        "space": ecodes.KEY_SPACE,
         "up": ecodes.KEY_UP,
         "down": ecodes.KEY_DOWN,
         "left": ecodes.KEY_LEFT,
@@ -44,12 +44,12 @@ class Keyboard(InputDevice):
         self.handler = handler
 
         self.COMMAND_MAP: dict[Callable, list[int]] = {
-            lambda: self.handler.push_state(self, "FAULT"): [ecodes.KEY_LEFTCTRL, ecodes.KEY_SPACE],
-            lambda: self.handler.push_state(self, "TELEOP"): [ecodes.KEY_LEFTCTRL, ecodes.KEY_T],
-            lambda: self.handler.push_state(self, "DISABLED"): [ecodes.KEY_LEFTCTRL, ecodes.KEY_D],
-            lambda: self.handler.lock_priority(self, self.priority): [ecodes.KEY_LEFTCTRL, ecodes.KEY_L],
-            lambda: self.handler.lock_priority(self, None): [ecodes.KEY_LEFTCTRL, ecodes.KEY_K],
-            lambda: self.handler.lock_priority(self, None): [ecodes.KEY_LEFTCTRL, ecodes.KEY_E],
+            lambda: self.handler.push_state("FAULT"): [ecodes.KEY_LEFTCTRL, ecodes.KEY_SPACE],
+            lambda: self.handler.push_state("TELEOP"): [ecodes.KEY_LEFTCTRL, ecodes.KEY_T],
+            lambda: self.handler.push_state("DISABLED"): [ecodes.KEY_LEFTCTRL, ecodes.KEY_D],
+            lambda: self.handler.lock_priority(self.priority): [ecodes.KEY_LEFTCTRL, ecodes.KEY_L],
+            lambda: self.handler.lock_priority(None): [ecodes.KEY_LEFTCTRL, ecodes.KEY_K],
+            lambda: self._cycle_mode(): [ecodes.KEY_LEFTCTRL, ecodes.KEY_E],
         }
 
         self._state = {
@@ -59,8 +59,8 @@ class Keyboard(InputDevice):
             "a": KeyEvent.key_up,
             "s": KeyEvent.key_up,
             "d": KeyEvent.key_up,
-            "o": KeyEvent.key_up,
-            "p": KeyEvent.key_up,
+            "shift": KeyEvent.key_up,
+            "space": KeyEvent.key_up,
             "up": KeyEvent.key_up,
             "down": KeyEvent.key_up,
             "left": KeyEvent.key_up,
@@ -87,12 +87,10 @@ class Keyboard(InputDevice):
                 if any(key in active_keys for key in self.COMMAND_KEYS):
                     for command, keys in self.COMMAND_MAP.items():
                         if (event.code not in keys):
-                            return
+                            continue
                         
                         if all(key in active_keys for key in keys):
                             command() # remember to use try catch in your commands or it will crash with no error!
-
-                            return
 
                     return
                 else:
@@ -126,20 +124,20 @@ class Keyboard(InputDevice):
         a = snapshot["a"] != KeyEvent.key_up
         s = snapshot["s"] != KeyEvent.key_up
         d = snapshot["d"] != KeyEvent.key_up
-        o = snapshot["o"] != KeyEvent.key_up
-        p = snapshot["p"] != KeyEvent.key_up
+        shift = snapshot["shift"] != KeyEvent.key_up
+        space = snapshot["space"] != KeyEvent.key_up
         right = snapshot["right"] != KeyEvent.key_up 
         left  = snapshot["left"]  != KeyEvent.key_up
         up    = snapshot["up"]    != KeyEvent.key_up
         down  = snapshot["down"]  != KeyEvent.key_up
 
-        twist.linear.x = float(d - a) * self.LINEAR_MULTIPLIER[0]
-        twist.linear.y = float(w - s) * self.LINEAR_MULTIPLIER[1]
-        twist.linear.z = float(e - q) * self.LINEAR_MULTIPLIER[2]
+        twist.linear.x = -float(w - s) * self.LINEAR_MULTIPLIER[0]
+        twist.linear.y = -float(d - a) * self.LINEAR_MULTIPLIER[1]
+        twist.linear.z = float(space - shift) * self.LINEAR_MULTIPLIER[2]
 
         twist.angular.x = float(right - left) * self.ANGULAR_MULTIPLIER[0]
         twist.angular.y = float(up - down) * self.ANGULAR_MULTIPLIER[1]
-        twist.angular.z = float(p - o) * self.ANGULAR_MULTIPLIER[2]
+        twist.angular.z = -float(e - q) * self.ANGULAR_MULTIPLIER[2]
  
         return twist
 

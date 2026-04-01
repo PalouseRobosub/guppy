@@ -35,7 +35,7 @@ class StateWidget(Node, Widget):
         self._client = self.create_client(ChangeState, "change_state")
         self.req = None
         if not self._client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().error("chage_state service not available")
+            self.get_logger().error("change_state service not available")
         else:
             self.req = ChangeState.Request()
 

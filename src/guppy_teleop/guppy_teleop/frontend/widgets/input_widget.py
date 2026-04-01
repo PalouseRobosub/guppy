@@ -12,6 +12,7 @@ from guppy_teleop.input_handler import InputHandler
 from guppy_teleop.input.controller import find_controllers
 from guppy_teleop.input.keyboard import find_keyboards
 from guppy_teleop.util.device_mode import DeviceMode
+from guppy_teleop.util.device_priority import DevicePriority
 
 class InputWidget(InputHandler, Widget):
     inputUpdated = Signal()
@@ -24,8 +25,8 @@ class InputWidget(InputHandler, Widget):
         InputHandler.__init__(self, self.update)
         Widget.__init__(self, parent)
 
-        self.add_device(*find_controllers(DeviceMode.INPUT))
-        self.add_device(*find_keyboards(DeviceMode.COMMAND))
+        self.add_device(*find_controllers(self, DeviceMode.INPUT, DevicePriority.MEDIUM))
+        self.add_device(*find_keyboards(self, DeviceMode.COMMAND, DevicePriority.HIGHEST))
 
         self._input_package = {
             "name": "test keyboard",
@@ -37,8 +38,8 @@ class InputWidget(InputHandler, Widget):
                 "a": KeyEvent.key_up,
                 "s": KeyEvent.key_up,
                 "d": KeyEvent.key_up,
-                "o": KeyEvent.key_up,
-                "p": KeyEvent.key_up,
+                "shift": KeyEvent.key_up,
+                "space": KeyEvent.key_up,
                 "up": KeyEvent.key_up,
                 "down": KeyEvent.key_up,
                 "left": KeyEvent.key_up,

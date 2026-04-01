@@ -85,7 +85,7 @@ RowLayout {
         spacing: 8
 
         Repeater {
-            model: ["O","P"]
+            model: ["SHIFT","SPACE"]
 
             delegate: Rectangle {
                 Layout.preferredWidth: 50

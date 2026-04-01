@@ -30,7 +30,7 @@ class ValidState(Enum): #TODO replace with State constants directly
     FAULT = 6
 
 class InputHandler(Node):
-    TIMEOUT = 0.5
+    TIMEOUT = 5 # TODO need to figure out timeout when holding inputs, like ask controller if it has active buttons before timing out
 
     def __init__(self, update_widget_callback: Callable = None):
         super().__init__("teleop_input")
@@ -59,7 +59,7 @@ class InputHandler(Node):
         self._client = self.create_client(ChangeState, "change_state")
         self.req = None
         if not self._client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().error("chage_state service not available")
+            self.get_logger().error("change_state service not available")
         else:
             self.req = ChangeState.Request()
 
@@ -126,11 +126,14 @@ class InputHandler(Node):
         print(f"priority locked to '{priority}'!")
     
     def push_state(self, new_state: str):
+        print("bgo'd")
         message = State()
         if (valid_state := getattr(ValidState, new_state, None)) is None:
+            print("false")
             return False
         
         if (self.req is None):
+            print("bad")
             return False
         
         message.state = valid_state.value

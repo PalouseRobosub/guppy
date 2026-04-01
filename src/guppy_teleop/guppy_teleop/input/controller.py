@@ -18,7 +18,7 @@ class Controller(InputDevice):
 
     DEADZONE = [0.1, 0.9]
 
-    LINEAR_MULTIPLIER = [1.0, 1.0, 1.0]
+    LINEAR_MULTIPLIER = [4.0, 4.0, 4.0]
     ANGULAR_MULTIPLIER = [1.0, 1.0, 1.0]
 
     VALID_TYPES = [ecodes.EV_ABS, ecodes.EV_KEY]
@@ -117,18 +117,16 @@ class Controller(InputDevice):
             if self._command_mode:
                 if (event.value) == 0: # TODO use enum for key up?
                     return
-
+                
                 active_keys = self._device.active_keys()
 
                 if any(key in active_keys for key in self.COMMAND_KEYS):
                     for command, keys in self.COMMAND_MAP.items():
                         if (event.code not in keys):
-                            return
+                            continue
                         
                         if all(key in active_keys for key in keys):
                             command() # remember to use try catch in your commands or it will crash with no error!
-
-                            return
 
                     return
                 else:
@@ -141,7 +139,7 @@ class Controller(InputDevice):
                     self._command_mode = True
 
                     return
-                
+        
                 if (self.mode != DeviceMode.INPUT):
                     return
 
@@ -151,10 +149,10 @@ class Controller(InputDevice):
                     self._state[code_name] = event.value
                 
                 self._mark_active()
-                if (self.handler):
-                    self.handler.on_device_event(self._state.copy())
+                if (self.handler is not None):
+                    self.handler.on_device_event(self, self._state.copy())
             
-            #print(f"'{code_name}' -> {self._state[code_name]}")
+            print(f"'{code_name}' -> {self._state[code_name]}")
             #print(categorize(event))
             #print(self._device.active_keys(verbose=True))
         
@@ -165,7 +163,7 @@ class Controller(InputDevice):
         if abs_value < self.DEADZONE[0]:
             return 0.0
         elif abs_value > self.DEADZONE[1]:
-            return multiplier
+            return dir * multiplier
 
         return dir * (abs_value - self.DEADZONE[0]) * (multiplier / (self.DEADZONE[1] - self.DEADZONE[0]))
 

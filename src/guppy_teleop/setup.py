@@ -65,7 +65,7 @@ setup(
             'input = guppy_teleop.input_handler:main',
             'controller = guppy_teleop.input_handler:controller',
             'keyboard = guppy_teleop.input_handler:keyboard',
-            'terminal = guppy_teleop.frontend.terminal:main'
+            'terminal = guppy_teleop.frontend.terminal:main',
         ],
     },
 )

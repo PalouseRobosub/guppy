@@ -3,8 +3,7 @@ import rclpy, asyncio, threading, time
 from queue import Queue
 
 from guppy_teleop.input.input_device import InputDevice
-from guppy_teleop.input.controller import find_controllers
-from guppy_teleop.input.keyboard import find_keyboards
+from guppy_teleop.util.find_devices import find_controllers, find_keyboards
 from guppy_teleop.util.device_priority import DevicePriority
 from guppy_teleop.util.device_mode import DeviceMode
 
@@ -70,20 +69,18 @@ class InputHandler(Node):
         self.input_thread.start()
 
     async def start_devices(self):
-        tasks = [asyncio.create_task(device.start()) for device in self.input_devices]
-
-        if len(tasks) == 0:
+        if not self.input_devices:
             return
         
         try:
-            await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
-        except asyncio.CancelledError:
-            pass
+            async with asyncio.TaskGroup() as group:
+                for device in self.input_devices:
+                    group.create_task(device.start())
+        except* Exception as exception_group:
+            for exception in exception_group.exceptions:
+                print(f"device input crashed\n{exception}")
         finally:
-            for task in tasks:
-                task.cancel()
-
-            await asyncio.gather(*tasks, return_exceptions=True)
+            print("stopped full")
 
     def on_device_event(self, device: InputDevice, snapshot: dict): # passes snapshot of state to prevent race conditions of reading the active state
         if not device.active: # see thread-safe issue on _watchdog(), has the potential to eat inputs, possibly safe to remove condition as by recieving a event means the device is "active" and can have last_time set to the current time?
@@ -126,18 +123,17 @@ class InputHandler(Node):
         print(f"priority locked to '{priority}'!")
     
     def push_state(self, new_state: str):
-        print("bgo'd")
         message = State()
         if (valid_state := getattr(ValidState, new_state, None)) is None:
-            print("false")
             return False
         
         if (self.req is None):
-            print("bad")
             return False
         
         message.state = valid_state.value
         self.req.new_state = message
+
+        print(f"state change to '{new_state}'!")
 
         future = self._client.call_async(self.req)
         rclpy.spin_until_future_complete(self, future)
@@ -147,14 +143,10 @@ class InputHandler(Node):
 def main(args=None):
     rclpy.init()
 
-    devices: list[InputDevice] = []
-
-    devices.extend(find_controllers(DeviceMode.INPUT))
-    devices.extend(find_keyboards(DeviceMode.COMMAND))
-
     handler = InputHandler(None)
 
-    handler.add_device(*devices)
+    handler.add_device(*find_controllers(handler, DeviceMode.INPUT, DevicePriority.MEDIUM, True))
+    handler.add_device(*find_keyboards(handler, DeviceMode.COMMAND, DevicePriority.MEDIUM, True))
 
     handler.thread_start()
 
@@ -168,13 +160,10 @@ def main(args=None):
 def controller(args=None):
     rclpy.init()
 
-    devices: list[InputDevice] = []
-
-    devices.extend(find_controllers(DeviceMode.INPUT))
-
     handler = InputHandler(None)
 
-    handler.add_device(*devices)
+    handler.add_device(*find_controllers(handler, DeviceMode.INPUT, DevicePriority.MEDIUM, True))
+    handler.add_device(*find_keyboards(handler, DeviceMode.COMMAND, DevicePriority.MEDIUM, True))
 
     handler.thread_start()
 
@@ -188,11 +177,11 @@ def controller(args=None):
 def keyboard(args=None):
     rclpy.init()
 
-    devices: list[InputDevice] = []
-    devices.extend(find_keyboards(DeviceMode.INPUT))
-
     handler = InputHandler(None)
-    handler.add_device(*devices)
+
+    handler.add_device(*find_controllers(handler, DeviceMode.INPUT, DevicePriority.MEDIUM, True))
+    handler.add_device(*find_keyboards(handler, DeviceMode.COMMAND, DevicePriority.MEDIUM, True))
+
     handler.thread_start()
 
     try:

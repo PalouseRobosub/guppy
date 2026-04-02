@@ -1,4 +1,4 @@
-from evdev import InputDevice as EvdevDevice, ecodes, list_devices, KeyEvent#, categorize
+from evdev import InputDevice as EvdevDevice, ecodes, KeyEvent#, categorize
 
 from geometry_msgs.msg import Twist
 
@@ -14,10 +14,12 @@ from typing import Callable#, TYPE_CHECKING
 class Keyboard(InputDevice):
     COMMAND_KEYS = [ecodes.KEY_LEFTCTRL, ecodes.KEY_RIGHTCTRL, ecodes.KEY_LEFTALT, ecodes.KEY_RIGHTALT]
 
-    BLACKLISTED_DEVICES = []
+    BLACKLISTED_DEVICES = ["Logitech G300s Optical Gaming Mouse Keyboard"]
 
     LINEAR_MULTIPLIER = [8.0, 8.0, 8.0]
     ANGULAR_MULTIPLIER = [8.0, 8.0, 8.0]
+
+    VALID_TYPES = [ecodes.EV_ABS, ecodes.EV_KEY]
 
     CODE_MAP = {
         "q": ecodes.KEY_Q,
@@ -67,7 +69,7 @@ class Keyboard(InputDevice):
             "right": KeyEvent.key_up
         }
 
-        print(f"'{self.name}' initialized!")
+        print(f"'{self.name}' initialized as {self.mode.name}!")
 
     async def start(self):
         async for event in self._device.async_read_loop():
@@ -149,25 +151,7 @@ class Keyboard(InputDevice):
         }
 
 
-def find_keyboards(handler, mode: DeviceMode = DeviceMode.DISABLED, priority = DevicePriority.MEDIUM) -> list[Keyboard]:
-    devices = []
-
-    for path in list_devices():
-        device = EvdevDevice(path)
-
-        capabilities = device.capabilities()
-
-        if (ecodes.EV_KEY in capabilities
-            and ecodes.KEY_SPACE in capabilities[ecodes.EV_KEY]
-            and device.name not in Keyboard.BLACKLISTED_DEVICES):
-            devices.append(device)
-
-            #print("\n\n")
-            #print(device.name)
-            #print(device.capabilities(verbose=True))
-
-    return [Keyboard(handler, path, mode, None, priority) for path in devices]
-
-
 if __name__ == "__main__":
+    from guppy_teleop.util.find_devices import find_keyboards
+
     print(find_keyboards(None))

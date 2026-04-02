@@ -1,4 +1,4 @@
-from evdev import InputDevice as EvdevDevice, ecodes, list_devices#, categorize
+from evdev import InputDevice as EvdevDevice, ecodes#, categorize
 
 from geometry_msgs.msg import Twist
 
@@ -72,38 +72,40 @@ class Controller(InputDevice):
 
         self.handler = handler
 
-        self.COMMAND_MAP: dict[Callable, list[int]] = {
-            lambda: self.handler.push_state("FAULT"): [ecodes.BTN_SELECT, ecodes.BTN_B],
-            lambda: self.handler.push_state("TELEOP"): [ecodes.BTN_SELECT, ecodes.BTN_A],
-            lambda: self.handler.push_state("DISABLED"): [ecodes.BTN_SELECT, ecodes.BTN_X],
-            lambda: self.handler.lock_priority(self.priority): [ecodes.BTN_SELECT, ecodes.BTN_TL],
-            lambda: self.handler.lock_priority(None): [ecodes.BTN_SELECT, ecodes.BTN_TR],
-            lambda: self._cycle_mode(): [ecodes.BTN_MODE]
-        }
+        if self.CODE_MAP:
+            self.COMMAND_MAP: dict[Callable, list[int]] = {
+                lambda: self.handler.push_state("FAULT"): [ecodes.BTN_SELECT, ecodes.BTN_B],
+                lambda: self.handler.push_state("TELEOP"): [ecodes.BTN_SELECT, ecodes.BTN_A],
+                lambda: self.handler.push_state("DISABLED"): [ecodes.BTN_SELECT, ecodes.BTN_X],
+                lambda: self.handler.lock_priority(self.priority): [ecodes.BTN_SELECT, ecodes.BTN_TL],
+                lambda: self.handler.lock_priority(None): [ecodes.BTN_SELECT, ecodes.BTN_TR],
+                lambda: self._cycle_mode(): [ecodes.BTN_MODE]
+            }
 
-        self._state = {
-            "left_stick_x": 0.0,   # normalized -1 -> 1
-            "left_stick_y": 0.0,   # normalized -1 -> 1
-            "left_trigger": 0.0,   # normalized 0 -> 1
-            "right_stick_x": 0.0,  # normalized -1 -> 1
-            "right_stick_y": 0.0,  # normalized -1 -> 1
-            "right_trigger": 0.0,  # normalized 0 -> 1
-            "dpad_x": 0,           # from -1 -> 1
-            "dpad_y": 0,           # from -1 -> 1
-            "a": False,            # True or False
-            "b": False,            # True or False
-            "x": False,            # True or False
-            "y": False,            # True or False
-            "left_bumper": False,  # True or False
-            "right_bumper": False, # True or False
-            "select": False,       # True or False
-            "start": False,        # True or False
-            "mode": False,         # True or False
-            "left_thumb": False,    # True or False
-            "right_thumb": False,  # True or False
-        }
+        if self._state:
+            self._state = {
+                "left_stick_x": 0.0,   # normalized -1 -> 1
+                "left_stick_y": 0.0,   # normalized -1 -> 1
+                "left_trigger": 0.0,   # normalized 0 -> 1
+                "right_stick_x": 0.0,  # normalized -1 -> 1
+                "right_stick_y": 0.0,  # normalized -1 -> 1
+                "right_trigger": 0.0,  # normalized 0 -> 1
+                "dpad_x": 0,           # from -1 -> 1
+                "dpad_y": 0,           # from -1 -> 1
+                "a": False,            # True or False
+                "b": False,            # True or False
+                "x": False,            # True or False
+                "y": False,            # True or False
+                "left_bumper": False,  # True or False
+                "right_bumper": False, # True or False
+                "select": False,       # True or False
+                "start": False,        # True or False
+                "mode": False,         # True or False
+                "left_thumb": False,    # True or False
+                "right_thumb": False,  # True or False
+            }
 
-        print(f"'{self.name}' initialized!")
+        print(f"'{self.name}' initialized as {self.mode.name}!")
 
     async def start(self):
         async for event in self._device.async_read_loop():
@@ -114,7 +116,7 @@ class Controller(InputDevice):
             return
         
         if event.type in self.VALID_TYPES:
-            if self._command_mode:
+            if event.type == ecodes.EV_KEY and self._command_mode:
                 if (event.value) == 0: # TODO use enum for key up?
                     return
                 
@@ -142,7 +144,7 @@ class Controller(InputDevice):
         
                 if (self.mode != DeviceMode.INPUT):
                     return
-
+                
                 if (normalize := self.NORMALIZE_MAP.get(code_name)) is not None:
                     self._state[code_name] = normalize(event.value)
                 else:
@@ -152,9 +154,9 @@ class Controller(InputDevice):
                 if (self.handler is not None):
                     self.handler.on_device_event(self, self._state.copy())
             
-            print(f"'{code_name}' -> {self._state[code_name]}")
-            #print(categorize(event))
-            #print(self._device.active_keys(verbose=True))
+                print(f"'{code_name}' -> {self._state[code_name]}")
+                #print(categorize(event))
+                #print(self._device.active_keys(verbose=True))
         
     def stick_deadzone(self, value: float, multiplier: float) -> float:
         abs_value = abs(value)
@@ -203,25 +205,7 @@ class Controller(InputDevice):
         }
 
 
-def find_controllers(handler, mode: DeviceMode = DeviceMode.DISABLED, priority: DevicePriority = DevicePriority.MEDIUM) -> list[Controller]:
-    devices = []
-
-    for path in list_devices():
-        device = EvdevDevice(path)
-
-        capabilities = device.capabilities()
-
-        if (ecodes.EV_ABS in capabilities and ecodes.EV_KEY in capabilities
-            and ecodes.BTN_MODE in capabilities[ecodes.EV_KEY]):
-            devices.append(path)
-
-            #print("\n\n")
-            #print(device.name)
-            #print(device.capabilities(verbose=True))
-
-    return [Controller(handler, path, mode, None, priority) for path in devices]
-    # TODO allow subclassing and determine whether to create instance of general controller or more specific one based on device name
-
-
 if __name__ == "__main__":
+    from guppy_teleop.util.find_devices import find_controllers
+
     print(find_controllers(None))

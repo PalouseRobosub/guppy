@@ -9,8 +9,7 @@ from PySide6.QtCore import Property, Signal
 from guppy_teleop.frontend.widgets.widget import Widget
 
 from guppy_teleop.input_handler import InputHandler
-from guppy_teleop.input.controller import find_controllers
-from guppy_teleop.input.keyboard import find_keyboards
+from guppy_teleop.util.find_devices import find_controllers, find_keyboards
 from guppy_teleop.util.device_mode import DeviceMode
 from guppy_teleop.util.device_priority import DevicePriority
 

@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.8)
 project(guppy_safety)
 
+# Default to C++17 for ROS2 Jazzy compatibility
+if (NOT CMAKE_CXX_STANDARD)
+    set(CMAKE_CXX_STANDARD 17)
+endif ()
+
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -23,12 +28,17 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-add_executable(checker src/checker.cpp)
-
 find_package(rclcpp REQUIRED)
-find_package(std_msgs REQUIRED)
 
-target_link_libraries(checker PUBLIC rclcpp::rclcpp ${std_msgs_TARGETS})
+# Message types
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(guppy_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+
+# Add executables
+add_executable(checker src/checker.cpp)
+ament_target_dependencies(checker rclcpp std_msgs geometry_msgs guppy_msgs nav_msgs)
 
 install(
   TARGETS

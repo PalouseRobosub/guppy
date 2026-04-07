@@ -25,7 +25,7 @@ set_target_properties(Spinnaker::Spinnaker PROPERTIES
 #add_executable(ack
 #        src/ack.cpp)
 #
-add_executable(camera_manager src/camera_manager.cpp)
+# add_executable(camera_manager src/camera_manager.cpp)
 
 add_executable(camera_pub src/camera_pub.cpp)
 ament_target_dependencies(camera_pub rclcpp sensor_msgs)
@@ -34,9 +34,9 @@ ament_target_dependencies(camera_pub rclcpp sensor_msgs)
 #        Spinnaker::Spinnaker
 #)
 #
-target_link_libraries(camera_manager
-        Spinnaker::Spinnaker
-)
+# target_link_libraries(camera_manager
+#         Spinnaker::Spinnaker
+# )
 
 target_link_libraries(camera_pub
         Spinnaker::Spinnaker

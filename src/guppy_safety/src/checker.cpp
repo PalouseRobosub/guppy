@@ -4,11 +4,13 @@
 
 #include "rclcpp/rclcpp.hpp"
 
+#include "guppy_safety/msg/Status.hpp"
+
 #include "std_msgs/msg/string.hpp"
 #include "guppy_msgs/msg/state.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
-//#include "nav_msgs/msg/Odometry.msg"
+//#include "nav_msgs/msg/Odometry.hpp"
 
 // Checks a bunch of topics, and sets a safety level
 // if one or more of them shows an unhealthy value
@@ -19,7 +21,7 @@ public:
   : Node("safety_checker")
   {
     // Publish result of check as a level
-    pub_level = this->create_publisher<std_msgs::msg::String>("safety_level", 10);
+    pub_level = this->create_publisher<guppy_safety::msg::Status>("safety_level", 10);
   
     current_level = 2;
     publish_status(5);
@@ -61,7 +63,7 @@ private:
   int current_level;
 
   // Publisher
-  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr pub_level;
+  rclcpp::Publisher<guppy_safety::msg::Status>::SharedPtr pub_level;
 
   // All subsciption types
   //rclcpp::Subscription<guppy_msgs::msg::can_frame>::SharedPtr sub_canrx;
@@ -83,11 +85,11 @@ private:
         current_level = new_level;
 
         // Create a message
-        auto message = std_msgs::msg::String();
-        message.data = std::to_string(current_level);
+        auto message = guppy_safety::msg::Status();
+        message.level = current_level;
       
         // Publish that new level
-        RCLCPP_INFO(this->get_logger(), "[Published Level] '%s'", message.data.c_str());
+	//RCLCPP_INFO(this->get_logger(), "[Published Level] '%s'", message.data.c_str());
         this->pub_level->publish(message);
   };
 };

@@ -1,17 +1,16 @@
-import pygame, rclpy
+from typing import Any, Dict, List
 
-from typing import Any
-
+import pygame
+import rclpy
 from pygame.joystick import JoystickType
-
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
-
 from geometry_msgs.msg import Twist
 from guppy_msgs.srv._change_state import ChangeState
 from guppy_msgs.msg import State
 
 MULTIPLIER = 1
+
+PARENT_MULT = 3
 
 COLOR_FAULT = (255, 0, 0)
 COLOR_DISABLED = (255, 255, 0)
@@ -20,7 +19,11 @@ COLOR_STARTUP = (0, 200, 255)
 
 # error class for RawController
 class ControllerError(Exception):
-    def __init__(self, msg="There was an issue with the controller."):
+    """Errors for the RawController Class"""
+
+    def __init__(self, msg=None):
+        if msg is None:
+            msg = "There was an issue with a controller. That's all we know :/"
         super().__init__(msg)
 
 # manages single controller input
@@ -29,9 +32,9 @@ class RawController:
         self._joystick = None
         
         if not name:
-            raise ControllerError("Controller must have a name.")
+            raise ControllerError("Controller must have a name")
 
-        controllers: list[JoystickType] = []
+        controllers: List[JoystickType] = []
 
         # search for controllers
         for i in range(pygame.joystick.get_count()):
@@ -55,55 +58,49 @@ class RawController:
         self.numbuttons = self._joystick.get_numbuttons()
         self.numhats = self._joystick.get_numhats()
 
-    def update(self) -> dict[str, Any]:
+    def update(self) -> Dict[str, Any]:
         if self._joystick is None:
-            raise ControllerError("No controller found.")
-
+            raise ControllerError("No controller found")
+        pygame.event.pump()
         state = {}
-
         state["axes"] = [self._joystick.get_axis(i) for i in range(self.numaxes)]
-        state["buttons"] = [self._joystick.get_button(i) for i in range(self.numbuttons)]
+        state["buttons"] = [
+            self._joystick.get_button(i) for i in range(self.numbuttons)
+        ]
         hats = [self._joystick.get_hat(i) for i in range(self.numhats)]
         state["dpad"] = [item for pair in hats for item in pair]
-
         return state
 
 # converts logitech controller input to twist
-def logitech_twist(controller_state: dict) -> Twist:
+def logitech_twist(controller_state: Dict) -> Twist:
     twist = Twist()
-
     twist.linear.x = MULTIPLIER * controller_state["axes"][4] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # right stick vertical
-    twist.linear.y = MULTIPLIER * controller_state["axes"][3] if abs(controller_state["axes"][3]) > 0.15 else 0.0 # right stick horizontal
+    twist.linear.y = -MULTIPLIER * controller_state["axes"][3] if abs(controller_state["axes"][3]) > 0.15 else 0.0 # right stick horizontal
     # DISABLE Z MOVEMENT FOR KSED
-    # twist.linear.z = MULTIPLIER * -controller_state["axes"][1] if abs(controller_state["axes"][1]) > 0.15 else 0.0 # left stick vertical
-    twist.linear.z = 0
+    twist.linear.z = MULTIPLIER * -controller_state["axes"][1] if abs(controller_state["axes"][1]) > 0.15 else 0.0 # left stick vertical
+    # twist.linear.z = 0
     twist.angular.y = MULTIPLIER * float(controller_state["dpad"][1]) # pitch
     twist.angular.x = -MULTIPLIER * float(controller_state["dpad"][0]) # roll
-
     yaw_r = controller_state["axes"][5] # right trigger
     yaw_l = controller_state["axes"][2] # left trigger
     yaw_r = (yaw_r + 1) / 2
-    yaw_l = -(yaw_l + 1) / 2
-
+    yaw_l = (yaw_l + 1) / 2 * (-1)
     twist.angular.z = MULTIPLIER * -(yaw_r + yaw_l)
     return twist
 
 # converts series x controller input to twist
-def series_x_twist(controller_state: dict) -> Twist:
+def series_x_twist(controller_state):
     twist = Twist()
-
-    twist.linear.x = MULTIPLIER * controller_state["axes"][3] if abs(controller_state["axes"][3]) > 0.15 else 0.0 # right stick vertical
-    twist.linear.y = MULTIPLIER * controller_state["axes"][2] if abs(controller_state["axes"][2]) > 0.15 else 0.0 # right stick horizontal
-    twist.linear.z = MULTIPLIER * -controller_state["axes"][1] if abs(controller_state["axes"][1]) > 0.15 else 0.0 # left stick
-    twist.angular.y = MULTIPLIER * float(controller_state["dpad"][1]) # pitch
-    twist.angular.x = MULTIPLIER * -float(controller_state["dpad"][0]) # roll
-
+    twist.linear.x = PARENT_MULT * controller_state["axes"][3] if abs(controller_state["axes"][3]) > 0.15 else 0.0 # right stick vertical
+    twist.linear.y = -PARENT_MULT * controller_state["axes"][2] if abs(controller_state["axes"][2]) > 0.15 else 0.0 # right stick horizontal
+    twist.linear.z = PARENT_MULT * -controller_state["axes"][1] if abs(controller_state["axes"][1]) > 0.15 else 0.0 # left stick
+    twist.angular.y = PARENT_MULT * float(controller_state["dpad"][1]) # pitch
+    twist.angular.x = PARENT_MULT * -float(controller_state["dpad"][0]) # roll
     yaw_r = controller_state["axes"][4] # right trigger
     yaw_l = controller_state["axes"][5] # left trigger
     yaw_r = (yaw_r + 1) / 2
-    yaw_l = -(yaw_l + 1) / 2
-    twist.angular.z = MULTIPLIER * -(yaw_r + yaw_l)
-    
+    yaw_l = (yaw_l + 1) / 2 * (-1)
+    twist.angular.z = PARENT_MULT * -(yaw_r + yaw_l)
     return twist
     
 class KsedTeleop(Node):
@@ -113,23 +110,20 @@ class KsedTeleop(Node):
         self._kid_enabled = False
         self._global_state = None
         
+        # pygame setup
         pygame.init()
-
+        pygame.joystick.init()
+        pygame.font.init()
         self._font = pygame.font.SysFont("JetBrainsMono Nerd Font Bold", 60)
         self._display = pygame.display.set_mode((800, 400))
         
         # publishers
         self._cmd_vel_publisher = self.create_publisher(Twist, "/cmd_vel/teleop", 10)
-
-        state_quality = QoSProfile(
-            reliability=ReliabilityPolicy.RELIABLE,
-            durability=DurabilityPolicy.TRANSIENT_LOCAL,
-            history=HistoryPolicy.KEEP_LAST,
-            depth=1
-        )
         
         # subscribers
-        self._state_subscription = self.create_subscription(State, "/state", self._state_cb, state_quality)
+        self._state_subscription = self.create_subscription(
+            State, "/state", self._state_cb, 10
+        )
         
         # clients
         self._state_client = self.create_client(ChangeState, "change_state")
@@ -147,8 +141,6 @@ class KsedTeleop(Node):
         self._global_state = msg.state
     
     def _update_controller(self) -> None:
-        pygame.event.pump()
-
         parent_state = self._parent_controller.update()
         
         # MENU button to enable teleop
@@ -184,7 +176,7 @@ class KsedTeleop(Node):
         
         self._update_display()
 
-    def _publish_twist(self, parent: dict, kid_logi: dict | None = None, kid_joy: dict | None = None) -> None:
+    def _publish_twist(self, parent: Dict, kid_logi: Dict|None = None, kid_joy: Dict|None = None) -> None:
         parent_twist = series_x_twist(parent)
         kid_logi_twist = None
         kid_joy_twist = None
@@ -206,6 +198,11 @@ class KsedTeleop(Node):
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
+                    msg = State()
+                    msg.state = State.DISABLED
+                    req = ChangeState.Request()
+                    req.new_state = msg
+                    self._state_client.call_async(req)
                     raise SystemExit
                 if event.key == pygame.K_SPACE:
                     self._kid_enabled = False

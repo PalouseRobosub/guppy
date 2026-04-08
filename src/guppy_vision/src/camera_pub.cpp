@@ -12,21 +12,36 @@
 #include "sensor_msgs/fill_image.hpp"
 #include "sensor_msgs/msg/image.hpp"
 
+typedef struct camInfo {
+  std::string serial;
+  std::string position;
+} CamInfo;
+
+std::vector<CamInfo> cams = {
+    {.serial = "17473425", .position = "fl"}, {.serial = "17473424", .position = "fr"}, {.serial = "14406636", .position = "d"},  {.serial = "14406334", .position = "rl"},
+    {.serial = "14406637", .position = "rr"}, {.serial = "20188596", .position = "cl"}, {.serial = "20188587", .position = "cr"},
+};
+
 class CameraPublisher : public rclcpp::Node {
  public:
   CameraPublisher() : Node("camera_publisher") {
     this->running_.store(true);
 
-    // this->publisher_ = this->create_publisher<sensor_msgs::msg::Image>("cam0", 1);
-
     this->system = Spinnaker::System::GetInstance();
     this->camList = system->GetCameras();
 
+    std::string base = "/cam/";
+
     for (unsigned int i = 0; i < camList.GetSize(); ++i) {
-      std::string name = "cam";
-      name += i;
-      std::cout << name << std::endl;
-      this->publishers_.push_back(this->create_publisher<sensor_msgs::msg::Image>(name, 1));
+        std::string pos = "unknown";
+      for (CamInfo &c: cams) {
+          if (this->camList[i]->GetDeviceSerialNumber().c_str() == c.serial) {
+              pos = c.position;
+              break;
+          }
+      }
+      std::string topic = "/cam/" + pos + "/raw";
+      this->publishers_.push_back(this->create_publisher<sensor_msgs::msg::Image>(topic, 1));
       this->threads_.emplace_back(&CameraPublisher::acquireFootage, this, i);
     }
   }
@@ -35,9 +50,9 @@ class CameraPublisher : public rclcpp::Node {
     this->running_.store(false);
 
     for (auto& t : threads_) {
-        if (t.joinable()) {
-            t.join();
-        }
+      if (t.joinable()) {
+        t.join();
+      }
     }
 
     this->camList.Clear();
@@ -63,9 +78,8 @@ class CameraPublisher : public rclcpp::Node {
     Spinnaker::ImageProcessor processor;
     while (this->running_) {
       Spinnaker::ImagePtr pImg = pCam->GetNextImage(1000);
-      Spinnaker::ImagePtr pProcessed = processor.Convert(pImg, Spinnaker::PixelFormat_Mono8);
       auto msg = std::make_unique<sensor_msgs::msg::Image>();
-      sensor_msgs::fillImage(*msg, "mono8", pProcessed->GetHeight(), pProcessed->GetWidth(), pProcessed->GetStride(), pProcessed->GetData());
+      sensor_msgs::fillImage(*msg, "bayer_rggb8", pImg->GetHeight(), pImg->GetWidth(), pImg->GetStride(), pImg->GetData());
       pImg->Release();
 
       this->publishers_[camIndex]->publish(std::move(msg));

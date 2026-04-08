@@ -22,21 +22,8 @@ set_target_properties(Spinnaker::Spinnaker PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES ${SPINNAKER_INCLUDE_DIR}
 )
 
-#add_executable(ack
-#        src/ack.cpp)
-#
-# add_executable(camera_manager src/camera_manager.cpp)
-
 add_executable(camera_pub src/camera_pub.cpp)
 ament_target_dependencies(camera_pub rclcpp sensor_msgs)
-
-#target_link_libraries(ack
-#        Spinnaker::Spinnaker
-#)
-#
-# target_link_libraries(camera_manager
-#         Spinnaker::Spinnaker
-# )
 
 target_link_libraries(camera_pub
         Spinnaker::Spinnaker

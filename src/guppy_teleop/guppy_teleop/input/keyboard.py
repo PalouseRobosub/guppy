@@ -80,26 +80,28 @@ class Keyboard(InputDevice):
             return
         
         if event.type == ecodes.EV_KEY:
+            if not self._command_mode:
+                if event.code in self.COMMAND_KEYS and event.value == KeyEvent.key_down:
+                    self._command_mode = True
+
             if self._command_mode:
-                if (event.value) != KeyEvent.key_down:
-                    return
-                
-                active_keys = self._device.active_keys()
+                if event.value == KeyEvent.key_down:
+                    active_keys = self._device.active_keys()
 
-                if any(key in active_keys for key in self.COMMAND_KEYS):
-                    for command, keys in self.COMMAND_MAP.items():
-                        if (event.code not in keys):
-                            continue
-                        
-                        if all(key in active_keys for key in keys):
-                            command() # remember to use try catch in your commands or it will crash with no error!
+                    if any(key in active_keys for key in self.COMMAND_KEYS):
+                        for command, keys in self.COMMAND_MAP.items():
+                            if (event.code not in keys):
+                                continue
+                            
+                            if all(key in active_keys for key in keys):
+                                command() # remember to use try catch in your commands or it will crash with no error!
 
-                    return
-                else:
-                    self._command_mode = False
-
-                    if (event.code in self.COMMAND_KEYS):
                         return
+                    else:
+                        self._command_mode = False
+
+                        if (event.code in self.COMMAND_KEYS):
+                            return
 
             if (code_name := self._internal_code_map[event.code]) is not None:
                 if (self.mode != DeviceMode.INPUT):
@@ -110,9 +112,6 @@ class Keyboard(InputDevice):
                 self._mark_active()
                 if (self.handler):
                     self.handler.on_device_event(self, self._state.copy())
-            else: # no overlap betweem command keys and input keys for keyboard
-                if (event.code in self.COMMAND_KEYS):
-                    self._command_mode = True
             
             #print(categorize(event))
             #print(f"{event.code}, {event.type}, {event.value}")

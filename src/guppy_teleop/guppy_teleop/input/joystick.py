@@ -103,13 +103,13 @@ class Joystick(Controller):
 
         throttle =  (1.0 - snapshot["throttle"])
 
-        twist.linear.x = -self.stick_deadzone(float(snapshot["joystick_y"]), self.LINEAR_MULTIPLIER[0] * throttle)
+        twist.linear.x = self.stick_deadzone(float(snapshot["joystick_y"]), self.LINEAR_MULTIPLIER[0] * throttle)
         twist.linear.y = -self.stick_deadzone(float(snapshot["joystick_x"]), self.LINEAR_MULTIPLIER[1] * throttle)
         twist.linear.z = -float(snapshot["thumb_stick_y"]) * self.LINEAR_MULTIPLIER[2] * throttle
 
         twist.angular.x = float(snapshot["thumb_stick_x"]) * self.ANGULAR_MULTIPLIER[0] * throttle
         twist.angular.y = (float(snapshot["5"]) - float(snapshot["6"])) * self.ANGULAR_MULTIPLIER[1] * throttle
-        twist.angular.z = self.stick_deadzone(float(snapshot["joystick_twist"]), self.ANGULAR_MULTIPLIER[2] * throttle)
+        twist.angular.z = -self.stick_deadzone(float(snapshot["joystick_twist"]), self.ANGULAR_MULTIPLIER[2] * throttle)
 
         return twist
 

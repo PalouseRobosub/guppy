@@ -111,7 +111,7 @@ class InputHandler(Node):
             if dt > self.TIMEOUT:
                 self._focus._mark_inactive()
                 self._focus = None
-
+            
                 self.publisher.publish(Twist())
 
     def add_device(self, *devices: InputDevice):

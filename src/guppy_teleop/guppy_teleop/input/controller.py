@@ -1,4 +1,4 @@
-from evdev import InputDevice as EvdevDevice, ecodes#, categorize
+from evdev import InputDevice as EvdevDevice, ecodes, KeyEvent#, categorize
 
 from geometry_msgs.msg import Twist
 
@@ -72,38 +72,36 @@ class Controller(InputDevice):
 
         self.handler = handler
 
-        if not self.CODE_MAP:
-            self.COMMAND_MAP: dict[Callable, list[int]] = {
-                lambda: self.handler.push_state("FAULT"): [ecodes.BTN_SELECT, ecodes.BTN_B],
-                lambda: self.handler.push_state("TELEOP"): [ecodes.BTN_SELECT, ecodes.BTN_A],
-                lambda: self.handler.push_state("DISABLED"): [ecodes.BTN_SELECT, ecodes.BTN_X],
-                lambda: self.handler.lock_priority(self.priority): [ecodes.BTN_SELECT, ecodes.BTN_TL],
-                lambda: self.handler.lock_priority(None): [ecodes.BTN_SELECT, ecodes.BTN_TR],
-                lambda: self._cycle_mode(DeviceMode.DISABLED): [ecodes.BTN_MODE]
-            }
+        self.COMMAND_MAP: dict[Callable, list[int]] = {
+            lambda: self.handler.push_state("FAULT"): [ecodes.BTN_SELECT, ecodes.BTN_B],
+            lambda: self.handler.push_state("TELEOP"): [ecodes.BTN_SELECT, ecodes.BTN_A],
+            lambda: self.handler.push_state("DISABLED"): [ecodes.BTN_SELECT, ecodes.BTN_X],
+            lambda: self.handler.lock_priority(self.priority): [ecodes.BTN_SELECT, ecodes.BTN_TL],
+            lambda: self.handler.lock_priority(None): [ecodes.BTN_SELECT, ecodes.BTN_TR],
+            lambda: self._cycle_mode(DeviceMode.DISABLED): [ecodes.BTN_MODE]
+        }
 
-        if not self._state:
-            self._state = {
-                "left_stick_x": 0.0,   # normalized -1 -> 1
-                "left_stick_y": 0.0,   # normalized -1 -> 1
-                "left_trigger": 0.0,   # normalized 0 -> 1
-                "right_stick_x": 0.0,  # normalized -1 -> 1
-                "right_stick_y": 0.0,  # normalized -1 -> 1
-                "right_trigger": 0.0,  # normalized 0 -> 1
-                "dpad_x": 0,           # from -1 -> 1
-                "dpad_y": 0,           # from -1 -> 1
-                "a": False,            # True or False
-                "b": False,            # True or False
-                "x": False,            # True or False
-                "y": False,            # True or False
-                "left_bumper": False,  # True or False
-                "right_bumper": False, # True or False
-                "select": False,       # True or False
-                "start": False,        # True or False
-                "mode": False,         # True or False
-                "left_thumb": False,    # True or False
-                "right_thumb": False,  # True or False
-            }
+        self._state = {
+            "left_stick_x": 0.0,   # normalized -1 -> 1
+            "left_stick_y": 0.0,   # normalized -1 -> 1
+            "left_trigger": 0.0,   # normalized 0 -> 1
+            "right_stick_x": 0.0,  # normalized -1 -> 1
+            "right_stick_y": 0.0,  # normalized -1 -> 1
+            "right_trigger": 0.0,  # normalized 0 -> 1
+            "dpad_x": 0,           # from -1 -> 1
+            "dpad_y": 0,           # from -1 -> 1
+            "a": False,            # True or False
+            "b": False,            # True or False
+            "x": False,            # True or False
+            "y": False,            # True or False
+            "left_bumper": False,  # True or False
+            "right_bumper": False, # True or False
+            "select": False,       # True or False
+            "start": False,        # True or False
+            "mode": False,         # True or False
+            "left_thumb": False,    # True or False
+            "right_thumb": False,  # True or False
+        }
 
         print(f"'{self.name}' initialized as {self.mode.name} at {self.priority.name}!")
 
@@ -116,32 +114,30 @@ class Controller(InputDevice):
             return
         
         if event.type in self.VALID_TYPES:
-            if event.type == ecodes.EV_KEY and self._command_mode:
-                if (event.value) == 0: # TODO use enum for key up?
-                    return
-                
-                active_keys = self._device.active_keys()
-
-                if any(key in active_keys for key in self.COMMAND_KEYS):
-                    for command, keys in self.COMMAND_MAP.items():
-                        if (event.code not in keys):
-                            continue
-                        
-                        if all(key in active_keys for key in keys):
-                            command() # remember to use try catch in your commands or it will crash with no error!
-
-                    return
-                else:
-                    self._command_mode = False
-
-                    if (event.code in self.COMMAND_KEYS):
-                        return
-            if (code_name := self._internal_code_map[event.code]) is not None:
+            if not self._command_mode:
                 if (event.code in self.COMMAND_KEYS):
                     self._command_mode = True
 
-                    return
-        
+            if self._command_mode:
+                if (event.value) == KeyEvent.key_down:
+                    active_keys = self._device.active_keys()
+
+                    if any(key in active_keys for key in self.COMMAND_KEYS):
+                        for command, keys in self.COMMAND_MAP.items():
+                            if event.code not in keys:
+                                continue
+                            
+                            if all(key in active_keys for key in keys):
+                                command() # remember to use try catch in your commands or it will crash the whole device!
+
+                        return
+                    else:
+                        self._command_mode = False
+
+                        if (event.code in self.COMMAND_KEYS):
+                            return
+                        
+            if (code_name := self._internal_code_map[event.code]) is not None:        
                 if (self.mode != DeviceMode.INPUT):
                     return
                 
@@ -158,7 +154,7 @@ class Controller(InputDevice):
                 #print(categorize(event))
                 #print(self._device.active_keys(verbose=True))
         
-    def stick_deadzone(self, value: float, multiplier: float) -> float:
+    def stick_deadzone(self, value: float, multiplier: float = 1.0) -> float:
         abs_value = abs(value)
         dir = -1 if value < 0 else 1
 
@@ -208,10 +204,13 @@ class Controller(InputDevice):
         if self._command_mode or self.mode != DeviceMode.INPUT:
             return False
         
-        for key in self._device.active_keys():
-            if (code_name := self._internal_code_map[key]) is None:
+        for key, value in self._state.items(): #TODO inefficient lookup, use NORMALIZE map to get EV_ABS keys from state anduse self._device.active_keys() for all else
+            if value == False:
                 continue
-            if self._state[code_name] != False:
+            elif (normalize := self.NORMALIZE_MAP.get(key)) is not None:
+                if self.stick_deadzone(float(value)):
+                    return True
+            else:
                 return True
         
         return False

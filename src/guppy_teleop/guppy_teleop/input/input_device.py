@@ -30,8 +30,15 @@ class InputDevice(ABC):
     def _mark_inactive(self):
         self.active = False
     
-    def _cycle_mode(self): # TODO devices need better control rather than just cycling, or the method of cycling is still available while disabled
-        self.mode = self.mode.next()
+    def _cycle_mode(self, *skip: DeviceMode): # TODO devices need better control rather than just cycling, or the method of cycling is still available while disabled      
+        if set(DeviceMode) == set(skip):
+            raise AssertionError("cannot skip all items in cycle!")
+        
+        mode = self.mode.next()
+        while (mode in skip):
+            mode = mode.next()
+        
+        self.mode = mode
 
     @abstractmethod
     async def start(self):
@@ -43,4 +50,8 @@ class InputDevice(ABC):
 
     @abstractmethod
     def package(self, snapshot: dict) -> dict:
+        ...
+    
+    @abstractmethod
+    def heartbeat(self) -> bool:
         ...

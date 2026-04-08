@@ -11,3 +11,9 @@ class DevicePriority(Enum):
             return self.value < other.value
             
         return NotImplemented
+
+    def __gt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value > other.value
+            
+        return NotImplemented

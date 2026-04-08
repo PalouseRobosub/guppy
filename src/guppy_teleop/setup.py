@@ -48,7 +48,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*.[pxy][yma]*'))),
     ],
-    install_requires=['setuptools', 'evdev', 'PySide6'],
+    install_requires=['setuptools', 'evdev', 'PySide6', 'pygame'],
     zip_safe=True,
     maintainer='robosub',
     maintainer_email='robosub@todo.todo',
@@ -66,6 +66,7 @@ setup(
             'controller = guppy_teleop.input_handler:controller',
             'keyboard = guppy_teleop.input_handler:keyboard',
             'terminal = guppy_teleop.frontend.terminal:main',
+            'ksed = guppy_teleop.ksed_controller:main',
         ],
     },
 )

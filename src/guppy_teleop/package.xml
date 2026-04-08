@@ -14,6 +14,7 @@
 
   <depend>evdev</depend>
   <depend>PySide6</depend>
+  <depend>pygame</depend>
 
   <export>
     <build_type>ament_python</build_type>

@@ -72,17 +72,17 @@ class Controller(InputDevice):
 
         self.handler = handler
 
-        if self.CODE_MAP:
+        if not self.CODE_MAP:
             self.COMMAND_MAP: dict[Callable, list[int]] = {
                 lambda: self.handler.push_state("FAULT"): [ecodes.BTN_SELECT, ecodes.BTN_B],
                 lambda: self.handler.push_state("TELEOP"): [ecodes.BTN_SELECT, ecodes.BTN_A],
                 lambda: self.handler.push_state("DISABLED"): [ecodes.BTN_SELECT, ecodes.BTN_X],
                 lambda: self.handler.lock_priority(self.priority): [ecodes.BTN_SELECT, ecodes.BTN_TL],
                 lambda: self.handler.lock_priority(None): [ecodes.BTN_SELECT, ecodes.BTN_TR],
-                lambda: self._cycle_mode(): [ecodes.BTN_MODE]
+                lambda: self._cycle_mode(DeviceMode.DISABLED): [ecodes.BTN_MODE]
             }
 
-        if self._state:
+        if not self._state:
             self._state = {
                 "left_stick_x": 0.0,   # normalized -1 -> 1
                 "left_stick_y": 0.0,   # normalized -1 -> 1
@@ -105,7 +105,7 @@ class Controller(InputDevice):
                 "right_thumb": False,  # True or False
             }
 
-        print(f"'{self.name}' initialized as {self.mode.name}!")
+        print(f"'{self.name}' initialized as {self.mode.name} at {self.priority.name}!")
 
     async def start(self):
         async for event in self._device.async_read_loop():
@@ -154,7 +154,7 @@ class Controller(InputDevice):
                 if (self.handler is not None):
                     self.handler.on_device_event(self, self._state.copy())
             
-                print(f"'{code_name}' -> {self._state[code_name]}")
+                #print(f"'{code_name}' -> {self._state[code_name]}")
                 #print(categorize(event))
                 #print(self._device.active_keys(verbose=True))
         
@@ -172,12 +172,12 @@ class Controller(InputDevice):
     def transform(self, snapshot: dict) -> Twist:
         twist = Twist()
 
-        twist.linear.x = self.stick_deadzone(float(snapshot["right_stick_y"]), self.LINEAR_MULTIPLIER[0])
+        twist.linear.x = -self.stick_deadzone(float(snapshot["right_stick_y"]), self.LINEAR_MULTIPLIER[0])
         twist.linear.y = -self.stick_deadzone(float(snapshot["right_stick_x"]), self.LINEAR_MULTIPLIER[1])
         twist.linear.z = -self.stick_deadzone(float(snapshot["left_stick_y"]), self.LINEAR_MULTIPLIER[2])
 
-        twist.angular.x = float(snapshot["dpad_x"]) * self.ANGULAR_MULTIPLIER[0]
-        twist.angular.y = -float(snapshot["dpad_y"]) * self.ANGULAR_MULTIPLIER[1]
+        twist.angular.x = -float(snapshot["dpad_y"]) * self.ANGULAR_MULTIPLIER[0]
+        twist.angular.y = -float(snapshot["dpad_x"]) * self.ANGULAR_MULTIPLIER[1]
         twist.angular.z = (float(snapshot["left_trigger"]) - float(snapshot["right_trigger"])) * self.ANGULAR_MULTIPLIER[2]
 
         return twist
@@ -203,6 +203,18 @@ class Controller(InputDevice):
                 "dpad_right": snapshot["dpad_x"] == 1
             }
         }
+    
+    def heartbeat(self):
+        if self._command_mode or self.mode != DeviceMode.INPUT:
+            return False
+        
+        for key in self._device.active_keys():
+            if (code_name := self._internal_code_map[key]) is None:
+                continue
+            if self._state[code_name] != False:
+                return True
+        
+        return False
 
 
 if __name__ == "__main__":

@@ -51,7 +51,7 @@ class Keyboard(InputDevice):
             lambda: self.handler.push_state("DISABLED"): [ecodes.KEY_LEFTCTRL, ecodes.KEY_D],
             lambda: self.handler.lock_priority(self.priority): [ecodes.KEY_LEFTCTRL, ecodes.KEY_L],
             lambda: self.handler.lock_priority(None): [ecodes.KEY_LEFTCTRL, ecodes.KEY_K],
-            lambda: self._cycle_mode(): [ecodes.KEY_LEFTCTRL, ecodes.KEY_E],
+            lambda: self._cycle_mode(DeviceMode.DISABLED): [ecodes.KEY_LEFTCTRL, ecodes.KEY_E],
         }
 
         self._state = {
@@ -69,7 +69,7 @@ class Keyboard(InputDevice):
             "right": KeyEvent.key_up
         }
 
-        print(f"'{self.name}' initialized as {self.mode.name}!")
+        print(f"'{self.name}' initialized as {self.mode.name} as {self.priority.name}!")
 
     async def start(self):
         async for event in self._device.async_read_loop():
@@ -133,12 +133,12 @@ class Keyboard(InputDevice):
         up    = snapshot["up"]    != KeyEvent.key_up
         down  = snapshot["down"]  != KeyEvent.key_up
 
-        twist.linear.x = -float(w - s) * self.LINEAR_MULTIPLIER[0]
+        twist.linear.x = float(w - s) * self.LINEAR_MULTIPLIER[0]
         twist.linear.y = -float(d - a) * self.LINEAR_MULTIPLIER[1]
         twist.linear.z = float(space - shift) * self.LINEAR_MULTIPLIER[2]
 
-        twist.angular.x = float(right - left) * self.ANGULAR_MULTIPLIER[0]
-        twist.angular.y = float(up - down) * self.ANGULAR_MULTIPLIER[1]
+        twist.angular.x = float(up - down) * self.ANGULAR_MULTIPLIER[1]
+        twist.angular.y = float(right - left) * self.ANGULAR_MULTIPLIER[0]
         twist.angular.z = -float(e - q) * self.ANGULAR_MULTIPLIER[2]
  
         return twist
@@ -149,6 +149,18 @@ class Keyboard(InputDevice):
             "format": "keyboard",
             "input": snapshot
         }
+    
+    def heartbeat(self):
+        if self._command_mode or self.mode != DeviceMode.INPUT:
+            return False
+        
+        for key in self._device.active_keys():
+            if (code_name := self._internal_code_map[key]) is None:
+                continue
+            if self._state[code_name] != False:
+                return True
+        
+        return False
 
 
 if __name__ == "__main__":

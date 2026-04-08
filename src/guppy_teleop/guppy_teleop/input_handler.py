@@ -29,7 +29,7 @@ class ValidState(Enum): #TODO replace with State constants directly
     FAULT = 6
 
 class InputHandler(Node):
-    TIMEOUT = 5 # TODO need to figure out timeout when holding inputs, like ask controller if it has active buttons before timing out
+    TIMEOUT = 0.5 # seconds before input device gives up focus
 
     def __init__(self, update_widget_callback: Callable = None):
         super().__init__("teleop_input")
@@ -85,11 +85,11 @@ class InputHandler(Node):
     def on_device_event(self, device: InputDevice, snapshot: dict): # passes snapshot of state to prevent race conditions of reading the active state
         if not device.active: # see thread-safe issue on _watchdog(), has the potential to eat inputs, possibly safe to remove condition as by recieving a event means the device is "active" and can have last_time set to the current time?
             return
-        if self._priority_lock is not None and device.priority < self._priority_lock:
+        if self._priority_lock is not None and device.priority > self._priority_lock:
             return
         elif self._focus is None:
             self._focus = device
-        elif device.priority > self._focus.priority:
+        elif device.priority < self._focus.priority:
             self._focus = device
         elif self._focus != device:
             return
@@ -99,15 +99,17 @@ class InputHandler(Node):
 
         self.publisher.publish(self._focus.transform(snapshot))
 
-    # TODO test with multiple devices
     # this guy is NOT thread-safe and can cause a race-condition while attempting to mark the device inactive HOWEVER
     # that's okkkkkk. a zero twist message will STILL be published (preventing hanging) and focus will be lost essentially
     # eating a single input which kinda sucks but might happen. just call it a skill issue.
     def _watchdog(self):
         if self._focus:
+            if self._focus.heartbeat():
+                return
+            
             dt = time.time() - self._focus.last_active
             if dt > self.TIMEOUT:
-                self._focus._mark_inactive() #TODO someone smarter than me make this work better
+                self._focus._mark_inactive()
                 self._focus = None
 
                 self.publisher.publish(Twist())

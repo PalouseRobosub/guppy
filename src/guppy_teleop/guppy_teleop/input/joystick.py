@@ -74,7 +74,7 @@ class Joystick(Controller):
             lambda: self.handler.push_state("DISABLED"): [ecodes.BTN_THUMB, ecodes.BTN_BASE6],
             lambda: self.handler.lock_priority(self.priority): [ecodes.BTN_THUMB, ecodes.BTN_BASE3],
             lambda: self.handler.lock_priority(None): [ecodes.BTN_THUMB, ecodes.BTN_BASE4],
-            lambda: self._cycle_mode(): [ecodes.BTN_THUMB, ecodes.BTN_BASE2]
+            lambda: self._cycle_mode(DeviceMode.DISABLED): [ecodes.BTN_THUMB, ecodes.BTN_BASE2]
         }
 
         self._state = {
@@ -103,7 +103,7 @@ class Joystick(Controller):
 
         throttle =  (1.0 - snapshot["throttle"])
 
-        twist.linear.x = self.stick_deadzone(float(snapshot["joystick_y"]), self.LINEAR_MULTIPLIER[0] * throttle)
+        twist.linear.x = -self.stick_deadzone(float(snapshot["joystick_y"]), self.LINEAR_MULTIPLIER[0] * throttle)
         twist.linear.y = -self.stick_deadzone(float(snapshot["joystick_x"]), self.LINEAR_MULTIPLIER[1] * throttle)
         twist.linear.z = -float(snapshot["thumb_stick_y"]) * self.LINEAR_MULTIPLIER[2] * throttle
 

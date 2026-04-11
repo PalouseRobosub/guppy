@@ -7,9 +7,41 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(guppy_msgs REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclpy REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(OpenCV REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
+
+add_executable(webcam_pub src/webcam_pub.cpp)
+add_executable(pnp src/pnp.cpp)
+
+ament_target_dependencies(webcam_pub rclcpp sensor_msgs cv_bridge OpenCV)
+ament_target_dependencies(pnp rclcpp guppy_msgs sensor_msgs cv_bridge OpenCV)
+
+install(TARGETS
+  webcam_pub
+  pnp
+  DESTINATION lib/${PROJECT_NAME})
+
+# Install Python modules
+ament_python_install_package(${PROJECT_NAME})
+
+# Install Python executables
+install(PROGRAMS
+  ${PROJECT_NAME}/apriltag_detector.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+# Install launch files
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

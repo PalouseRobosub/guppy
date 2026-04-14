@@ -37,12 +37,15 @@ find_package(guppy_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 
 # Add executables
-add_executable(checker src/checker.cpp)
-ament_target_dependencies(checker rclcpp std_msgs geometry_msgs guppy_msgs nav_msgs)
+add_executable(checker   src/checker.cpp)
+add_executable(responder src/responder.cpp)
+ament_target_dependencies(checker rclcpp std_msgs geometry_msgs guppy_msgs nav_msgs guppy_safety)
+ament_target_dependencies(responder rclcpp)
 
 install(
   TARGETS
     checker
+    responder
   DESTINATION lib/${PROJECT_NAME}
 )
 

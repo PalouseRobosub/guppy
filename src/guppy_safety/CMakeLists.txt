@@ -29,7 +29,6 @@ if(BUILD_TESTING)
 endif()
 
 find_package(rclcpp REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
 
 # Message types
 find_package(std_msgs REQUIRED)
@@ -37,20 +36,8 @@ find_package(geometry_msgs REQUIRED)
 find_package(guppy_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 
-# Build own Messages
-set(msg_files
-  "msg/Status.msg"
-)
-rosidl_generate_interfaces(${PROJECT_NAME}
-  ${msg_files}
-)
-ament_export_dependencies(rosidl_default_runtime)
-rosidl_get_typesupport_target(cpp_typesupport_target
-  ${PROJECT_NAME} rosidl_typesupport_cpp)
-
 # Add executables
 add_executable(checker src/checker.cpp)
-target_link_libraries(checker "${cpp_typesupport_target}")
 ament_target_dependencies(checker rclcpp std_msgs geometry_msgs guppy_msgs nav_msgs)
 
 install(

@@ -4,13 +4,13 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "guppy_safety/msg/Status.hpp"
+#include "guppy_msgs/msg/safety_level.hpp"
 
 #include "std_msgs/msg/string.hpp"
 #include "guppy_msgs/msg/state.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
-//#include "nav_msgs/msg/Odometry.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 
 // Checks a bunch of topics, and sets a safety level
 // if one or more of them shows an unhealthy value
@@ -21,10 +21,11 @@ public:
   : Node("safety_checker")
   {
     // Publish result of check as a level
-    pub_level = this->create_publisher<guppy_safety::msg::Status>("safety_level", 10);
+    pub_level = this->create_publisher<guppy_msgs::msg::SafetyLevel>("safety_level", 10);
   
+    // Publish a safe level to prevent the end of the world [probably]
     current_level = 2;
-    publish_status(5);
+    publish_level(current_level);
 
     // CAN RX timeout
     /* auto check_CAN    = [this](std_msgs::msg::String::UniquePtr msg) -> void {
@@ -34,26 +35,29 @@ public:
     }; */
 
     // Impossible Odom
-    /* auto check_Odom   = [this](nav_msgs::msg::Odometry::UniquePtr msg) -> void {
-      RCLCPP_INFO(this->get_logger(), "[odom] '%s'", msg->data.c_str());
-         printf("odom ran");    update_status(5); 
-    }; */
+    auto check_Odom   = [this](nav_msgs::msg::Odometry::UniquePtr msg) -> void {
+      //RCLCPP_INFO(this->get_logger(), "[odom] '%s'", msg->data.c_str());
+      printf("odom ran");
+      compare_level(5);
+    };
 
-    // Excessive Commaned Velocity 
+    // Excessive Commanded Velocity 
     auto check_CmdVel = [this](geometry_msgs::msg::Twist::UniquePtr msg) -> void {
       //RCLCPP_INFO(this->get_logger(), "[cmd_vel] '%s'", msg->data.c_str());
-      update_status(7); 
+      printf("cmdvel ran");
+      compare_level(7); 
     };
 
     // Fault state already set somewhere else
     auto check_state  = [this](guppy_msgs::msg::State::UniquePtr msg) -> void { 
       //RCLCPP_INFO(this->get_logger(), "[state] '%s'", msg->data.c_str());
-      update_status(6); 
+      printf("state ran");
+      compare_level(6); 
     };
 
     // Subscibe to all checked topics
     //sub_canrx  = this->create_subscription<std_msgs::msg::String>(     "can_rx",  10, check_CAN);
-    //sub_odom   = this->create_subscription<nav_msgs::msg::Odometry>(   "odom",    10, check_Odom);
+    sub_odom   = this->create_subscription<nav_msgs::msg::Odometry>(   "odom",    10, check_Odom);
     sub_cmdvel = this->create_subscription<geometry_msgs::msg::Twist>( "cmd_vel", 10, check_CmdVel);
     sub_state  = this->create_subscription<guppy_msgs::msg::State>(    "state",   10, check_state);
   };
@@ -63,33 +67,29 @@ private:
   int current_level;
 
   // Publisher
-  rclcpp::Publisher<guppy_safety::msg::Status>::SharedPtr pub_level;
+  rclcpp::Publisher<guppy_msgs::msg::SafetyLevel>::SharedPtr pub_level;
 
   // All subsciption types
   //rclcpp::Subscription<guppy_msgs::msg::can_frame>::SharedPtr sub_canrx;
-  //rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr sub_odom;
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr sub_odom;
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_cmdvel;
   rclcpp::Subscription<guppy_msgs::msg::State>::SharedPtr sub_state;
  
   // Publish the current level 
   // (To be called in each checker callback)
-  void update_status(int new_level) {
-    // Check if new is more severe than old
+  void compare_level(int new_level) {
     if (new_level > current_level) {
-        publish_status(new_level);
+        publish_level(new_level);
     }; 
   };
 
-  void publish_status(int new_level) {
-        // Move the the new value into current
+  void publish_level(int new_level) {
         current_level = new_level;
 
-        // Create a message
-        auto message = guppy_safety::msg::Status();
+        auto message = guppy_msgs::msg::SafetyLevel();
         message.level = current_level;
       
-        // Publish that new level
-	//RCLCPP_INFO(this->get_logger(), "[Published Level] '%s'", message.data.c_str());
+	      //RCLCPP_INFO(this->get_logger(), "[Published Level] '%s'", message.data.c_str());
         this->pub_level->publish(message);
   };
 };

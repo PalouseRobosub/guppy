@@ -16,7 +16,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SendCan.srv"
   "msg/State.msg"
   "srv/ChangeState.srv"
-  
+  "msg/SafetyLevel.msg"
+
   DEPENDENCIES builtin_interfaces
 )
 

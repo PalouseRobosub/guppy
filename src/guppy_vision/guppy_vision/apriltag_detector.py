@@ -3,6 +3,7 @@
 import cv2
 import rclpy
 import apriltag
+import numpy as np
 from rclpy.node import Node
 from vision_msgs.msg import Point2D
 from geometry_msgs.msg import Point
@@ -55,7 +56,7 @@ class AprilTagDetection(Node):
                 detection.dimension_points.append(point)
 
             msg.detections.append(detection)
-
+        msg.header = image.header
         self.publisher.publish(msg)
 
         # annotate...
@@ -76,7 +77,12 @@ class AprilTagDetection(Node):
             cv2.circle(image, (cX, cY), 5, (0, 0, 255), -1)
 
             cv2.putText(image, "tag_" + str(r.tag_id), (cX - 5, cY - 5),
-                cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 4)
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 4)
+            
+            # cv2.putText(image, "A", ptA, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 4)
+            # cv2.putText(image, "B", ptB, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 4)
+            # cv2.putText(image, "C", ptC, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 4)
+            # cv2.putText(image, "D", ptD, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 4)
         
         self.annotation_publisher.publish(bridge.cv2_to_imgmsg(image, 'bgr8'))
 

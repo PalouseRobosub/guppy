@@ -10,7 +10,7 @@ using namespace std::chrono_literals;
 class WebcamPublisher : public rclcpp::Node {
 public:
   WebcamPublisher() : Node("webcam_pub") {
-    camera.open(1);
+    camera.open(0);
 
     image_pub_ = this->create_publisher<sensor_msgs::msg::Image>("/cam/test/raw", 10);
     info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>("/cam/test/info", 10);
@@ -27,18 +27,23 @@ private:
         cv::Mat image;
         camera.retrieve(image);
 
-        msg_ = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", image).toImageMsg();
+        rclcpp::Time now = this->get_clock()->now();
+        std_msgs::msg::Header header;
+        header.frame_id = "test";
+        header.stamp = now;
+
+        msg_ = cv_bridge::CvImage(header, "bgr8", image).toImageMsg();
         image_pub_->publish(*msg_.get());
 
         sensor_msgs::msg::CameraInfo info;
         info.height = image.rows;
         info.width = image.cols;
-        info.distortion_model = "dummy";
-        info.d = {4.96594686e+02, -5.59325329e-01, 6.24601548e+00, -2.55300791e+00, -3.58715498e-04};
+        info.distortion_model = "opencv(?)";
+        info.d = {0.11278175177017583, -0.2634338012261266, -0.004302324657789871, 0.0007975991434697732, 0.16261327039070175};
         info.k = {
-            8.49762156e+03, 0.00000000e+00, 3.01301941e+02,
-            0.00000000e+00, 6.30069077e+03, 2.39384146e+02,
-            0.00000000e+00, 0.00000000e+00, 1.00000000e+00
+          556.6559171023735,    0.0,                329.6728647483841,
+          0.0,                  556.1111124909132,  240.66490808614884,
+          0.0,                  0.0,                1.0
         };
 
         info_pub_->publish(info);

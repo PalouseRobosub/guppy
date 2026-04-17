@@ -14,19 +14,27 @@ find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(eigen3_cmake_module REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
 add_executable(webcam_pub src/webcam_pub.cpp)
 add_executable(pnp src/pnp.cpp)
+add_executable(slam src/slam.cpp)
 
 ament_target_dependencies(webcam_pub rclcpp sensor_msgs cv_bridge OpenCV)
-ament_target_dependencies(pnp rclcpp guppy_msgs sensor_msgs cv_bridge OpenCV)
+ament_target_dependencies(pnp rclcpp guppy_msgs sensor_msgs cv_bridge OpenCV Eigen3)
+ament_target_dependencies(slam rclcpp guppy_msgs sensor_msgs Eigen3 tf2_geometry_msgs tf2 tf2_ros)
 
 install(TARGETS
   webcam_pub
   pnp
+  slam
   DESTINATION lib/${PROJECT_NAME})
 
 # Install Python modules

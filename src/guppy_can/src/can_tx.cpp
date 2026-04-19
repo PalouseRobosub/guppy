@@ -21,7 +21,7 @@ bool setup_can_socket() {
   }
 
   ifreq ifr{};
-  const char* can_net = "vcan0";
+  const char* can_net = "can0";
   std::strncpy(ifr.ifr_name, can_net, IFNAMSIZ - 1);
 
   if (ioctl(sock_, SIOCGIFINDEX, &ifr) < 0) {

@@ -7,6 +7,12 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+# find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(ros_gz_interfaces REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -23,4 +29,29 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+# install(DIRECTORY launch/
+#   DESTINATION share/${PROJECT_NAME}/launch
+# )
+
+add_executable(cvUFEnode src/cvUFEnode.cpp)
+
+ament_target_dependencies(cvUFEnode
+  rclcpp
+  sensor_msgs
+  cv_bridge
+)
+
+target_link_libraries(cvUFEnode
+  ${OpenCV_LIBS}
+)
+
+install(TARGETS cvUFEnode
+  DESTINATION lib/${PROJECT_NAME})
+
+add_executable(lane_navigator_cpp src/lane_navigator_cpp.cpp)
+ament_target_dependencies(lane_navigator_cpp
+  rclcpp sensor_msgs geometry_msgs ros_gz_interfaces cv_bridge
+)
+target_link_libraries(lane_navigator_cpp ${OpenCV_LIBRARIES})
+install(TARGETS lane_navigator_cpp DESTINATION lib/${PROJECT_NAME})
 ament_package()

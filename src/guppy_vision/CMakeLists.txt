@@ -9,6 +9,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(guppy_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
@@ -29,7 +30,7 @@ add_executable(slam src/slam.cpp)
 
 ament_target_dependencies(webcam_pub rclcpp sensor_msgs cv_bridge OpenCV)
 ament_target_dependencies(pnp rclcpp guppy_msgs sensor_msgs cv_bridge OpenCV Eigen3)
-ament_target_dependencies(slam rclcpp guppy_msgs sensor_msgs Eigen3 tf2_geometry_msgs tf2 tf2_ros)
+ament_target_dependencies(slam rclcpp nav_msgs guppy_msgs sensor_msgs Eigen3 tf2_geometry_msgs tf2 tf2_ros)
 
 install(TARGETS
   webcam_pub

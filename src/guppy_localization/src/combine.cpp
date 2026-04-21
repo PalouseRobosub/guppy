@@ -1,6 +1,9 @@
 #include "rclcpp/rclcpp.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "sensor_msgs/msg/imu.hpp"
+#include "tf2_ros/transform_broadcaster.hpp"
+
+
 
 #include <Eigen/Geometry>
 
@@ -10,6 +13,13 @@ public:
     imu_subscription_ = this->create_subscription<sensor_msgs::msg::Imu>("/vectornav/imu",10,std::bind(&CombineSensors::imu_callback, this, std::placeholders::_1));
     dvl_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("/waterlinked_dvl_driver/odom",10,std::bind(&CombineSensors::dvl_callback, this, std::placeholders::_1));
     odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("/odometry/filtered", 10);
+    tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+
+    geometry_msgs::msg::TransformStamped msg;
+    msg.header.frame_id = "map";
+    msg.header.stamp = this->get_clock()->now();
+    msg.child_frame_id = "odom";
+    tf_broadcaster_->sendTransform(msg);
   }
 
   ~CombineSensors() {
@@ -45,6 +55,8 @@ public:
 
     odom.twist.twist.linear.x *= -1;
     odom_pub_->publish(odom);
+
+    publish_transform();    
   }
 
   void imu_callback(sensor_msgs::msg::Imu::SharedPtr msg) {
@@ -66,12 +78,32 @@ public:
     odom.twist.twist.angular.y = twist[1];
     odom.twist.twist.angular.z = twist[2];
     odom_pub_->publish(odom);
+
+    publish_transform();    
+  }
+
+  void publish_transform() {
+    geometry_msgs::msg::TransformStamped msg;
+    msg.header.frame_id = "odom";
+    msg.header.stamp = this->get_clock()->now();
+    msg.child_frame_id = "dvl_link";
+
+    msg.transform.rotation.w = odom.pose.pose.orientation.w;
+    msg.transform.rotation.x = odom.pose.pose.orientation.x;
+    msg.transform.rotation.y = odom.pose.pose.orientation.y;
+    msg.transform.rotation.z = odom.pose.pose.orientation.z;
+    msg.transform.translation.x = odom.pose.pose.position.x;
+    msg.transform.translation.y = odom.pose.pose.position.y;
+    msg.transform.translation.z = odom.pose.pose.position.z;
+
+    tf_broadcaster_->sendTransform(msg);
   }
 
 private:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
   rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_subscription_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr dvl_subscription_;
+  std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
   nav_msgs::msg::Odometry odom;
 

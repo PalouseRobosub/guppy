@@ -3,6 +3,7 @@
 #include <vector>
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/image.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 #include "guppy_msgs/msg/transform_list.hpp"
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -35,25 +36,35 @@ public:
   }
 
   void callback(guppy_msgs::msg::TransformList::UniquePtr msg) {
-    for (geometry_msgs::msg::TransformStamped transform: msg->transforms) {
-      std::string name = transform.child_frame_id;
+    std::vector<tf2::Transform> potential_odoms;
 
+    for (geometry_msgs::msg::TransformStamped tf_msg_cam_object: msg->transforms) {
+      std::string name = tf_msg_cam_object.child_frame_id;
+      tf_broadcaster_->sendTransform(tf_msg_cam_object);
 
-      if (name == "tag_10") {
-        RCLCPP_INFO(this->get_logger(), "updated map transform...");
-        geometry_msgs::msg::TransformStamped map_transform;
-        map_transform.child_frame_id = transform.child_frame_id;
-        map_transform.header.frame_id = "map";
+      if (already_seen.count(name) > 0) {
+        tf2::Transform tf_map_obj = already_seen[name];
+        tf2::Transform tf_odom_object;
+        geometry_msgs::msg::TransformStamped tf_msg_odom_object = tf_buffer_->lookupTransform("odom", name, this->get_clock()->now());
+        tf2::fromMsg(tf_msg_odom_object.transform, tf_odom_object);
 
-        tf2::Transform tfTransform;
-        tf2::fromMsg(transform.transform, tfTransform);
-
-        map_transform.transform = tf2::toMsg(tfTransform);
-        tf_static_broadcaster_->sendTransform(map_transform);
-
-        // has_map_transform = true;
+        potential_odoms.push_back(tf_map_obj * tf_odom_object.inverse());
       }
-      tf_broadcaster_->sendTransform(transform);
+      else {
+        geometry_msgs::msg::TransformStamped tf_msg_map_object = tf_buffer_->lookupTransform("map", name, this->get_clock()->now());
+        tf2::fromMsg(tf_msg_map_object.transform, already_seen[name]);
+      }
+    }
+
+    if (potential_odoms.size() > 0) {
+      geometry_msgs::msg::TransformStamped tfStampedOut;
+
+      tfStampedOut.child_frame_id = "odom";
+      tfStampedOut.header.stamp = this->get_clock()->now();
+      tfStampedOut.header.frame_id = "map";
+
+      tfStampedOut.transform = tf2::toMsg(potential_odoms[0]);
+      tf_broadcaster_->sendTransform(tfStampedOut);
     }
   }
 
@@ -65,8 +76,7 @@ private:
     std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 
     bool has_map_transform = false;
-    std::map<std::string, bool> already_seen;
-    std::map<std::string, tf2::Transform> map_to_obj;
+    std::map<std::string, tf2::Transform> already_seen;
 };
 
 int main(int argc, char * argv[]) {

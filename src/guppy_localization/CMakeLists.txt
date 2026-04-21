@@ -17,11 +17,15 @@ find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(eigen3_cmake_module REQUIRED)
 find_package(Eigen3)
+find_package(tf2 REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+
 
 add_executable(barometer_pub src/barometer_pub.cpp)
 add_executable(combine_sensors src/combine.cpp)
 ament_target_dependencies(barometer_pub rclcpp sensor_msgs geometry_msgs std_msgs)
-ament_target_dependencies(combine_sensors rclcpp sensor_msgs geometry_msgs nav_msgs std_msgs Eigen3)
+ament_target_dependencies(combine_sensors tf2 tf2_geometry_msgs tf2_ros rclcpp sensor_msgs geometry_msgs nav_msgs std_msgs Eigen3)
 
 install(TARGETS
   barometer_pub

@@ -17,7 +17,7 @@ detector = apriltag.Detector()
 class AprilTagDetection(Node):
     def __init__(self):
         super().__init__('apriltag_detector')
-        self.subscription = self.create_subscription(Image, '/cam/test/raw', self.callback, 10)
+        self.subscription = self.create_subscription(Image, '/cam/test', self.callback, 10)
         self.annotation_publisher = self.create_publisher(Image, '/cam/test/annotated', 10)
         self.publisher = self.create_publisher(CornerDetectionList, '/cam/test/detections', 10)
 
@@ -60,7 +60,9 @@ class AprilTagDetection(Node):
         self.publisher.publish(msg)
 
         # annotate...
-        image = img_o
+        anno = img
+        cv2.putText(anno, "WORK PLEAS EPWQOHJKH", (50, 50),
+            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 4)
         for r in results:
             (ptA, ptB, ptC, ptD) = r.corners
             ptB = (int(ptB[0]), int(ptB[1]))
@@ -68,23 +70,23 @@ class AprilTagDetection(Node):
             ptD = (int(ptD[0]), int(ptD[1]))
             ptA = (int(ptA[0]), int(ptA[1]))
 
-            cv2.line(image, ptA, ptB, (0, 255, 0), 2)
-            cv2.line(image, ptB, ptC, (0, 255, 0), 2)
-            cv2.line(image, ptC, ptD, (0, 255, 0), 2)
-            cv2.line(image, ptD, ptA, (0, 255, 0), 2)
+            cv2.line(anno, ptA, ptB, (0, 255, 0), 2)
+            cv2.line(anno, ptB, ptC, (0, 255, 0), 2)
+            cv2.line(anno, ptC, ptD, (0, 255, 0), 2)
+            cv2.line(anno, ptD, ptA, (0, 255, 0), 2)
 
             (cX, cY) = (int(r.center[0]), int(r.center[1]))
-            cv2.circle(image, (cX, cY), 5, (0, 0, 255), -1)
+            cv2.circle(anno, (cX, cY), 5, (0, 0, 255), -1)
 
-            cv2.putText(image, "tag_" + str(r.tag_id), (cX - 5, cY - 5),
+            cv2.putText(anno, "tag_" + str(r.tag_id), (cX - 5, cY - 5),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 4)
             
-            # cv2.putText(image, "A", ptA, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 4)
-            # cv2.putText(image, "B", ptB, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 4)
-            # cv2.putText(image, "C", ptC, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 4)
-            # cv2.putText(image, "D", ptD, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 4)
+            # cv2.putText(anno, "A", ptA, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 4)
+            # cv2.putText(anno, "B", ptB, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 4)
+            # cv2.putText(anno, "C", ptC, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 4)
+            # cv2.putText(anno, "D", ptD, cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 4)
         
-        self.annotation_publisher.publish(bridge.cv2_to_imgmsg(image, 'bgr8'))
+        self.annotation_publisher.publish(bridge.cv2_to_imgmsg(anno, encoding='mono8'))
 
 
 def main(args=None):

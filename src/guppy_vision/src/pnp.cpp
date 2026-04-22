@@ -21,7 +21,7 @@ public:
       std::bind(&PerspectiveNPoint::callback, this, std::placeholders::_1)
     );
     info_sub_ = this->create_subscription<sensor_msgs::msg::CameraInfo>(
-      "/cam/test/info", 10,
+      "/cam/test/camera_info", 10,
       std::bind(&PerspectiveNPoint::info_callback, this, std::placeholders::_1));
 
     output_pub_ = this->create_publisher<guppy_msgs::msg::TransformList>(

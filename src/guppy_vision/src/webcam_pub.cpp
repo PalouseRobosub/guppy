@@ -12,9 +12,9 @@ public:
   WebcamPublisher() : Node("webcam_pub") {
     camera.open(0);
 
-    image_pub_ = this->create_publisher<sensor_msgs::msg::Image>("/cam/test/raw", 10);
-    info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>("/cam/test/info", 10);
-    timer_ = this->create_wall_timer(20ms, std::bind(&WebcamPublisher::timer_callback, this));
+    image_pub_ = this->create_publisher<sensor_msgs::msg::Image>("/cam/test", 10);
+    info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>("/cam/test/camera_info", 10);
+    timer_ = this->create_wall_timer(50ms, std::bind(&WebcamPublisher::timer_callback, this));
   }
 
   ~WebcamPublisher() {

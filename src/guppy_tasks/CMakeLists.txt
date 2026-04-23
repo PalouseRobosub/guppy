@@ -7,19 +7,28 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(guppy_msgs REQUIRED)
+find_package(eigen3_cmake_module REQUIRED)
+find_package(Eigen3 REQUIRED)
 
-# Install Python modules
 ament_python_install_package(${PROJECT_NAME})
 
-# Install Python executables
+add_executable(align src/align.cpp)
+
+ament_target_dependencies(align rclcpp rclcpp_action geometry_msgs guppy_msgs eigen3_cmake_module Eigen3)
+
 # install(PROGRAMS
-#   guppy_tasks/your_node.py
+#   guppy_tasks/
 #   DESTINATION lib/${PROJECT_NAME}
 # )
 
-# Install launch files
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
 )
+
+install(TARGETS align
+  DESTINATION lib/${PROJECT_NAME}
+) 
+
+
 
 ament_package()

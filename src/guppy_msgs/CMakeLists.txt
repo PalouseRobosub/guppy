@@ -23,7 +23,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/CornerDetection.msg"
   "msg/CornerDetectionList.msg"
   "msg/TransformList.msg"
-  
+  "action/Align.action"
   DEPENDENCIES builtin_interfaces vision_msgs
 )
 

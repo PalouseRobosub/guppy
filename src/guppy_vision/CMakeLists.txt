@@ -29,20 +29,18 @@ add_executable(webcam_pub src/webcam_pub.cpp)
 add_executable(pnp src/pnp.cpp)
 add_executable(slam src/slam.cpp)
 add_executable(aprilrepub src/april.cpp)
-add_executable(align src/align.cpp)
+
 
 ament_target_dependencies(webcam_pub rclcpp sensor_msgs cv_bridge OpenCV image_transport)
 ament_target_dependencies(aprilrepub rclcpp sensor_msgs cv_bridge OpenCV image_transport)
 ament_target_dependencies(pnp rclcpp guppy_msgs sensor_msgs cv_bridge OpenCV Eigen3)
 ament_target_dependencies(slam rclcpp nav_msgs guppy_msgs sensor_msgs Eigen3 tf2_geometry_msgs tf2 tf2_ros)
-ament_target_dependencies(align rclcpp geometry_msgs guppy_msgs Eigen3)
 
 install(TARGETS
   webcam_pub
   aprilrepub
   pnp
   slam
-  align
   DESTINATION lib/${PROJECT_NAME})
 
 # Install Python modules

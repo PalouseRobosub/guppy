@@ -10,6 +10,8 @@ from geometry_msgs.msg import Point
 from sensor_msgs.msg import Image
 from guppy_msgs.msg import CornerDetection, CornerDetectionList
 
+from rclpy.qos import qos_profile_sensor_data
+
 from cv_bridge import CvBridge
 bridge = CvBridge()
 detector = apriltag.Detector()
@@ -17,8 +19,8 @@ detector = apriltag.Detector()
 class AprilTagDetection(Node):
     def __init__(self):
         super().__init__('apriltag_detector')
-        self.subscription = self.create_subscription(Image, '/cam/test', self.callback, 10)
-        self.annotation_publisher = self.create_publisher(Image, '/cam/test/annotated', 10)
+        self.subscription = self.create_subscription(Image, '/cam/test', self.callback, qos_profile_sensor_data)
+        self.annotation_publisher = self.create_publisher(Image, '/cam/test_annotated', qos_profile_sensor_data)
         self.publisher = self.create_publisher(CornerDetectionList, '/cam/test/detections', 10)
 
     def callback(self, image):

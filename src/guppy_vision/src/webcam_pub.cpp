@@ -1,27 +1,39 @@
 #include <chrono>
+#include <image_transport/publisher.hpp>
+#include <memory>
+#include <rclcpp/node.hpp>
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/image.hpp"
 #include "sensor_msgs/msg/camera_info.hpp"
 #include "cv_bridge/cv_bridge.hpp"
 #include "opencv2/opencv.hpp"
+#include "image_transport/image_transport.hpp"
 
 using namespace std::chrono_literals;
 
 class WebcamPublisher : public rclcpp::Node {
 public:
+    static std::shared_ptr<WebcamPublisher> create() {
+        auto node = std::make_shared<WebcamPublisher>();
+        node->post_init();
+        return node;
+  }
+  
   WebcamPublisher() : Node("webcam_pub") {
-    camera.open(0);
-
-    image_pub_ = this->create_publisher<sensor_msgs::msg::Image>("/cam/test", 10);
-    info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>("/cam/test/camera_info", 10);
-    timer_ = this->create_wall_timer(50ms, std::bind(&WebcamPublisher::timer_callback, this));
+      camera.open(0);
+      info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>("/cam/test/camera_info", 1);
+      timer_ = this->create_wall_timer(50ms, std::bind(&WebcamPublisher::timer_callback, this));
   }
 
   ~WebcamPublisher() {
     // ...
   }
 
-private:
+private:    
+    void post_init() {
+        it_ = std::make_unique<image_transport::ImageTransport>(shared_from_this());
+        image_pub_ = it_->advertise("/cam/test", rclcpp::SensorDataQoS().get_rmw_qos_profile());
+    }
     void timer_callback() {
         camera.grab();
         cv::Mat image;
@@ -33,7 +45,7 @@ private:
         header.stamp = now;
 
         msg_ = cv_bridge::CvImage(header, "bgr8", image).toImageMsg();
-        image_pub_->publish(*msg_.get());
+        image_pub_.publish(*msg_.get());
 
         sensor_msgs::msg::CameraInfo info;
         info.height = image.rows;
@@ -51,7 +63,8 @@ private:
 
     cv::VideoCapture camera;
 
-    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr image_pub_;
+    std::unique_ptr<image_transport::ImageTransport> it_;
+    image_transport::Publisher image_pub_;
     rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr info_pub_;
     sensor_msgs::msg::Image::SharedPtr msg_;
     rclcpp::TimerBase::SharedPtr timer_;
@@ -60,7 +73,9 @@ private:
 int main(int argc, char * argv[]) {
   rclcpp::init(argc, argv);
 
-  rclcpp::spin(std::make_shared<WebcamPublisher>());
+  auto node = WebcamPublisher::create();
+  
+  rclcpp::spin(node);
 
   rclcpp::shutdown();
 

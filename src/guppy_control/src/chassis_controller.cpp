@@ -34,12 +34,12 @@ bool ChassisController::control_loop(bool debug) {
   // calculate PID of current velocity error
   Eigen::Vector<double, 6> velocity_feedback;
   for (int i=0; i<6; i++) {
-    // if (abs(desired_velocity_state_[i]) >= params_.pose_lock_deadband[i]) {
+    if (abs(desired_velocity_state_[i]) >= params_.pose_lock_deadband[i]) {
       velocity_feedback[i] = -1 * velocity_pid[i].compute_command(desired_velocity_state_[i] - current_velocity_state_[i], (dt_us_ / 1000000.0));
       if (i == 5 || i == 2) velocity_feedback[i] *= -1; 
-    // } else {
-    //   velocity_feedback[i] = 0;
-    // }
+    } else {
+      velocity_feedback[i] = 0;
+    }
   }
 
   // calculate position and orientation pid
@@ -48,13 +48,14 @@ bool ChassisController::control_loop(bool debug) {
   Eigen::Vector3d position_nudge = Eigen::Vector3d::Zero();
 
   // positions...
+  Eigen::Vector3d position_err = desired_position_state_ - current_position_state_;
+  position_err = current_orientation_state_ * position_err;
   for (int i=0; i<3; i++) {
-    Eigen::Vector3d position_err = desired_position_state_ - current_position_state_;
-    position_err = current_orientation_state_ * position_err;
     if (abs(desired_velocity_state_[i]) < params_.pose_lock_deadband[i]) {
       position_nudge[i] = pose_pid[i].compute_command(position_err[i], (dt_us_ / 1000000.0));
-      if (i == 2) position_nudge[i] *= -1;
+      // if (i == 2) position_nudge[i] *= -1;
     } else {
+      position_nudge[i] = 0;
       desired_position_state_[i] = current_position_state_[i];
     }
   }

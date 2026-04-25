@@ -11,18 +11,25 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(rclcpp_components REQUIRED)
-find_package(geometry_msgs REQUIRED)
+
 find_package(guppy_msgs REQUIRED)
+
+find_package(nav_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+
+find_package(tf2 REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+
+find_package(control_toolbox REQUIRED)
 
 add_library(action_server SHARED src/navigate_action_server.cpp)
 
-#target_include_directories(action_server PRIVATE
-#  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#  $<INSTALL_INTERFACE:include>
-#)
+target_include_directories(action_server PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
 
-#add_executable(navigate_action_server src/navigate_action_server.cpp)
-ament_target_dependencies(action_server rclcpp rclcpp_action rclcpp_components guppy_msgs geometry_msgs)
+ament_target_dependencies(action_server rclcpp rclcpp_action rclcpp_components guppy_msgs nav_msgs geometry_msgs tf2 tf2_geometry_msgs control_toolbox)
 rclcpp_components_register_node(action_server PLUGIN "NavigateActionServer" EXECUTABLE navigate_action_server)
 
 
@@ -31,9 +38,3 @@ install(TARGETS
 
   DESTINATION lib/${PROJECT_NAME}
 )
-#install(DIRECTORY
-#    launch
-#
-#    DESTINATION share/${PROJECT_NAME}/
-#)
-#ament_package()

@@ -148,6 +148,11 @@ class AlignNode : public rclcpp::Node{
                 return;
             }
             geometry_msgs::msg::Twist cmd;
+            /*
+            
+            idk what orientation i should put the camera so i have two of these orientation stuffs
+
+            */
             //ASSUMES Z IS FORWARD/BACKWARD, Y IS UP/DOWN, X LEFT/RIGHT
             // cmd.linear.x  = clamp(kp_f * deadband(-forward_error,  db_lin), m_lin);
             // cmd.linear.y  = clamp(kp_l * deadband(-lateral_error,  db_lin), m_lin);

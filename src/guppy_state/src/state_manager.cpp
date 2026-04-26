@@ -13,7 +13,12 @@ using namespace std::chrono_literals;
 class StateManager : public rclcpp::Node {
     public:
         StateManager() : Node("state_manager"), current_state_(guppy_msgs::msg::State::STARTUP) {
-            state_publisher_ = this->create_publisher<guppy_msgs::msg::State>("state", 10); // what should the queue size be?
+            auto state_quality = rclcpp::QoS(1);
+            state_quality.reliable();
+            state_quality.transient_local();
+            state_quality.keep_last(1);
+
+            state_publisher_ = this->create_publisher<guppy_msgs::msg::State>("state", state_quality); // ROS2 QoS let's you tell the topic to hold onto the last published state and ensure every node gets the state :)))))))
             state_service_ = this->create_service<guppy_msgs::srv::ChangeState>(
                 "change_state",
                 std::bind(&StateManager::transition_callback, this, std::placeholders::_1, std::placeholders::_2)
@@ -118,7 +123,7 @@ class StateManager : public rclcpp::Node {
         }
 
         void handle_disabled() {
-            // TODO
+            this->publish_state(guppy_msgs::msg::State::DISABLED);
         }
 
         void handle_fault() {

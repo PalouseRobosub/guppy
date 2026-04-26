@@ -7,9 +7,54 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(guppy_msgs REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclpy REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(eigen3_cmake_module REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(image_transport REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
+
+add_executable(webcam_pub src/webcam_pub.cpp)
+add_executable(pnp src/pnp.cpp)
+add_executable(slam src/slam.cpp)
+add_executable(aprilrepub src/april.cpp)
+
+ament_target_dependencies(webcam_pub rclcpp sensor_msgs cv_bridge OpenCV image_transport)
+ament_target_dependencies(aprilrepub rclcpp sensor_msgs cv_bridge OpenCV image_transport)
+ament_target_dependencies(pnp rclcpp guppy_msgs sensor_msgs cv_bridge OpenCV Eigen3)
+ament_target_dependencies(slam rclcpp nav_msgs guppy_msgs sensor_msgs Eigen3 tf2_geometry_msgs tf2 tf2_ros)
+
+install(TARGETS
+  webcam_pub
+  aprilrepub
+  pnp
+  slam
+  DESTINATION lib/${PROJECT_NAME})
+
+# Install Python modules
+ament_python_install_package(${PROJECT_NAME})
+
+# Install Python executables
+install(PROGRAMS
+  ${PROJECT_NAME}/apriltag_detector.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+# Install launch files
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

@@ -24,8 +24,6 @@ class Translator(Node):
         self.name_subscriber = self.create_subscription(
             String, "gamepad_name", self.name_callback, 10
         )
-        
-        self.state_client = self.create_client(ChangeState, "change_state")
 
         qos = QoSProfile(
             depth=10,
@@ -56,20 +54,6 @@ class Translator(Node):
         self.controller_name = msg.data
 
     def update_controller_state(self):
-        if self.controller_state["buttons"] is not None and self.controller_state["buttons"][7] == 1:
-            msg = State()
-            msg.state = State.TELEOP
-            req = ChangeState.Request()
-            req.new_state = msg
-            self.state_client.call_async(req)
-            
-        if self.controller_state["buttons"] is not None and self.controller_state["buttons"][8] == 1:
-            msg = State()
-            msg.state = State.DISABLED
-            req = ChangeState.Request()
-            req.new_state = msg
-            self.state_client.call_async(req)
-            
         if (
             self.controller_state["dpad"] is not None
             and self.controller_state["axes"] is not None
@@ -98,31 +82,31 @@ class Translator(Node):
 def logitech_twist(controller_state):
     twist = Twist()
 
-    twist.linear.x = MULTIPLIER * controller_state["axes"][4] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # right stick vertical
-    twist.linear.y = MULTIPLIER * controller_state["axes"][3] if abs(controller_state["axes"][3]) > 0.15 else 0.0 # right stick horizontal
-    twist.linear.z = MULTIPLIER * -controller_state["axes"][1] if abs(controller_state["axes"][1]) > 0.15 else 0.0 # left stick vertical
-    twist.angular.y = MULTIPLIER * float(controller_state["dpad"][1]) # pitch
-    twist.angular.x = -MULTIPLIER * float(controller_state["dpad"][0]) # roll
+    twist.linear.x = -controller_state["axes"][4] if abs(controller_state["axes"][4]) > 0.05 else 0.0 # right stick vertical
+    twist.linear.y = -controller_state["axes"][3] if abs(controller_state["axes"][3]) > 0.05 else 0.0 # right stick horizontal
+    twist.linear.z = -controller_state["axes"][1] if abs(controller_state["axes"][1]) > 0.05 else 0.0 # left stick vertical
+    twist.angular.y = -float(controller_state["dpad"][1]) # pitch
+    twist.angular.x = -float(controller_state["dpad"][0]) # roll
     yaw_r = controller_state["axes"][5] # right trigger
     yaw_l = controller_state["axes"][2] # left trigger
     yaw_r = (yaw_r + 1) / 2
     yaw_l = (yaw_l + 1) / 2 * (-1)
-    twist.angular.z = MULTIPLIER * -(yaw_r + yaw_l)
+    twist.angular.z = (yaw_r + yaw_l)
 
     return twist
 
 def series_x_twist(controller_state):
     twist = Twist()
-    twist.linear.x = MULTIPLIER * controller_state["axes"][4] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # right stick vertical
-    twist.linear.y = MULTIPLIER * controller_state["axes"][3] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # right stick horizontal
-    twist.linear.z = MULTIPLIER * -controller_state["axes"][1] if abs(controller_state["axes"][4]) > 0.15 else 0.0 # left stick
-    twist.angular.y = MULTIPLIER * float(controller_state["dpad"][1]) # pitch
-    twist.angular.x = MULTIPLIER * -float(controller_state["dpad"][0]) # roll
+    twist.linear.x = controller_state["axes"][4] # right stick vertical
+    twist.linear.y = controller_state["axes"][3] # right stick horizontal
+    twist.linear.z = -controller_state["axes"][1] # left stick
+    twist.angular.y = float(controller_state["dpad"][1]) # pitch
+    twist.angular.x = -float(controller_state["dpad"][0]) # roll
     yaw_r = controller_state["axes"][5] # right trigger
     yaw_l = controller_state["axes"][2] # left trigger
     yaw_r = (yaw_r + 1) / 2
     yaw_l = (yaw_l + 1) / 2 * (-1)
-    twist.angular.z = MULTIPLIER * -(yaw_r + yaw_l)
+    twist.angular.z = -(yaw_r + yaw_l)
     return twist
 
 def main(Args=None):

@@ -1,11 +1,11 @@
 control_chassis:
   ros__parameters:
     motor_positions: [
-      #  X      Y      Z      phi      theta
-        0.2789,   0.2461,   -0.0191,     0.0,     45.0,
-        0.2789,  -0.2461,   -0.0191,     0.0,    -45.0,
-       -0.2789,  -0.2461,   -0.0191,     0.0,   -135.0,
-       -0.2789,   0.2461,   -0.0191,     0.0,    135.0,
+      #  X            Y         Z        phi      theta
+        0.2789,   0.2461,   -0.0191,     0.0,    -45.0,
+        0.2789,  -0.2461,   -0.0191,     0.0,     45.0,
+       -0.2789,  -0.2461,   -0.0191,     0.0,    135.0,
+       -0.2789,   0.2461,   -0.0191,     0.0,   -135.0,
         0.290,    0.0,      -0.0243,   -90.0,      0.0,
         0.0,     -0.2649,   -0.0243,   -90.0,      0.0,
        -0.290,    0.0,      -0.0243,   -90.0,      0.0,
@@ -22,11 +22,17 @@ control_chassis:
        0.0,   0.0,   0.0,  0.0,  0.0,  1.0,
     ] # flattend 6 * 6 matrix
 
-    pid_gains_vel_linear: [ 0.0, 0.0, 0.0 ]
-    pid_gains_vel_angular: [ 100.0, 0.0, 0.0 ]
+    pid_gains_vel_linear: [ 1000.0, 0.0, 0.0 ]
+    pid_gains_vel_angular: [ 1000.0, 0.0, 0.0 ]
 
-    pid_gains_pose_linear: [ 200.0, 0.0, 0.0 ]
-    pid_gains_pose_angular: [ 750.0, 4.0, 0.0 ]
+    pid_gains_pose_linear: [ 90.0, 0.0, 30.0 ]
+    pid_gains_pose_angular: [ 50.0, 0.0, 50.0 ]
+
+    # pid_gains_vel_linear: [ 0.0, 0.0, 0.0 ]
+    # pid_gains_vel_angular: [ 0.0, 0.0, 0.0 ]
+
+    # pid_gains_pose_linear: [ 0.0, 0.0, 0.0 ]
+    # pid_gains_pose_angular: [ 0.0, 0.0, 0.0 ]
 
     pose_lock_deadband: [ 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 ]
 
@@ -42,7 +48,7 @@ control_chassis:
     drag_coefficients: [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]
     drag_areas: [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 ]
     water_density: 1000.0 # kg/m^3
-    robot_volume: 0.000 # m^3
-    robot_mass: 0.000 # kg
-    center_of_buoyancy: [ 0.0, 0.0, 0.0 ]
+    robot_volume: 0.0 #0.03963 # m^3
+    robot_mass: 0.0 #34.1 # kg
+    center_of_buoyancy: [0.0, 0.0, 0.0] #[ 0.0, 0.0, -0.08 ]
     qp_epsilon: 0.001

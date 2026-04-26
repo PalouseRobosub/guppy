@@ -39,11 +39,14 @@ find_package(nav_msgs REQUIRED)
 # Add executables
 add_executable(checker src/checker.cpp)
 ament_target_dependencies(checker rclcpp std_msgs geometry_msgs guppy_msgs nav_msgs)
+add_executable(heartbeat src/heartbeat.cpp)
+ament_target_dependencies(heartbeat rclcpp std_msgs geometry_msgs guppy_msgs)
 
 install(
   TARGETS
     checker
-  DESTINATION lib/${PROJECT_NAME}
+    heartbeat
+    DESTINATION lib/${PROJECT_NAME}
 )
 
 ament_package()

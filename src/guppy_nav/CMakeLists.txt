@@ -32,7 +32,6 @@ target_include_directories(action_server PRIVATE
 ament_target_dependencies(action_server rclcpp rclcpp_action rclcpp_components guppy_msgs nav_msgs geometry_msgs tf2 tf2_geometry_msgs control_toolbox)
 rclcpp_components_register_node(action_server PLUGIN "NavigateActionServer" EXECUTABLE navigate_action_server)
 
-
 install(TARGETS
   action_server
 

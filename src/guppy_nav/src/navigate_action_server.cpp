@@ -51,7 +51,7 @@ public:
         
         _actionServer = rclcpp_action::create_server<guppy_msgs::action::Navigate>(
             this,
-            "navigate",
+            "/navigate",
             handleGoal,
             handleCancel,
             handleAccepted

@@ -25,7 +25,7 @@ using cv::Size;
 class SignDetector : public rclcpp::Node {
 public:
     SignDetector() : Node("detect_signs") {
-        auto qos = rclcpp::SensorDataQoS();
+        auto qos = rclcpp::BestAvailableQoS();
         this->image_sub_ = image_transport::create_subscription(this, "/cam/test", std::bind(&SignDetector::cb, this, std::placeholders::_1), "raw", qos.get_rmw_qos_profile());
         this->image_pub_ = image_transport::create_publisher(this, "/cam/signs", qos.get_rmw_qos_profile());
         this->clahe = cv::createCLAHE(2.0, {8, 8});
@@ -76,7 +76,7 @@ private:
         
         findContours(canny, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
         
-        imshow("live", canny);
+        // imshow("live", canny);
         
         vector<Point> approx;
         // test each contour

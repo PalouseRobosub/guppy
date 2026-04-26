@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
-    <node pkg="guppy_teleop" exec="raw_controller"/>
-    <node pkg="guppy_teleop" exec="translator"/>
+    <node pkg="guppy_teleop" exec="raw"/>
+    <node pkg="guppy_teleop" exec="trans"/>
 </launch>

@@ -1,5 +1,6 @@
 #include <memory>
 #include <mutex>
+#include <thread>
 
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/executors/multi_threaded_executor.hpp>
@@ -29,6 +30,9 @@
 class NavigateActionServer : public rclcpp::Node {
 public:
     explicit NavigateActionServer(const rclcpp::NodeOptions& options = rclcpp::NodeOptions()) : Node("navigate_action_server", options) {
+        // action_cb_group_ = this->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
+        // sub_cb_group_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+
         auto handleGoal = [this](const rclcpp_action::GoalUUID& uuid, std::shared_ptr<const guppy_msgs::action::Navigate::Goal> goal) {
             RCLCPP_INFO(this->get_logger(), "goal request with pose and relative set to %d", goal->relative); //goal->pose
 
@@ -46,7 +50,9 @@ public:
         };
 
         auto handleAccepted = [this](const std::shared_ptr<rclcpp_action::ServerGoalHandle<guppy_msgs::action::Navigate>> goalHandle) {
-            execute(goalHandle);
+            std::thread{[this, goalHandle]() {
+                execute(goalHandle);
+            }}.detach();
         };
         
         _actionServer = rclcpp_action::create_server<guppy_msgs::action::Navigate>(
@@ -54,26 +60,35 @@ public:
             "/navigate",
             handleGoal,
             handleCancel,
-            handleAccepted
+            handleAccepted,
+            rcl_action_server_get_default_options()//,
+            // action_cb_group_
         );
 
-        _commandVelocityPublisher = create_publisher<geometry_msgs::msg::Twist>("cmd_vel/nav", 10);
-        _odomSubscription = create_subscription<nav_msgs::msg::Odometry>("/odometry/filtered",10,std::bind(&NavigateActionServer::odometryCallback, this, std::placeholders::_1));
+        rclcpp::SubscriptionOptions odom_options;
+        odom_options.callback_group = sub_cb_group_;
 
-        _xPid.set_gains(1.5, 0.0, 0.1, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
-        _yPid.set_gains(1.5, 0.0, 0.1, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
-        _zPid.set_gains(1.5, 0.0, 0.1, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
-        _yawPid.set_gains(1.5, 0.0, 0.1, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
-        _pitchPid.set_gains(1.5, 0.0, 0.1, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
-        _rollPid.set_gains(1.5, 0.0, 0.1, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _commandVelocityPublisher = create_publisher<geometry_msgs::msg::Twist>("cmd_vel/nav", 10);
+        _odomSubscription = create_subscription<nav_msgs::msg::Odometry>("/odometry/filtered",10,std::bind(&NavigateActionServer::odometryCallback, this, std::placeholders::_1), odom_options);
+
+        _xPid.set_gains(0.0, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _yPid.set_gains(0.0, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _zPid.set_gains(0.0, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _yawPid.set_gains(0.0, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _pitchPid.set_gains(0.0, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _rollPid.set_gains(0.0, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
     }
 
     void odometryCallback(nav_msgs::msg::Odometry::SharedPtr msg) {
-        std::lock_guard<std::mutex> lock(_kinematiStateMutex);
+        // std::lock_guard<std::mutex> lock(_kinematiStateMutex);
+        RCLCPP_INFO(this->get_logger(), "new thingy");
         _kinematicState.pose = msg->pose.pose;
         _kinematicState.twist = msg->twist.twist;
     }
 private:
+    rclcpp::CallbackGroup::SharedPtr action_cb_group_;
+    rclcpp::CallbackGroup::SharedPtr sub_cb_group_;
+
     rclcpp_action::Server<guppy_msgs::action::Navigate>::SharedPtr _actionServer;
 
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr _commandVelocityPublisher;
@@ -85,7 +100,7 @@ private:
     };
 
     KinematicState _kinematicState;
-    std::mutex _kinematiStateMutex;
+    // std::mutex _kinematiStateMutex;
 
     control_toolbox::Pid _xPid, _yPid, _zPid, _yawPid, _pitchPid, _rollPid;
 
@@ -132,7 +147,7 @@ private:
     }();
 
     KinematicState getKinematicState() {
-        std::lock_guard<std::mutex> lock(_kinematiStateMutex);
+        // std::lock_guard<std::mutex> lock(_kinematiStateMutex);
         return _kinematicState;
     }
 
@@ -148,7 +163,7 @@ private:
         currentOrientation.normalize();
 
         const auto localError = currentOrientation.inverse() * worldError;
-        const auto targetVelocityLocal = currentOrientation.inverse() * targetVelocityWorld;
+        const auto targetVelocityLocal = currentOrientation.inverse() * targetVelocityWorld * 10.0;
         const auto angularErrorLocal = orientationSolver.error(elapsed, currentOrientation);
 
         geometry_msgs::msg::Twist commandVelocity;
@@ -229,7 +244,7 @@ private:
             currentPosition << state.pose.position.x, state.pose.position.y, state.pose.position.z;
             auto relativeCurrentPosition = currentPosition - initialPosition;
 
-            feedback->progress.position.x = currentPosition.x(), feedback->progress.position.x = currentPosition.y(), feedback->progress.position.x = currentPosition.z();
+            feedback->progress.position.x = currentPosition.x(), feedback->progress.position.y = currentPosition.y(), feedback->progress.position.z = currentPosition.z();
 
             _commandVelocityPublisher->publish(commandVelocity);
             goalHandle->publish_feedback(feedback);

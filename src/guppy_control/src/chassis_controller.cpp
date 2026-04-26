@@ -114,7 +114,7 @@ Eigen::Vector3d ChassisController::calculate_rotational_nudge(bool debug) {
 
   // calculate the error quaternion
   Eigen::Quaternion q_err = current_orientation_state_.inverse() * desired_orientation_state_;
-  Eigen::Vector3d axis_err = q_err.vec();
+  Eigen::Vector3d axis_err = -1 * q_err.vec();
 
   // // flip to achieve shortest rotation
   // if (q_err.w() < 0) axis_err = -axis_err;

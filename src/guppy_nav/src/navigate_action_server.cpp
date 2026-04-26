@@ -8,9 +8,8 @@
 
 #include <control_toolbox/control_toolbox/pid.hpp>
 
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2/LinearMath/Matrix3x3.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include "guppy_nav/trajectory.hpp"
 
@@ -61,9 +60,12 @@ public:
         _commandVelocityPublisher = create_publisher<geometry_msgs::msg::Twist>("cmd_vel/nav", 10);
         _odomSubscription = create_subscription<nav_msgs::msg::Odometry>("/odometry/filtered",10,std::bind(&NavigateActionServer::odometryCallback, this, std::placeholders::_1));
 
-        _xPid.set_gains(1.5, 0.0, 0.1, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy); // this broke please help
+        _xPid.set_gains(1.5, 0.0, 0.1, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
         _yPid.set_gains(1.5, 0.0, 0.1, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
         _zPid.set_gains(1.5, 0.0, 0.1, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _yawPid.set_gains(1.5, 0.0, 0.1, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _pitchPid.set_gains(1.5, 0.0, 0.1, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _rollPid.set_gains(1.5, 0.0, 0.1, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
     }
 
     void odometryCallback(nav_msgs::msg::Odometry::SharedPtr msg) {
@@ -85,29 +87,41 @@ private:
     KinematicState _kinematicState;
     std::mutex _kinematiStateMutex;
 
-    control_toolbox::Pid _xPid, _yPid, _zPid;
-
-    struct Vector3 {
-        double x{0}, y{0}, z{0};
-
-        Vector3() = default;
-        Vector3(double x, double y, double z) : x(x), y(y), z(z) {}
-    };
+    control_toolbox::Pid _xPid, _yPid, _zPid, _yawPid, _pitchPid, _rollPid;
 
     struct Trajectory3 {
         Trajectory x, y, z;
         
-        explicit Trajectory3(const Vector3& startVelocity, const Vector3& endVelocity, double attack, double decay, double totalTime, const Vector3& targetPosition) :
-        x(Trajectory(startVelocity.x, endVelocity.x, attack, decay, totalTime, targetPosition.x)),
-        y(Trajectory(startVelocity.y, endVelocity.y, attack, decay, totalTime, targetPosition.y)),
-        z(Trajectory(startVelocity.z, endVelocity.z, attack, decay, totalTime, targetPosition.z)) {}
+        explicit Trajectory3(const Eigen::Vector3d& startVelocity, const Eigen::Vector3d& endVelocity, double attack, double decay, double totalTime, const Eigen::Vector3d& targetPosition) :
+        x(Trajectory(startVelocity.x(), endVelocity.x(), attack, decay, totalTime, targetPosition.x())),
+        y(Trajectory(startVelocity.y(), endVelocity.y(), attack, decay, totalTime, targetPosition.y())),
+        z(Trajectory(startVelocity.z(), endVelocity.z(), attack, decay, totalTime, targetPosition.z())) {}
 
-        Vector3 velocity(double time) const {
-            return {x.getTargetVelocity(time), y.getTargetVelocity(time), z.getTargetVelocity(time)};
+        Eigen::Vector3d velocity(double elapsed) const {
+            return Eigen::Vector3d(x.getTargetVelocity(elapsed), y.getTargetVelocity(elapsed), z.getTargetVelocity(elapsed));
         }
 
-        Vector3 position(double time) const {
-            return {x.getTargetPosition(time), y.getTargetPosition(time), z.getTargetPosition(time)};
+        Eigen::Vector3d position(double elapsed) const {
+            return Eigen::Vector3d(x.getTargetPosition(elapsed), y.getTargetPosition(elapsed), z.getTargetPosition(elapsed));
+        }
+    };
+
+    struct OrientationSolver {
+        Eigen::Quaterniond initialOrientation, finalOrientation;
+        double totalTime;
+
+        explicit OrientationSolver(const Eigen::Quaterniond& initialOrientation, const Eigen::Quaterniond& finalOrientation, double totalTime) :
+        initialOrientation(initialOrientation), finalOrientation(finalOrientation), totalTime(totalTime) {}
+
+        Eigen::Vector3d error(double elapsed, const Eigen::Quaterniond& currentOrientation) const {
+            double alpha = std::clamp(elapsed / totalTime, 0.0, 1.0);
+
+            Eigen::Quaterniond targetOrientation = initialOrientation.slerp(alpha, finalOrientation);
+
+            Eigen::Quaterniond orientationError = currentOrientation.inverse() * targetOrientation;
+            Eigen::AngleAxisd angleAxisError(orientationError);
+
+            return angleAxisError.axis() * angleAxisError.angle();
         }
     };
 
@@ -122,43 +136,30 @@ private:
         return _kinematicState;
     }
 
-    Vector3 getRPY(const geometry_msgs::msg::Quaternion& msg) {
-        tf2::Quaternion quaternion;
-        tf2::fromMsg(msg, quaternion);
-        tf2::Matrix3x3 matrix(quaternion);
+    geometry_msgs::msg::Twist computeCommandVelocity(const Trajectory3& trajectory, const OrientationSolver& orientationSolver, double elapsed, double delta, const KinematicState& state, const Eigen::Vector3d& initialPosition) {
+        const auto targetPositionWorld = trajectory.position(elapsed); // world
+        const auto targetVelocityWorld = trajectory.velocity(elapsed); // world
 
-        Vector3 orientation;
-        matrix.getRPY(orientation.x, orientation.y, orientation.z); // (x) roll, (y) pitch, (z) yaw
-        return orientation;
-    }
+        const Eigen::Vector3d currentPosition(state.pose.position.x, state.pose.position.y, state.pose.position.z); // world!
+        const auto relativePosition = currentPosition - initialPosition; // still world
+        const auto worldError = targetPositionWorld - relativePosition;
 
+        Eigen::Quaterniond currentOrientation(state.pose.orientation.w, state.pose.orientation.x, state.pose.orientation.y, state.pose.orientation.z); // world!
+        currentOrientation.normalize();
 
-    Vector3 transformWorldToLocal(const Vector3& world, const Vector3& rpy) {
-        Vector3 local;
-
-        local.x =  cos(rpy.z) * world.x + sin(rpy.z) * world.y;
-        local.y = -sin(rpy.z) * world.x + cos(rpy.z) * world.y;
-
-        local.z =  cos(rpy.y) * world.z - sin(rpy.y) * local.x;
-
-        return local;
-    } 
-
-    geometry_msgs::msg::Twist computeCommandVelocity(const Trajectory3& trajectory, double time, double dt, const KinematicState& state, const Vector3& initialPosition) {
-        auto targetPosition = trajectory.position(time);
-        auto targetVelocity = trajectory.velocity(time);
-
-        Vector3 relativePosition{state.pose.position.x - initialPosition.x, state.pose.position.y - initialPosition.y, state.pose.position.z - initialPosition.z};
-        Vector3 worldError{targetPosition.x - relativePosition.x, targetPosition.y - relativePosition.y, targetPosition.z - relativePosition.z}; // need to translate the state to relative coordinates, i.e. from initial position
-
-        auto rpy = getRPY(state.pose.orientation);
-        auto localError = transformWorldToLocal(worldError, rpy);
+        const auto localError = currentOrientation.inverse() * worldError;
+        const auto targetVelocityLocal = currentOrientation.inverse() * targetVelocityWorld;
+        const auto angularErrorLocal = orientationSolver.error(elapsed, currentOrientation);
 
         geometry_msgs::msg::Twist commandVelocity;
 
-        commandVelocity.linear.x = targetVelocity.x + _xPid.compute_command(localError.x, rclcpp::Duration::from_seconds(dt));
-        commandVelocity.linear.y = targetVelocity.y + _yPid.compute_command(localError.y, rclcpp::Duration::from_seconds(dt));
-        commandVelocity.linear.z = targetVelocity.z + _zPid.compute_command(localError.z, rclcpp::Duration::from_seconds(dt));
+        commandVelocity.angular.z = _yawPid.compute_command(angularErrorLocal.z(), rclcpp::Duration::from_seconds(delta));
+        commandVelocity.angular.y = _pitchPid.compute_command(angularErrorLocal.y(), rclcpp::Duration::from_seconds(delta));
+        commandVelocity.angular.x = _rollPid.compute_command(angularErrorLocal.x(), rclcpp::Duration::from_seconds(delta));
+
+        commandVelocity.linear.x = targetVelocityLocal.x() + _xPid.compute_command(localError.x(), rclcpp::Duration::from_seconds(delta));
+        commandVelocity.linear.y = targetVelocityLocal.y() + _yPid.compute_command(localError.y(), rclcpp::Duration::from_seconds(delta));
+        commandVelocity.linear.z = targetVelocityLocal.z() + _zPid.compute_command(localError.z(), rclcpp::Duration::from_seconds(delta));
 
         return commandVelocity;
     };
@@ -166,22 +167,37 @@ private:
     void execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<guppy_msgs::action::Navigate>> goalHandle) {
         const auto& goal = goalHandle->get_goal();
 
-        auto initialState = getKinematicState();
+        const auto initialState = getKinematicState();
 
-        Vector3 initialPosition{initialState.pose.position.x, initialState.pose.position.y, initialState.pose.position.z};
-        auto finalPose = goal->pose; // not relative
-        Vector3 relativeFinalPosition = goal->relative ? Vector3{finalPose.position.x, finalPose.position.y, finalPose.position.z} : Vector3{finalPose.position.x - initialPosition.x, finalPose.position.y - initialPosition.y, finalPose.position.z - initialPosition.z};
+        Eigen::Vector3d initialPosition(initialState.pose.position.x, initialState.pose.position.y, initialState.pose.position.z); //world
+        Eigen::Quaterniond initialOrientation(initialState.pose.orientation.w, initialState.pose.orientation.x, initialState.pose.orientation.y, initialState.pose.orientation.z); //world
+        initialOrientation.normalize();
 
-        auto initialLinearVelocity = initialState.twist.linear;
-        Vector3 startVelocity{initialLinearVelocity.x, initialLinearVelocity.y, initialLinearVelocity.z};
+        Eigen::Vector3d relativeFinalPosition; // still world, just makes origin (0, 0, 0) (may have to be converted if user submitted local coordinates)
+        
+        const auto& finalPose = goal->pose;
+        Eigen::Quaterniond finalOrientation(finalPose.orientation.w, finalPose.orientation.x, finalPose.orientation.y, finalPose.orientation.z); // will end up in world
+        finalOrientation.normalize();
 
-        Trajectory3 trajectory(startVelocity, {0, 0, 0}, ATTACK, DECAY, TOTAL_TIME, relativeFinalPosition);
+        if (goal->relative) {
+            relativeFinalPosition << finalPose.position.x, finalPose.position.y, finalPose.position.z;
+            finalOrientation = initialOrientation * finalOrientation;
+        } else relativeFinalPosition << finalPose.position.x - initialPosition.x(), finalPose.position.y - initialPosition.y(), finalPose.position.z - initialPosition.z();
+
+        Eigen::Vector3d startVelocity(initialState.twist.linear.x, initialState.twist.linear.y, initialState.twist.linear.z); // world
+
+        Trajectory3 trajectory(startVelocity, Eigen::Vector3d::Zero(), ATTACK, DECAY, TOTAL_TIME, relativeFinalPosition);
+
+        OrientationSolver orientationSolver(initialOrientation, finalOrientation, TOTAL_TIME);
 
         rclcpp::Rate rate(1000.0 / TARGET_RATE_MS);
 
         _xPid.reset();
         _yPid.reset();
         _zPid.reset();
+        _yawPid.reset();
+        _pitchPid.reset();
+        _rollPid.reset();
 
         auto clock = this->get_clock();
         rclcpp::Time start = clock->now();
@@ -204,7 +220,7 @@ private:
             last = now;
 
             auto state = getKinematicState();
-            auto commandVelocity = computeCommandVelocity(trajectory, elapsed, delta, state, initialPosition);
+            auto commandVelocity = computeCommandVelocity(trajectory, orientationSolver, elapsed, delta, state, initialPosition);
 
             feedback->progress = state.pose;
 

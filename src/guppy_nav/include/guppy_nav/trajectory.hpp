@@ -1,4 +1,4 @@
-#include "geometry_msgs/msg/pose.hpp"
+#pragma once
 
 struct Trajectory {
     double startVelocity, endVelocity, totalTime, targetPosition; // given

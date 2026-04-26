@@ -36,7 +36,7 @@ public:
         // sub_cb_group_ = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
 
         auto handleGoal = [this](const rclcpp_action::GoalUUID& uuid, std::shared_ptr<const guppy_msgs::action::Navigate::Goal> goal) {
-            RCLCPP_INFO(this->get_logger(), "goal request with pose and relative set to %d", goal->relative); //goal->pose
+            RCLCPP_INFO(this->get_logger(), "goal request with pose and relative set to %d", goal->local); //goal->pose
 
             (void)uuid; // silence unused parameter warning
 
@@ -124,7 +124,7 @@ private:
     };
 
     struct OrientationSolver {
-        Eigen::Quaterniond initialOrientation, relativeFinalOrientation; // relative to initial, i.e. delta orientation
+        Eigen::Quaterniond initialOrientation, FinalOrientation; // relative to initial, i.e. delta orientation
         double totalTime;
 
         explicit OrientationSolver(const Eigen::Quaterniond& initialOrientation /*world frame*/, const Eigen::Quaterniond& finalOrientation /*world frame*/, double totalTime) :

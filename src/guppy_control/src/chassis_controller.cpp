@@ -23,7 +23,7 @@ bool ChassisController::control_loop(bool debug) {
   // calculate buoyant effect on sub
   Eigen::Vector3d buoyancy_force; buoyancy_force << 0, 0, params_.water_density * params_.robot_volume * GRAVITY;
   Eigen::Vector3d r_vec = current_orientation_state_ * params_.center_of_buoyancy;
-  Eigen::Vector3d buoyancy_torque = r_vec.cross(buoyancy_force);
+  Eigen::Vector3d buoyancy_torque = -1 * r_vec.cross(buoyancy_force);
   Eigen::Vector3d buoyancy_force_rotated = current_orientation_state_.inverse() * buoyancy_force;
   Eigen::Vector<double, 6> buoyancy_wrench;
   buoyancy_wrench << buoyancy_force_rotated[0], buoyancy_force_rotated[1], buoyancy_force_rotated[2], buoyancy_torque;
@@ -35,7 +35,7 @@ bool ChassisController::control_loop(bool debug) {
   Eigen::Vector<double, 6> velocity_feedback;
   for (int i=0; i<6; i++) {
     if (abs(desired_velocity_state_[i]) >= params_.pose_lock_deadband[i]) {
-      velocity_feedback[i] = -1 * velocity_pid[i].compute_command(desired_velocity_state_[i] - current_velocity_state_[i], (dt_us_ / 1000000.0));
+      velocity_feedback[i] = velocity_pid[i].compute_command(desired_velocity_state_[i] - current_velocity_state_[i], (dt_us_ / 1000000.0));
     } else {
       velocity_feedback[i] = 0;
     }
@@ -47,7 +47,7 @@ bool ChassisController::control_loop(bool debug) {
   Eigen::Vector3d position_nudge = Eigen::Vector3d::Zero();
 
   // positions...
-  Eigen::Vector3d position_err = current_position_state_ - desired_position_state_;
+  Eigen::Vector3d position_err = desired_position_state_ - current_position_state_;
   position_err = current_orientation_state_.inverse() * position_err;
   for (int i=0; i<3; i++) {
     if (abs(desired_velocity_state_[i]) < params_.pose_lock_deadband[i]) {

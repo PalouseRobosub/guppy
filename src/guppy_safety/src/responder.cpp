@@ -16,10 +16,10 @@ public:
     // Fault state already set somewhere else
     auto respond_to_change  = [this](guppy_msgs::msg::SafetyLevel::UniquePtr msg) -> void { 
       //RCLCPP_INFO(this->get_logger(), "[state] '%s'", msg->data.c_str());
-      printf("state chnaged"); 
+      printf("state changed"); 
     };
 
-    sub_level = this->create_subscription<guppy_msgs::msg::SafetyLevel>("safety_levelevel", 10, respond_to_change);
+    sub_level = this->create_subscription<guppy_msgs::msg::SafetyLevel>("safety_level", 10, respond_to_change);
   };
 
 private:

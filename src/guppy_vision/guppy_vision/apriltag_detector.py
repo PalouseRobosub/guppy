@@ -25,9 +25,9 @@ class AprilTagDetection(Node):
 
     def callback(self, image):
         img_o = bridge.imgmsg_to_cv2(image)
-        img_o[:,:,0] *= 0
-        img_o[:,:,1] *= 0
-        img_o[:,:,2] *= 3
+        img_o[:,:,0] *= 1
+        img_o[:,:,1] *= 1
+        img_o[:,:,2] *= 1
         # img_o = cv2.merge([img_o[:,:,0]*0.01, img_o[:,:,1]*0.01, img_o[:,:,2]*1]).astype(np.uint8)
         img = cv2.cvtColor(img_o, cv2.COLOR_BGR2GRAY)
         results = detector.detect(img)

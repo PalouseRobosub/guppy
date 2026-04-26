@@ -211,7 +211,7 @@ private:
                 result->target_reached = false;
                 goalHandle->canceled(result);
 
-                geometry_msgs::msg::Twist zeroTwist(); // publish zero twist
+                geometry_msgs::msg::Twist zeroTwist; // publish zero twist
                 _commandVelocityPublisher->publish(zeroTwist);
 
                 return;

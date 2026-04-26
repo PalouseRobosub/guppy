@@ -148,9 +148,15 @@ class AlignNode : public rclcpp::Node{
                 return;
             }
             geometry_msgs::msg::Twist cmd;
-            cmd.linear.x  = clamp(kp_f * deadband(-forward_error,  db_lin), m_lin);
-            cmd.linear.y  = clamp(kp_l * deadband(-lateral_error,  db_lin), m_lin);
-            cmd.linear.z  = clamp(kp_v * deadband(-vertical_error, db_lin), m_lin);
+            //ASSUMES Z IS FORWARD/BACKWARD, Y IS UP/DOWN, X LEFT/RIGHT
+            // cmd.linear.x  = clamp(kp_f * deadband(-forward_error,  db_lin), m_lin);
+            // cmd.linear.y  = clamp(kp_l * deadband(-lateral_error,  db_lin), m_lin);
+            // cmd.linear.z  = clamp(kp_v * deadband(-vertical_error, db_lin), m_lin);
+            // cmd.angular.z = clamp(kp_y * deadband(-yaw_error,      db_ang), m_ang);
+            //ASSUMES Y IS FORWARD/BACKWARD, X IS LEFT/RIGHT, Z UP/DOWN
+            cmd.linear.y  = clamp(kp_f * deadband(-forward_error,  db_lin), m_lin);  
+            cmd.linear.x  = clamp(kp_l * deadband(-lateral_error,  db_lin), m_lin);  
+            cmd.linear.z  = clamp(kp_v * deadband(-vertical_error, db_lin), m_lin);  
             cmd.angular.z = clamp(kp_y * deadband(-yaw_error,      db_ang), m_ang);
             cmd_vel_pub->publish(cmd);
             rate.sleep();

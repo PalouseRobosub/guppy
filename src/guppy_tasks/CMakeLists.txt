@@ -21,9 +21,9 @@ ament_target_dependencies(align rclcpp rclcpp_action geometry_msgs guppy_msgs ei
 #   DESTINATION lib/${PROJECT_NAME}
 # )
 
-install(DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}
-)
+# install(DIRECTORY launch
+#   DESTINATION share/${PROJECT_NAME}
+# )
 
 install(TARGETS align
   DESTINATION lib/${PROJECT_NAME}

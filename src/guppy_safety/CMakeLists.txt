@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.10)
 project(guppy_safety)
 
 # Default to C++17 for ROS2 Jazzy compatibility
@@ -46,8 +46,8 @@ ament_target_dependencies(heartbeat rclcpp std_msgs geometry_msgs guppy_msgs)
 
 install(
   TARGETS
-    checker
-    responder
+  #    checker
+  #  responder
     heartbeat
     DESTINATION lib/${PROJECT_NAME}
 )

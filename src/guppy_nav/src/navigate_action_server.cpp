@@ -212,7 +212,7 @@ private:
                 goalHandle->canceled(result);
 
                 geometry_msgs::msg::Twist zeroTwist(); // publish zero twist
-                _commandVelocityPublisher->publich(zeroTwist);
+                _commandVelocityPublisher->publish(zeroTwist);
 
                 return;
             }
@@ -240,7 +240,7 @@ private:
         }
 
         geometry_msgs::msg::Twist zeroTwist(); // publish zero twist
-        _commandVelocityPublisher->publich(zeroTwist);
+        _commandVelocityPublisher->publish(zeroTwist);
 
         if (rclcpp::ok()) {
             result->pose = getKinematicState().pose;

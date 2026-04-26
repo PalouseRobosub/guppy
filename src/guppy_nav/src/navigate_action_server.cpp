@@ -227,7 +227,7 @@ private:
 
             Eigen::Vector3d currentPosition;
             currentPosition << state.pose.position.x, state.pose.position.y, state.pose.position.z;
-            auto relativeCurrentPosition = currentPosition - initalPosition;
+            auto relativeCurrentPosition = currentPosition - initialPosition;
 
             feedback->progress.position.x = currentPosition.x(), feedback->progress.position.x = currentPosition.y(), feedback->progress.position.x = currentPosition.z();
 
@@ -239,7 +239,7 @@ private:
             rate.sleep();
         }
 
-        geometry_msgs::msg::Twist zeroTwist(); // publish zero twist
+        geometry_msgs::msg::Twist zeroTwist; // publish zero twist
         _commandVelocityPublisher->publish(zeroTwist);
 
         if (rclcpp::ok()) {

@@ -38,7 +38,10 @@ rclcpp_components_register_node(action_server PLUGIN "NavigateActionServer" EXEC
 install(TARGETS
   action_server
 
-  DESTINATION lib/${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  #DESTINATION lib/${PROJECT_NAME}
 )
 
 install(DIRECTORY

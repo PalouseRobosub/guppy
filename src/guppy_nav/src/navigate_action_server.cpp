@@ -211,6 +211,9 @@ private:
                 result->target_reached = false;
                 goalHandle->canceled(result);
 
+                geometry_msgs::msg::Twist zeroTwist(); // publish zero twist
+                _commandVelocityPublisher->publich(zeroTwist);
+
                 return;
             }
 
@@ -222,7 +225,11 @@ private:
             auto state = getKinematicState();
             auto commandVelocity = computeCommandVelocity(trajectory, orientationSolver, elapsed, delta, state, initialPosition);
 
-            feedback->progress = state.pose;
+            Eigen::Vector3d currentPosition;
+            currentPosition << state.pose.position.x, state.pose.position.y, state.pose.position.z;
+            auto relativeCurrentPosition = currentPosition - initalPosition;
+
+            feedback->progress.position.x = currentPosition.x(), feedback->progress.position.x = currentPosition.y(), feedback->progress.position.x = currentPosition.z();
 
             _commandVelocityPublisher->publish(commandVelocity);
             goalHandle->publish_feedback(feedback);
@@ -231,6 +238,9 @@ private:
 
             rate.sleep();
         }
+
+        geometry_msgs::msg::Twist zeroTwist(); // publish zero twist
+        _commandVelocityPublisher->publich(zeroTwist);
 
         if (rclcpp::ok()) {
             result->pose = getKinematicState().pose;

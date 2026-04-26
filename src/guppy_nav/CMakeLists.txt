@@ -31,7 +31,7 @@ add_library(action_server SHARED src/navigate_action_server.cpp)
 
 include_directories(include)
 
-add_executable(action_server src/navigate_action_server.cpp)
+#add_executable(action_server src/navigate_action_server.cpp)
 ament_target_dependencies(action_server rclcpp rclcpp_action rclcpp_components guppy_msgs nav_msgs geometry_msgs Eigen3 control_toolbox)
 rclcpp_components_register_node(action_server PLUGIN "NavigateActionServer" EXECUTABLE navigate_action_server)
 

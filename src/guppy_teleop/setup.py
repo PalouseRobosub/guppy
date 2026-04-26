@@ -67,6 +67,9 @@ setup(
             'keyboard = guppy_teleop.input_handler:keyboard',
             'terminal = guppy_teleop.frontend.terminal:main',
             'ksed = guppy_teleop.ksed_controller:main',
+
+            'trans = guppy_teleop.translator:main',
+            'raw = guppy_teleop.raw_controller:main',
         ],
     },
 )

@@ -76,6 +76,8 @@ class ParameterWidget(Node, Widget):
 
             for key, value in params.items():
                 if not value.__eq__(self._params[key]):
+                    if isinstance(value, list):
+                        value = list(map(float, value))
                     requests.append(Parameter(name=key, value=value))
 
             if len(requests) == 0:

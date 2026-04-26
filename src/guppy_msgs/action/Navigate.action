@@ -1,6 +1,6 @@
 geometry_msgs/Pose pose
-bool relative true #use global pose or relative pose
-float64 time
+bool local true
+float64 duration
 ---
 geometry_msgs/Pose pose #final relative position
 bool target_reached #if guppy made it to the target pose

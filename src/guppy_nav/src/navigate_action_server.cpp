@@ -27,6 +27,8 @@
 
 #define TARGET_RATE_MS 10
 
+#define PI 3.1415
+
 class NavigateActionServer : public rclcpp::Node {
 public:
     explicit NavigateActionServer(const rclcpp::NodeOptions& options = rclcpp::NodeOptions()) : Node("navigate_action_server", options) {
@@ -122,13 +124,15 @@ private:
     };
 
     struct OrientationSolver {
-        Eigen::Quaterniond initialOrientation, finalOrientation;
+        Eigen::Quaterniond initialOrientation, relativeFinalOrientation; // relative to initial, i.e. delta orientation
         double totalTime;
 
-        explicit OrientationSolver(const Eigen::Quaterniond& initialOrientation, const Eigen::Quaterniond& finalOrientation, double totalTime) :
-        initialOrientation(initialOrientation), finalOrientation(finalOrientation), totalTime(totalTime) {}
+        explicit OrientationSolver(const Eigen::Quaterniond& initialOrientation /*world frame*/, const Eigen::Quaterniond& finalOrientation /*world frame*/, double totalTime) :
+        initialOrientation(initialOrientation), finalOrientation(finalOrientation), totalTime(totalTime) {
+            if (initialOrientation.dot(finalOrientation) < 0.0) finalOrientation.coeffs() *= -1.0;
+        }
 
-        Eigen::Vector3d error(double elapsed, const Eigen::Quaterniond& currentOrientation) const {
+        Eigen::Vector3d error(double elapsed, const Eigen::Quaterniond& currentOrientation /*world frame*/) const {
             double alpha = std::clamp(elapsed / totalTime, 0.0, 1.0);
 
             Eigen::Quaterniond targetOrientation = initialOrientation.slerp(alpha, finalOrientation);
@@ -136,7 +140,10 @@ private:
             Eigen::Quaterniond orientationError = currentOrientation.inverse() * targetOrientation;
             Eigen::AngleAxisd angleAxisError(orientationError);
 
-            return angleAxisError.axis() * angleAxisError.angle();
+            double angle = angleAxisError.angle();
+            if (angle > PI) angle -= 2.0 * PI;
+
+            return angleAxisError.axis() * angle;
         }
     };
 
@@ -147,23 +154,20 @@ private:
     }();
 
     KinematicState getKinematicState() {
-        // std::lock_guard<std::mutex> lock(_kinematiStateMutex);
         return _kinematicState;
     }
 
     geometry_msgs::msg::Twist computeCommandVelocity(const Trajectory3& trajectory, const OrientationSolver& orientationSolver, double elapsed, double delta, const KinematicState& state, const Eigen::Vector3d& initialPosition) {
-        const auto targetPositionWorld = trajectory.position(elapsed); // world
-        const auto targetVelocityWorld = trajectory.velocity(elapsed); // world
+        const auto relativeTargetPosition = trajectory.position(elapsed); // relative to guppy starting position, world frame
+        const auto targetVelocity = trajectory.velocity(elapsed); // world frame
 
-        const Eigen::Vector3d currentPosition(state.pose.position.x, state.pose.position.y, state.pose.position.z); // world!
-        const auto relativePosition = currentPosition - initialPosition; // still world
-        const auto worldError = targetPositionWorld - relativePosition;
+        const Eigen::Vector3d currentPosition(state.pose.position.x, state.pose.position.y, state.pose.position.z); // world
+        const auto relativePosition = currentPosition - initialPosition; // world, relative to the initial position, as if guppy's initial position were (0, 0, 0)
+        const auto error = relativeTargetPosition - relativePosition; // end - start; target - current; gives vector from current to target, i.e. error
 
-        Eigen::Quaterniond currentOrientation(state.pose.orientation.w, state.pose.orientation.x, state.pose.orientation.y, state.pose.orientation.z); // world!
-        currentOrientation.normalize();
-
-        const auto localError = currentOrientation.inverse() * worldError;
-        const auto targetVelocityLocal = currentOrientation.inverse() * targetVelocityWorld * 10.0;
+        Eigen::Quaterniond currentOrientation(state.pose.orientation.w, state.pose.orientation.x, state.pose.orientation.y, state.pose.orientation.z); // world frame
+        const auto localTargetVelocity = currentOrientation.inverse() * targetVelocity;
+        const auto localError = currentOrientation.inverse() * error;
         const auto angularErrorLocal = orientationSolver.error(elapsed, currentOrientation);
 
         geometry_msgs::msg::Twist commandVelocity;
@@ -172,9 +176,9 @@ private:
         commandVelocity.angular.y = _pitchPid.compute_command(angularErrorLocal.y(), rclcpp::Duration::from_seconds(delta));
         commandVelocity.angular.x = _rollPid.compute_command(angularErrorLocal.x(), rclcpp::Duration::from_seconds(delta));
 
-        commandVelocity.linear.x = targetVelocityLocal.x() + _xPid.compute_command(localError.x(), rclcpp::Duration::from_seconds(delta));
-        commandVelocity.linear.y = targetVelocityLocal.y() + _yPid.compute_command(localError.y(), rclcpp::Duration::from_seconds(delta));
-        commandVelocity.linear.z = targetVelocityLocal.z() + _zPid.compute_command(localError.z(), rclcpp::Duration::from_seconds(delta));
+        commandVelocity.linear.x = localTargetVelocity.x() + _xPid.compute_command(localError.x(), rclcpp::Duration::from_seconds(delta));
+        commandVelocity.linear.y = localTargetVelocity.y() + _yPid.compute_command(localError.y(), rclcpp::Duration::from_seconds(delta));
+        commandVelocity.linear.z = localTargetVelocity.z() + _zPid.compute_command(localError.z(), rclcpp::Duration::from_seconds(delta));
 
         return commandVelocity;
     };
@@ -182,28 +186,28 @@ private:
     void execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<guppy_msgs::action::Navigate>> goalHandle) {
         const auto& goal = goalHandle->get_goal();
 
-        const auto initialState = getKinematicState();
+        const auto initialState = getKinematicState(); // world frame
+        const Eigen::Vector3d initialPosition(initialState.pose.position.x, initialState.pose.position.y, initialState.pose.position.z);
+        const Eigen::Quaterniond initialOrientation(initialState.pose.orientation.w, initialState.pose.orientation.x, initialState.pose.orientation.y, initialState.pose.orientation.z);
 
-        Eigen::Vector3d initialPosition(initialState.pose.position.x, initialState.pose.position.y, initialState.pose.position.z); //world
-        Eigen::Quaterniond initialOrientation(initialState.pose.orientation.w, initialState.pose.orientation.x, initialState.pose.orientation.y, initialState.pose.orientation.z); //world
-        initialOrientation.normalize();
+        const Eigen::Vector3d goalPosition(goal->pose.position.x, goal->pose.position.y, goal->pose.position.z); // if local == true, relative to guppy; if local == false it is a world position (not relative to guppy)
+        const Eigen::Quaterniond goalOrientation(goal->pose.orientation.w, goal->pose.orientation.x, goal->pose.orientation.y, goal->pose.orientation.z);
 
-        Eigen::Vector3d relativeFinalPosition; // still world, just makes origin (0, 0, 0) (may have to be converted if user submitted local coordinates)
-        
-        const auto& finalPose = goal->pose;
-        Eigen::Quaterniond finalOrientation(finalPose.orientation.w, finalPose.orientation.x, finalPose.orientation.y, finalPose.orientation.z); // will end up in world
-        finalOrientation.normalize();
+        Eigen::Vector3d finalPosition; // world
+        Eigen::Quaterniond finalOrientation; // world
+        if (goal->local) {
+            finalPosition = initialPosition + initialOrientation.inverse() * goalPosition; // get final position in world based on guppy's position/orientation
+            finalOrientation = initialOrientation * goalOrientation; 
+        } else {
+            finalPosition = goalPosition;
+            finalOrientation = goalOrientation;
+        }
 
-        if (goal->relative) {
-            relativeFinalPosition << finalPose.position.x, finalPose.position.y, finalPose.position.z;
-            finalOrientation = initialOrientation * finalOrientation;
-        } else relativeFinalPosition << finalPose.position.x - initialPosition.x(), finalPose.position.y - initialPosition.y(), finalPose.position.z - initialPosition.z();
+        const Eigen::Vector3d initialVelocity(initialState.twist.linear.x, initialState.twist.linear.y, initialState.twist.linear.z); // world frame
+        const auto relativeFinalPosition = finalPosition - initialPosition; // vector between guppy's initial position (world) and target final position (world), position as if guppy were (0, 0, 0)
 
-        Eigen::Vector3d startVelocity(initialState.twist.linear.x, initialState.twist.linear.y, initialState.twist.linear.z); // world
-
-        Trajectory3 trajectory(startVelocity, Eigen::Vector3d::Zero(), ATTACK, DECAY, TOTAL_TIME, relativeFinalPosition);
-
-        OrientationSolver orientationSolver(initialOrientation, finalOrientation, TOTAL_TIME);
+        Trajectory3 trajectory(initialVelocity, Eigen::Vector3d::Zero(), ATTACK, DECAY, goal->duration, relativeFinalPosition); // world frame velocities (will output target velocities in world frame)
+        OrientationSolver orientationSolver(initialOrientation, finalOrientation, goal->duration); // will output target angular velocities
 
         rclcpp::Rate rate(1000.0 / TARGET_RATE_MS);
 
@@ -237,8 +241,8 @@ private:
             double delta = std::clamp((now - last).seconds(), 1e-4, 0.05);
             last = now;
 
-            auto state = getKinematicState();
-            auto commandVelocity = computeCommandVelocity(trajectory, orientationSolver, elapsed, delta, state, initialPosition);
+            auto state = getKinematicState(); // world
+            auto commandVelocity = computeCommandVelocity(trajectory, orientationSolver, elapsed, delta, state /*world*/, initialPosition /*world*/);
 
             Eigen::Vector3d currentPosition;
             currentPosition << state.pose.position.x, state.pose.position.y, state.pose.position.z;

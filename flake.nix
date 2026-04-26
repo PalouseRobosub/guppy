@@ -52,6 +52,8 @@
                 # rqt
                 rqt
                 rqt-common-plugins
+                image-transport
+                image-transport-plugins
                 
                 # build
                 ament-cmake

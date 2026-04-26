@@ -40,7 +40,6 @@ public:
     odom.pose.pose.position.x = position[0];
     odom.pose.pose.position.y = position[1];
     odom.pose.pose.position.z = position[2];
-    odom.twist.twist.linear.x = -1 * twist[0];
 
     double rx = 0.2;
     double ry = 0.0;
@@ -53,7 +52,6 @@ public:
     odom.twist.twist.linear.y = twist[1] - (wz*rx - wx*rz);
     odom.twist.twist.linear.z = twist[2] - (wx*ry - wy*rx);
 
-    odom.twist.twist.linear.x *= -1;
     odom_pub_->publish(odom);
 
     publish_transform();    
@@ -69,6 +67,13 @@ public:
 
     orientation = orientation * quat;
     twist = quat * twist;
+
+    if (!this->has_initial) {
+      this->initial_orientation = orientation;
+      this->has_initial = true;
+    }
+
+    orientation *= this->initial_orientation.inverse();
 
     odom.pose.pose.orientation.w = orientation.w();
     odom.pose.pose.orientation.x = orientation.x();
@@ -96,7 +101,7 @@ public:
     msg.transform.translation.y = odom.pose.pose.position.y;
     msg.transform.translation.z = odom.pose.pose.position.z;
 
-    tf_broadcaster_->sendTransform(msg);
+    // tf_broadcaster_->sendTransform(msg);
   }
 
 private:
@@ -106,6 +111,9 @@ private:
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
   nav_msgs::msg::Odometry odom;
+
+  Eigen::Quaterniond initial_orientation;
+  bool has_initial = false;
 
 };
 

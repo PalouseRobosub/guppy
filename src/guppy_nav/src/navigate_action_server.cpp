@@ -76,9 +76,9 @@ public:
         _xPid.set_gains(0.0, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
         _yPid.set_gains(0.0, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
         _zPid.set_gains(0.0, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
-        _yawPid.set_gains(0.0, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
-        _pitchPid.set_gains(0.0, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
-        _rollPid.set_gains(0.0, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _yawPid.set_gains(0.5, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _pitchPid.set_gains(0.5, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _rollPid.set_gains(0.5, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
     }
 
     void odometryCallback(nav_msgs::msg::Odometry::SharedPtr msg) {
@@ -127,9 +127,12 @@ private:
         Eigen::Quaterniond initialOrientation, finalOrientation; // relative to initial, i.e. delta orientation
         double totalTime;
 
-        explicit OrientationSolver(const Eigen::Quaterniond& initialOrientation /*world frame*/, const Eigen::Quaterniond& finalOrientation /*world frame*/, double totalTime) :
+        explicit OrientationSolver(const Eigen::Quaterniond& initialOrientation /*world frame*/, Eigen::Quaterniond& finalOrientation /*world frame*/, double totalTime) :
         initialOrientation(initialOrientation), finalOrientation(finalOrientation), totalTime(totalTime) {
-            if (initialOrientation.dot(finalOrientation) < 0.0) finalOrientation.coeffs() *= -1.0;
+            if (initialOrientation.dot(finalOrientation) < 0.0) {
+                Eigen::Quaterniond second(-finalOrientation.w(), -finalOrientation.x(), -finalOrientation.y(), -finalOrientation.z());
+                finalOrientation = second;
+            }
         }
 
         Eigen::Vector3d error(double elapsed, const Eigen::Quaterniond& currentOrientation /*world frame*/) const {
@@ -138,12 +141,12 @@ private:
             Eigen::Quaterniond targetOrientation = initialOrientation.slerp(alpha, finalOrientation);
 
             Eigen::Quaterniond orientationError = currentOrientation.inverse() * targetOrientation;
-            Eigen::AngleAxisd angleAxisError(orientationError);
 
-            double angle = angleAxisError.angle();
-            if (angle > PI) angle -= 2.0 * PI;
+            // Eigen::AngleAxisd angleAxisError(orientationError);
+            // double angle = angleAxisError.angle();
+            // if (angle > PI) angle -= 2.0 * PI;
 
-            return angleAxisError.axis() * angle;
+            return orientationError.vec();
         }
     };
 
@@ -253,7 +256,7 @@ private:
             _commandVelocityPublisher->publish(commandVelocity);
             goalHandle->publish_feedback(feedback);
 
-            if (elapsed >= TOTAL_TIME) break;
+            if (elapsed >= goal->duration) break;
 
             rate.sleep();
         }

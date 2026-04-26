@@ -28,11 +28,11 @@ class Translator(Node):
         self.state_client = self.create_client(ChangeState, "change_state")
 
         qos = QoSProfile(
-            depth=1
+            depth=10,
             deadline = Duration(seconds=0.5)
         )
 
-        self.publisher = self.create_publisher(Twist, "/cmd_vel/teleop", 10, qos)
+        self.publisher = self.create_publisher(Twist, "/cmd_vel/teleop", qos)
 
         self.controller_state = {"dpad": None, "axes": None, "buttons": None}
         self.controller_name = None

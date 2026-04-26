@@ -23,8 +23,12 @@
             
             # deps
             pkgs.proxsuite
-            pkgs.python3Packages.pygame
-            pkgs.python3Packages.pip
+
+            (pkgs.python3.withPackages (ps: with ps; [
+              pygame
+              pip
+              pyside6
+            ]))
             
             # extra
             pkgs.fastfetch

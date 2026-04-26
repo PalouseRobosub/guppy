@@ -10,19 +10,28 @@ find_package(ament_cmake REQUIRED)
 
 find_package(rosidl_default_generators REQUIRED)
 find_package(builtin_interfaces REQUIRED)
+find_package(vision_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/ChangeState.srv"
+  "srv/SendCan.srv"
+
   "msg/CanFrame.msg"
   "srv/SendCan.srv"
 
   "msg/State.msg"
+  "msg/Toast.msg"
+  "msg/CornerDetection.msg"
+  "msg/CornerDetectionList.msg"
+  "msg/TransformList.msg"
   "srv/ChangeState.srv"
 
   "action/Navigate.action"
   
   DEPENDENCIES builtin_interfaces
   DEPENDENCIES geometry_msgs
+  DEPENDENCIES builtin_interfaces vision_msgs
 )
 
 if(BUILD_TESTING)

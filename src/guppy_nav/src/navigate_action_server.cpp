@@ -124,7 +124,7 @@ private:
     };
 
     struct OrientationSolver {
-        Eigen::Quaterniond initialOrientation, FinalOrientation; // relative to initial, i.e. delta orientation
+        Eigen::Quaterniond initialOrientation, finalOrientation; // relative to initial, i.e. delta orientation
         double totalTime;
 
         explicit OrientationSolver(const Eigen::Quaterniond& initialOrientation /*world frame*/, const Eigen::Quaterniond& finalOrientation /*world frame*/, double totalTime) :

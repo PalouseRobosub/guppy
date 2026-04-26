@@ -15,17 +15,16 @@ find_package(geometry_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ChangeState.srv"
-  "srv/SendCan.srv"
+  "msg/State.msg"
 
   "msg/CanFrame.msg"
   "srv/SendCan.srv"
 
-  "msg/State.msg"
   "msg/Toast.msg"
+
   "msg/CornerDetection.msg"
   "msg/CornerDetectionList.msg"
   "msg/TransformList.msg"
-  "srv/ChangeState.srv"
 
   "action/Navigate.action"
   

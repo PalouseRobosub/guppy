@@ -4,6 +4,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
+#include "guppy_msgs/msg/can_frame.hpp"
 #include "std_msgs/msg/byte_multi_array.hpp"
 
 using namespace std::chrono_literals;
@@ -11,24 +12,24 @@ using namespace std::chrono_literals;
 class BarometerPublisher : public rclcpp::Node {
 public:
   BarometerPublisher() : Node("barometer_publisher") {
-    this->declare_parameter("can_id", 0x001);
     this->declare_parameter("tf_frame", "barometer");
 
-    char can_topic[30];
-    sprintf(can_topic, "/can/id_%x", (unsigned int)this->get_parameter("can_id").as_int());
 
     publisher_ = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("/barometer", 10);
-    subscription_ = this->create_subscription<std_msgs::msg::ByteMultiArray>(
-      can_topic, 10,
+    subscription_ = this->create_subscription<guppy_msgs::msg::CanFrame>(
+      "/can/id_0x26", 10,
       std::bind(&BarometerPublisher::callback, this, std::placeholders::_1)
     );
 
     RCLCPP_INFO(this->get_logger(), "setup publisher and subscriber");
   }
 
-  void callback(std_msgs::msg::ByteMultiArray::SharedPtr msg) {
-    double depth = 0;
-    memcpy(&depth, msg->data.data(), sizeof(double));
+  void callback(guppy_msgs::msg::CanFrame msg) {
+    float depth = 0;
+    memcpy(&depth, msg.data.data(), sizeof(float));
+    depth += 0.8;
+    depth *= -1;
+    RCLCPP_INFO(this->get_logger(), "depth: %f", depth);
 
     geometry_msgs::msg::PoseWithCovarianceStamped pose_out;
     pose_out.header.frame_id = this->get_parameter("tf_frame").as_string();
@@ -52,7 +53,7 @@ public:
 
 private:
   rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr publisher_;
-  rclcpp::Subscription<std_msgs::msg::ByteMultiArray>::SharedPtr subscription_;
+  rclcpp::Subscription<guppy_msgs::msg::CanFrame>::SharedPtr subscription_;
 };
 
 int main(int argc, char * argv[]) {

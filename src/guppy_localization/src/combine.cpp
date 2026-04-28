@@ -1,5 +1,6 @@
 #include "rclcpp/rclcpp.hpp"
 #include "nav_msgs/msg/odometry.hpp"
+#include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 #include "tf2_ros/transform_broadcaster.hpp"
 
@@ -12,6 +13,7 @@ public:
   CombineSensors() : Node("combine_sensors") {
     imu_subscription_ = this->create_subscription<sensor_msgs::msg::Imu>("/vectornav/imu",10,std::bind(&CombineSensors::imu_callback, this, std::placeholders::_1));
     dvl_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>("/waterlinked_dvl_driver/odom",10,std::bind(&CombineSensors::dvl_callback, this, std::placeholders::_1));
+    baro_subscription_ = this->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>("/barometer",10,std::bind(&CombineSensors::baro_callback, this, std::placeholders::_1));
     odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("/odometry/filtered", 10);
     tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 
@@ -24,6 +26,14 @@ public:
 
   ~CombineSensors() {
     // ...
+  }
+
+void baro_callback(geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg) {
+    odom.pose.pose.position.z = msg->pose.pose.position.z;
+
+    odom_pub_->publish(odom);
+
+    publish_transform();    
   }
 
   void dvl_callback(nav_msgs::msg::Odometry::SharedPtr msg) {
@@ -39,7 +49,7 @@ public:
 
     odom.pose.pose.position.x = position[0];
     odom.pose.pose.position.y = position[1];
-    odom.pose.pose.position.z = position[2];
+    // odom.pose.pose.position.z = position[2];
 
     double rx = 0.2;
     double ry = 0.0;
@@ -108,6 +118,7 @@ private:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
   rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_subscription_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr dvl_subscription_;
+  rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr baro_subscription_;
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
   nav_msgs::msg::Odometry odom;

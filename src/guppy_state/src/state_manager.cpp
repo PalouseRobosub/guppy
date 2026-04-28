@@ -76,10 +76,11 @@ class StateManager : public rclcpp::Node {
             
             response->success = this->publish_state(request->new_state.state);                                                                                 
         }
-
+        
         bool publish_state(uint8_t state) {
             auto message = guppy_msgs::msg::State();
             message.state = state;
+            this->cmd_vel_publisher_->publish(StateManager::zero_twist);
             this->state_publisher_->publish(message);
             this->current_state_ = state;
             return true;

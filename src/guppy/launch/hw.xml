@@ -3,9 +3,9 @@
     <arg name="controller_debug" default="false" />
     <!-- to launch with controller debugging enabled use 'ros2 launch guppy hw.xml controller_debug:=true' -->
 
-    <include file="$(find-pkg-share guppy_control)/launch/core.xml">
+    <!-- <include file="$(find-pkg-share guppy_control)/launch/core.xml">
         <arg name="controller_debug" value="$(var controller_debug)" />
-    </include>
+    </include> -->
     <include file="$(find-pkg-share guppy_can)/launch/core.xml" />
     <include file="$(find-pkg-share guppy_localization)/launch/core.xml" />
     <include file="$(find-pkg-share guppy_description)/launch/core.xml" />

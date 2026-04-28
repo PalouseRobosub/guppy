@@ -21,9 +21,8 @@
 
 #define THRESHOLD 0.1
 
-#define TOTAL_TIME 10 // in seconds
-#define ATTACK 0.0 // from 0.0 - 1.0, ATTACK + DECAY must <= 1.0
-#define DECAY 0.0
+#define ATTACK 0.4 // from 0.0 - 1.0, ATTACK + DECAY must <= 1.0
+#define DECAY 0.4
 
 #define TARGET_RATE_MS 10
 
@@ -210,7 +209,7 @@ private:
         const Eigen::Vector3d initialVelocity(initialState.twist.linear.x, initialState.twist.linear.y, initialState.twist.linear.z); // world frame
         const auto relativeFinalPosition = finalPosition - initialPosition; // vector between guppy's initial position (world) and target final position (world), position as if guppy were (0, 0, 0)
 
-        Trajectory3 trajectory(initialVelocity, Eigen::Vector3d::Zero(), ATTACK, DECAY, goal->duration, relativeFinalPosition); // world frame velocities (will output target velocities in world frame)
+        Trajectory3 trajectory(initialVelocity, Eigen::Vector3d(0.0, 0.0, 0.0), ATTACK, DECAY, goal->duration, relativeFinalPosition); // world frame velocities (will output target velocities in world frame)
         OrientationSolver orientationSolver(initialOrientation, finalOrientation, goal->duration); // will output target angular velocities
 
         rclcpp::Rate rate(1000.0 / TARGET_RATE_MS);

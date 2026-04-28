@@ -217,6 +217,10 @@ void ChassisController::update_desired_state(geometry_msgs::msg::Twist::SharedPt
     ros_twist->angular.y, \
     ros_twist->angular.z;
 
+  if (std::isnan(ros_twist->linear.x) || std::isnan(ros_twist->linear.y) || std::isnan(ros_twist->linear.z)) {
+    return;
+  }
+
   this->desired_velocity_state_ = new_desired_state;
 }
 

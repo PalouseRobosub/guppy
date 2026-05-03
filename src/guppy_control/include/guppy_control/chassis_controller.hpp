@@ -148,6 +148,11 @@ public:
     void reset_holding_pose();
 
     /*
+        @brief enable pose pid
+    */
+    void enable_pose_pid(bool enabled);
+
+    /*
         @brief update the configuration parameters
         @param parameters the new configuration options object
     */
@@ -223,6 +228,9 @@ public:
 
     /* the control thread object */
     std::thread control_thread_;
+
+    /* whether or not pose pid is enabled */
+    bool pose_pid_enabled = false;
 
     // private methods
 

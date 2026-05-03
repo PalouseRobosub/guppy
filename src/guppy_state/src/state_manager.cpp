@@ -54,10 +54,11 @@ class StateManager : public rclcpp::Node {
             if (is_estopped) {
                 this->publish_state(guppy_msgs::msg::State::DISABLED);
                 was_estopped = true;
-            } else if (!is_estopped && was_estopped) {
-                this->publish_state(guppy_msgs::msg::State::HOLDING);
-                was_estopped = false;
             }
+            // else if (!is_estopped && was_estopped) {
+            //     this->publish_state(guppy_msgs::msg::State::DISABLED);
+            //     was_estopped = false;
+            // }
         }
 
          bool is_valid_state(uint8_t state) {

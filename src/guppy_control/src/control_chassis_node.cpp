@@ -155,6 +155,11 @@ public:
       } else {
           this->thruster_interface->set_enabled(true);
       }
+      if (msg->state == guppy_msgs::msg::State::NAV) {
+          this->controller->enable_pose_pid(true);
+      } else {
+          this->controller->enable_pose_pid(false);
+      }
   }
 
 private:

@@ -50,7 +50,7 @@ bool ChassisController::control_loop(bool debug) {
   Eigen::Vector3d position_err = desired_position_state_ - current_position_state_;
   position_err = current_orientation_state_.inverse() * position_err;
   for (int i=0; i<3; i++) {
-    if (abs(desired_velocity_state_[i]) < params_.pose_lock_deadband[i]) {
+    if (abs(desired_velocity_state_[i]) < params_.pose_lock_deadband[i] && pose_pid_enabled) {
       position_nudge[i] = pose_pid[i].compute_command(position_err[i], (dt_us_ / 1000000.0));
     } else {
       position_nudge[i] = 0;
@@ -102,6 +102,10 @@ void ChassisController::reset_holding_pose() {
 }
 
 Eigen::Vector3d ChassisController::calculate_rotational_nudge(bool debug) {
+  if (!pose_pid_enabled) {
+    Eigen::Vector3d out;
+    return out;
+  } 
   // the new state flags of the rotational locks
   int new_orientation_lock = ALL_FREE; // == 0
 
@@ -140,6 +144,10 @@ Eigen::Vector3d ChassisController::calculate_rotational_nudge(bool debug) {
   }
 
   return output_nudge;
+}
+
+void ChassisController::enable_pose_pid(bool enabled) {
+  this->pose_pid_enabled = enabled;
 }
 
 ChassisController::ChassisController(ChassisControllerParams parameters, T200Interface* hw_interface, int dt_us)

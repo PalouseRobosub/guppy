@@ -72,6 +72,7 @@
                 # deps
                 ros2-control
                 control-toolbox
+                image-tools
                 ros-gz-interfaces # gncea_autonomy
                 python-cmake-module # vecornav_msgs
                 marine-acoustic-msgs # waterlinked_dvl_driver

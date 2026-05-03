@@ -143,6 +143,11 @@ public:
     void update_desired_state(geometry_msgs::msg::Twist::SharedPtr msg);
 
     /*
+        @brief resets the holding pose
+    */
+    void reset_holding_pose();
+
+    /*
         @brief update the configuration parameters
         @param parameters the new configuration options object
     */

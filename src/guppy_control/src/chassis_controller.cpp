@@ -96,6 +96,11 @@ bool ChassisController::control_loop(bool debug) {
   return success;
 }
 
+void ChassisController::reset_holding_pose() {
+  this->desired_orientation_state_ = this->current_orientation_state_;
+  this->desired_position_state_ = this->current_position_state_;
+}
+
 Eigen::Vector3d ChassisController::calculate_rotational_nudge(bool debug) {
   // the new state flags of the rotational locks
   int new_orientation_lock = ALL_FREE; // == 0

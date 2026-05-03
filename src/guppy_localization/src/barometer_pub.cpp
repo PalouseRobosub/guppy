@@ -29,7 +29,7 @@ public:
     memcpy(&depth, msg.data.data(), sizeof(float));
     depth += 0.8;
     depth *= -1;
-    RCLCPP_INFO(this->get_logger(), "depth: %f", depth);
+    // RCLCPP_INFO(this->get_logger(), "depth: %f", depth);
 
     geometry_msgs::msg::PoseWithCovarianceStamped pose_out;
     pose_out.header.frame_id = this->get_parameter("tf_frame").as_string();

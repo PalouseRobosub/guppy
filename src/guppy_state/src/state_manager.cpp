@@ -21,7 +21,7 @@ class StateManager : public rclcpp::Node {
             state_quality.keep_last(1);
 
             estopsubscription_ = this->create_subscription<guppy_msgs::msg::CanFrame>(
-                "/can/id_0x26", 10,
+                "/can/id_0x1b", 10,
                 std::bind(&StateManager::estopcallback, this, std::placeholders::_1)
             );
 

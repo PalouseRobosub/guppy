@@ -5,6 +5,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "guppy_msgs/srv/change_state.hpp"
 #include "guppy_msgs/msg/state.hpp"
+#include "std_srvs/srv/empty.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
 #include "guppy_msgs/msg/can_frame.hpp"
@@ -24,6 +25,7 @@ class StateManager : public rclcpp::Node {
                 "/can/id_0x1b", 10,
                 std::bind(&StateManager::estopcallback, this, std::placeholders::_1)
             );
+            resetholdpose = this->create_client<std_srvs::srv::Empty>("reset_holding_pose");
 
             state_publisher_ = this->create_publisher<guppy_msgs::msg::State>("state", state_quality); // ROS2 QoS let's you tell the topic to hold onto the last published state and ensure every node gets the state :)))))))
             state_service_ = this->create_service<guppy_msgs::srv::ChangeState>(
@@ -124,6 +126,8 @@ class StateManager : public rclcpp::Node {
         }
 
         void handle_holding() {
+            auto request = std::make_shared<std_srvs::srv::Empty::Request>();
+            resetholdpose->async_send_request(request);
             this->cmd_vel_publisher_->publish(StateManager::zero_twist); // does this need to constantly publish? if not, just publish once upon transition to holding.
         }
 
@@ -153,6 +157,7 @@ class StateManager : public rclcpp::Node {
         uint8_t current_state_;
         rclcpp::Publisher<guppy_msgs::msg::State>::SharedPtr state_publisher_;
         rclcpp::Subscription<guppy_msgs::msg::CanFrame>::SharedPtr estopsubscription_;
+        rclcpp::Client<std_srvs::srv::Empty>::SharedPtr resetholdpose;
 
         rclcpp::Service<guppy_msgs::srv::ChangeState>::SharedPtr state_service_;
         rclcpp::TimerBase::SharedPtr timer_;

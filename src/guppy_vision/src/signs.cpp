@@ -76,8 +76,6 @@ private:
         
         findContours(canny, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
         
-        imshow("live", canny);
-        
         vector<Point> approx;
         // test each contour
         for( size_t i = 0; i < contours.size(); i++ )

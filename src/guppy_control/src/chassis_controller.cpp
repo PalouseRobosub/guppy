@@ -22,8 +22,11 @@ bool ChassisController::control_loop(bool debug) {
 
   // calculate buoyant effect on sub
   Eigen::Vector3d buoyancy_force; buoyancy_force << 0, 0, params_.water_density * params_.robot_volume * GRAVITY;
-  Eigen::Vector3d r_vec = current_orientation_state_ * params_.center_of_buoyancy;
-  Eigen::Vector3d buoyancy_torque = -1 * r_vec.cross(buoyancy_force);
+  Eigen::Vector3d r_vec = current_orientation_state_.inverse() * params_.center_of_buoyancy;
+  Eigen::Vector3d buoyancy_torque = 1 * r_vec.cross(buoyancy_force);
+  // if (pose_pid_enabled) {
+    buoyancy_torque = -1 * r_vec.cross(buoyancy_force);
+  // }
   Eigen::Vector3d buoyancy_force_rotated = current_orientation_state_.inverse() * buoyancy_force;
   Eigen::Vector<double, 6> buoyancy_wrench;
   buoyancy_wrench << buoyancy_force_rotated[0], buoyancy_force_rotated[1], buoyancy_force_rotated[2], buoyancy_torque;

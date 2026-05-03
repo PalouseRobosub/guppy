@@ -50,5 +50,5 @@ control_chassis:
     water_density: 1000.0 # kg/m^3
     robot_volume: 0.03963 # m^3
     robot_mass: 34.1 # kg
-    center_of_buoyancy: [ 0.0, 0.0, 0.08 ]
+    center_of_buoyancy: [ 0.0, 0.0, -0.08 ]
     qp_epsilon: 0.001

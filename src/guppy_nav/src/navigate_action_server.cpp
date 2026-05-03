@@ -241,7 +241,7 @@ private:
 
             auto now = clock->now();
             double elapsed = (now - start).seconds();
-            double delta = std::clamp((now - last).seconds(), 1e-4, 0.05);
+            double delta = std::clamp((now - last).seconds(), 1e-4, 1);
             last = now;
 
             auto state = getKinematicState(); // world

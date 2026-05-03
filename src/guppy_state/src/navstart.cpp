@@ -54,8 +54,6 @@ int main(int argc, char* argv[]) {
 
     auto publisher_node = std::make_shared<NavStart>();
     
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "State transition server ready.");
-
     rclcpp::spin(publisher_node);
 
 

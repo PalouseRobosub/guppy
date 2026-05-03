@@ -103,7 +103,7 @@ void ChassisController::reset_holding_pose() {
 
 Eigen::Vector3d ChassisController::calculate_rotational_nudge(bool debug) {
   if (!pose_pid_enabled) {
-    Eigen::Vector3d out;
+    Eigen::Vector3d out << 0.0, 0.0, 0.0;
     return out;
   } 
   // the new state flags of the rotational locks

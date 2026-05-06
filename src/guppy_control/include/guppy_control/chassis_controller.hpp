@@ -16,6 +16,7 @@
 #include <control_toolbox/control_toolbox/pid.hpp>
 #include "geometry_msgs/msg/twist.hpp"
 #include "nav_msgs/msg/odometry.hpp"
+#include "guppy_msgs/srv/set_hold_pose.hpp"
 
 #include "guppy_control/t200_interface.hpp"
 
@@ -143,6 +144,16 @@ public:
     void update_desired_state(geometry_msgs::msg::Twist::SharedPtr msg);
 
     /*
+        @brief resets the holding pose
+    */
+    void reset_holding_pose(guppy_msgs::srv::SetHoldPose::Request::SharedPtr msg);
+
+    /*
+        @brief enable pose pid
+    */
+    void enable_pose_pid(bool enabled);
+
+    /*
         @brief update the configuration parameters
         @param parameters the new configuration options object
     */
@@ -218,6 +229,9 @@ public:
 
     /* the control thread object */
     std::thread control_thread_;
+
+    /* whether or not pose pid is enabled */
+    bool pose_pid_enabled = false;
 
     // private methods
 

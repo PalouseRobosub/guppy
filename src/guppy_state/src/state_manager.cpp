@@ -5,8 +5,11 @@
 #include "rclcpp/rclcpp.hpp"
 #include "guppy_msgs/srv/change_state.hpp"
 #include "guppy_msgs/msg/state.hpp"
+#include "std_srvs/srv/empty.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
+#include "guppy_msgs/msg/can_frame.hpp"
+
 
 using namespace std::chrono_literals;
 
@@ -17,6 +20,12 @@ class StateManager : public rclcpp::Node {
             state_quality.reliable();
             state_quality.transient_local();
             state_quality.keep_last(1);
+
+            estopsubscription_ = this->create_subscription<guppy_msgs::msg::CanFrame>(
+                "/can/id_0x1b", 10,
+                std::bind(&StateManager::estopcallback, this, std::placeholders::_1)
+            );
+            resetholdpose = this->create_client<std_srvs::srv::Empty>("reset_holding_pose");
 
             state_publisher_ = this->create_publisher<guppy_msgs::msg::State>("state", state_quality); // ROS2 QoS let's you tell the topic to hold onto the last published state and ensure every node gets the state :)))))))
             state_service_ = this->create_service<guppy_msgs::srv::ChangeState>(
@@ -39,6 +48,19 @@ class StateManager : public rclcpp::Node {
         }
     
     private:
+        void estopcallback(guppy_msgs::msg::CanFrame msg) {
+            int is_estopped = 0;
+            memcpy(&is_estopped, msg.data.data(), sizeof(int));
+            if (is_estopped) {
+                this->publish_state(guppy_msgs::msg::State::DISABLED);
+                was_estopped = true;
+            }
+            // else if (!is_estopped && was_estopped) {
+            //     this->publish_state(guppy_msgs::msg::State::DISABLED);
+            //     was_estopped = false;
+            // }
+        }
+
          bool is_valid_state(uint8_t state) {
             switch (state) {
                 case guppy_msgs::msg::State::STARTUP:
@@ -72,14 +94,24 @@ class StateManager : public rclcpp::Node {
                 return;
             }
 
+            if (this->current_state_ == guppy_msgs::msg::State::NAV) {
+                system("killall prequal");
+            }
+
+            if (request->new_state.state == guppy_msgs::msg::State::HOLDING) {
+                auto request = std::make_shared<std_srvs::srv::Empty::Request>();
+                resetholdpose->async_send_request(request);
+            }
+
             // TODO switch logic should be handled here NOT in StateManager#publishState()
             
             response->success = this->publish_state(request->new_state.state);                                                                                 
         }
-
+        
         bool publish_state(uint8_t state) {
             auto message = guppy_msgs::msg::State();
             message.state = state;
+            this->cmd_vel_publisher_->publish(StateManager::zero_twist);
             this->state_publisher_->publish(message);
             this->current_state_ = state;
             return true;
@@ -123,6 +155,7 @@ class StateManager : public rclcpp::Node {
         }
 
         void handle_disabled() {
+            // system("killall prequal");
             this->publish_state(guppy_msgs::msg::State::DISABLED);
         }
 
@@ -132,6 +165,9 @@ class StateManager : public rclcpp::Node {
         
         uint8_t current_state_;
         rclcpp::Publisher<guppy_msgs::msg::State>::SharedPtr state_publisher_;
+        rclcpp::Subscription<guppy_msgs::msg::CanFrame>::SharedPtr estopsubscription_;
+        rclcpp::Client<std_srvs::srv::Empty>::SharedPtr resetholdpose;
+
         rclcpp::Service<guppy_msgs::srv::ChangeState>::SharedPtr state_service_;
         rclcpp::TimerBase::SharedPtr timer_;
 
@@ -144,6 +180,8 @@ class StateManager : public rclcpp::Node {
         std::optional<geometry_msgs::msg::Twist> teleop_twist_;
 
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_publisher_;
+
+        bool was_estopped = false;
     
     const geometry_msgs::msg::Twist zero_twist = []() {
         geometry_msgs::msg::Vector3 zero_vector;

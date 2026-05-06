@@ -15,13 +15,16 @@ endif ()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(guppy_msgs REQUIRED)
 
 add_executable(state_manager src/state_manager.cpp)
+add_executable(navstart src/navstart.cpp)
 add_executable(led_pub src/led_pub.cpp)
 ament_target_dependencies(led_pub rclcpp std_msgs guppy_msgs)
-ament_target_dependencies(state_manager rclcpp std_msgs geometry_msgs guppy_msgs)
+ament_target_dependencies(state_manager rclcpp std_srvs std_msgs geometry_msgs guppy_msgs)
+ament_target_dependencies(navstart rclcpp std_msgs geometry_msgs guppy_msgs)
 
 install(DIRECTORY
   launch
@@ -32,6 +35,7 @@ install(DIRECTORY
 install(TARGETS
   state_manager # what goes here
   led_pub
+  navstart
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

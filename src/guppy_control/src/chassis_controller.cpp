@@ -22,8 +22,11 @@ bool ChassisController::control_loop(bool debug) {
 
   // calculate buoyant effect on sub
   Eigen::Vector3d buoyancy_force; buoyancy_force << 0, 0, params_.water_density * params_.robot_volume * GRAVITY;
-  Eigen::Vector3d r_vec = current_orientation_state_ * params_.center_of_buoyancy;
-  Eigen::Vector3d buoyancy_torque = -1 * r_vec.cross(buoyancy_force);
+  Eigen::Vector3d r_vec = current_orientation_state_.inverse() * params_.center_of_buoyancy;
+  Eigen::Vector3d buoyancy_torque = 1 * r_vec.cross(buoyancy_force);
+  // if (pose_pid_enabled) {
+    buoyancy_torque = -1 * r_vec.cross(buoyancy_force);
+  // }
   Eigen::Vector3d buoyancy_force_rotated = current_orientation_state_.inverse() * buoyancy_force;
   Eigen::Vector<double, 6> buoyancy_wrench;
   buoyancy_wrench << buoyancy_force_rotated[0], buoyancy_force_rotated[1], buoyancy_force_rotated[2], buoyancy_torque;
@@ -50,7 +53,7 @@ bool ChassisController::control_loop(bool debug) {
   Eigen::Vector3d position_err = desired_position_state_ - current_position_state_;
   position_err = current_orientation_state_.inverse() * position_err;
   for (int i=0; i<3; i++) {
-    if (abs(desired_velocity_state_[i]) < params_.pose_lock_deadband[i]) {
+    if (abs(desired_velocity_state_[i]) < params_.pose_lock_deadband[i] && pose_pid_enabled) {
       position_nudge[i] = pose_pid[i].compute_command(position_err[i], (dt_us_ / 1000000.0));
     } else {
       position_nudge[i] = 0;
@@ -96,7 +99,41 @@ bool ChassisController::control_loop(bool debug) {
   return success;
 }
 
+void ChassisController::reset_holding_pose(guppy_msgs::srv::SetHoldPose::Request::SharedPtr request) {
+  if (request->type == request->guppy_msgs::srv::SetHoldPose::Request::RESET) {
+    this->desired_orientation_state_ = this->current_orientation_state_;
+    this->desired_position_state_ = this->current_position_state_;
+  }
+  
+  else {
+    auto ros_quat = request->pose.orientation;
+    auto ros_pos = request->pose.position;
+
+    Eigen::Quaterniond quat(ros_quat.w, ros_quat.x, ros_quat.y, ros_quat.z);
+    Eigen::Vector3d pos; pos << ros_pos.x, ros_pos.y, ros_pos.z;
+    
+    if (request->type == request->guppy_msgs::srv::SetHoldPose::Request::GLOBAL) {
+      this->desired_position_state_ = pos;
+      this->desired_orientation_state_ = quat;
+    }
+    
+    else if (request->type == request->guppy_msgs::srv::SetHoldPose::Request::RELATIVE) {
+      this->desired_orientation_state_ = this->current_orientation_state_ * quat;
+      this->desired_position_state_ = this->current_position_state_ + pos;
+    }
+    
+    else if (request->type == request->guppy_msgs::srv::SetHoldPose::Request::LOCAL) {
+      this->desired_orientation_state_ = this->current_orientation_state_ * quat;
+      this->desired_position_state_ = this->current_position_state_ + (this->current_orientation_state_.inverse() * pos);
+    }
+  }  
+}
+
 Eigen::Vector3d ChassisController::calculate_rotational_nudge(bool debug) {
+  if (!pose_pid_enabled) {
+    Eigen::Vector3d out(0.0, 0.0, 0.0);
+    return out;
+  } 
   // the new state flags of the rotational locks
   int new_orientation_lock = ALL_FREE; // == 0
 
@@ -135,6 +172,10 @@ Eigen::Vector3d ChassisController::calculate_rotational_nudge(bool debug) {
   }
 
   return output_nudge;
+}
+
+void ChassisController::enable_pose_pid(bool enabled) {
+  this->pose_pid_enabled = enabled;
 }
 
 ChassisController::ChassisController(ChassisControllerParams parameters, T200Interface* hw_interface, int dt_us)
@@ -216,6 +257,10 @@ void ChassisController::update_desired_state(geometry_msgs::msg::Twist::SharedPt
     ros_twist->angular.x, \
     ros_twist->angular.y, \
     ros_twist->angular.z;
+
+  if (std::isnan(ros_twist->linear.x) || std::isnan(ros_twist->linear.y) || std::isnan(ros_twist->linear.z)) {
+    return;
+  }
 
   this->desired_velocity_state_ = new_desired_state;
 }

@@ -5,6 +5,7 @@
 
 #include "std_msgs/msg/float32.hpp"
 #include "std_msgs/msg/float64.hpp"
+#include "guppy_msgs/srv/set_hold_pose.hpp"
 #include "guppy_msgs/msg/state.hpp"
 
 using namespace std::chrono_literals;
@@ -109,6 +110,11 @@ public:
     cmd_vel_subscription_ = this->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel",10,std::bind(&ControlChassis::cmdvel_callback, this, std::placeholders::_1));
     state_subscription_ = this->create_subscription<guppy_msgs::msg::State>("/state", 10, std::bind(&ControlChassis::state_callback, this, std::placeholders::_1));
 
+    reset_service = this->create_service<guppy_msgs::srv::SetHoldPose>("reset_holding_pose", [&](const std::shared_ptr<guppy_msgs::srv::SetHoldPose::Request> request, std::shared_ptr<guppy_msgs::srv::SetHoldPose::Response> response) {
+      controller->reset_holding_pose(request);
+    }, 10);
+
+
     auto timer_callback = [this]() -> void {
       auto thrusts = controller->get_motor_thrusts();
       
@@ -149,6 +155,11 @@ public:
       } else {
           this->thruster_interface->set_enabled(true);
       }
+      if (msg->state == guppy_msgs::msg::State::NAV) {
+          this->controller->enable_pose_pid(true);
+      } else {
+          this->controller->enable_pose_pid(false);
+      }
   }
 
 private:
@@ -157,6 +168,8 @@ private:
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_subscription_;
   rclcpp::Subscription<guppy_msgs::msg::State>::SharedPtr state_subscription_;
   rclcpp::TimerBase::SharedPtr timer_;
+  rclcpp::Service<guppy_msgs::srv::SetHoldPose>::SharedPtr reset_service;
+
 
   std::shared_ptr<rclcpp::ParameterEventHandler> param_subscriber_;
   std::shared_ptr<rclcpp::ParameterEventCallbackHandle> param_event_callback_handle_;

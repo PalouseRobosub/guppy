@@ -21,9 +21,8 @@
 
 #define THRESHOLD 0.1
 
-#define TOTAL_TIME 10 // in seconds
-#define ATTACK 0.25 // from 0.0 - 1.0, ATTACK + DECAY must <= 1.0
-#define DECAY 0.25
+#define ATTACK 0.4 // from 0.0 - 1.0, ATTACK + DECAY must <= 1.0
+#define DECAY 0.4
 
 #define TARGET_RATE_MS 10
 
@@ -73,17 +72,17 @@ public:
         _commandVelocityPublisher = create_publisher<geometry_msgs::msg::Twist>("cmd_vel/nav", 10);
         _odomSubscription = create_subscription<nav_msgs::msg::Odometry>("/odometry/filtered",10,std::bind(&NavigateActionServer::odometryCallback, this, std::placeholders::_1), odom_options);
 
-        _xPid.set_gains(0.0, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
-        _yPid.set_gains(0.0, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
-        _zPid.set_gains(0.0, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
-        _yawPid.set_gains(0.5, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
-        _pitchPid.set_gains(0.5, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
-        _rollPid.set_gains(0.5, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _xPid.set_gains(0.1, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _yPid.set_gains(0.1, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _zPid.set_gains(-0.1, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _yawPid.set_gains(0.1, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _pitchPid.set_gains(0.1, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _rollPid.set_gains(0.1, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
     }
 
     void odometryCallback(nav_msgs::msg::Odometry::SharedPtr msg) {
         // std::lock_guard<std::mutex> lock(_kinematiStateMutex);
-        RCLCPP_INFO(this->get_logger(), "new thingy");
+        // RCLCPP_INFO(this->get_logger(), "new thingy");
         _kinematicState.pose = msg->pose.pose;
         _kinematicState.twist = msg->twist.twist;
     }
@@ -169,7 +168,7 @@ private:
         const auto error = relativeTargetPosition - relativePosition; // end - start; target - current; gives vector from current to target, i.e. error
 
         Eigen::Quaterniond currentOrientation(state.pose.orientation.w, state.pose.orientation.x, state.pose.orientation.y, state.pose.orientation.z); // world frame
-        const auto localTargetVelocity = currentOrientation.inverse() * targetVelocity;
+        auto localTargetVelocity = currentOrientation.inverse() * targetVelocity;
         const auto localError = currentOrientation.inverse() * error;
         const auto angularErrorLocal = orientationSolver.error(elapsed, currentOrientation);
 
@@ -179,6 +178,7 @@ private:
         commandVelocity.angular.y = _pitchPid.compute_command(angularErrorLocal.y(), rclcpp::Duration::from_seconds(delta));
         commandVelocity.angular.x = _rollPid.compute_command(angularErrorLocal.x(), rclcpp::Duration::from_seconds(delta));
 
+        localTargetVelocity = localTargetVelocity * 1;
         commandVelocity.linear.x = localTargetVelocity.x() + _xPid.compute_command(localError.x(), rclcpp::Duration::from_seconds(delta));
         commandVelocity.linear.y = localTargetVelocity.y() + _yPid.compute_command(localError.y(), rclcpp::Duration::from_seconds(delta));
         commandVelocity.linear.z = localTargetVelocity.z() + _zPid.compute_command(localError.z(), rclcpp::Duration::from_seconds(delta));
@@ -209,8 +209,8 @@ private:
         const Eigen::Vector3d initialVelocity(initialState.twist.linear.x, initialState.twist.linear.y, initialState.twist.linear.z); // world frame
         const auto relativeFinalPosition = finalPosition - initialPosition; // vector between guppy's initial position (world) and target final position (world), position as if guppy were (0, 0, 0)
 
-        Trajectory3 trajectory(initialVelocity, Eigen::Vector3d::Zero(), ATTACK, DECAY, goal->duration, relativeFinalPosition); // world frame velocities (will output target velocities in world frame)
-        OrientationSolver orientationSolver(initialOrientation, finalOrientation, goal->duration); // will output target angular velocities
+        Trajectory3 trajectory(initialVelocity, Eigen::Vector3d(0.0, 0.0, 0.0), ATTACK, DECAY, goal->timeout, relativeFinalPosition); // world frame velocities (will output target velocities in world frame)
+        OrientationSolver orientationSolver(initialOrientation, finalOrientation, goal->timeout); // will output target angular velocities
 
         rclcpp::Rate rate(1000.0 / TARGET_RATE_MS);
 
@@ -241,7 +241,7 @@ private:
 
             auto now = clock->now();
             double elapsed = (now - start).seconds();
-            double delta = std::clamp((now - last).seconds(), 1e-4, 0.05);
+            double delta = std::clamp((now - last).seconds(), 1e-4, 1.0);
             last = now;
 
             auto state = getKinematicState(); // world
@@ -256,7 +256,7 @@ private:
             _commandVelocityPublisher->publish(commandVelocity);
             goalHandle->publish_feedback(feedback);
 
-            if (elapsed >= goal->duration) break;
+            if (elapsed >= goal->timeout) break;
 
             rate.sleep();
         }

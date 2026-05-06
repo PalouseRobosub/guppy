@@ -74,7 +74,7 @@ public:
 
         _xPid.set_gains(0.1, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
         _yPid.set_gains(0.1, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
-        _zPid.set_gains(0.1, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
+        _zPid.set_gains(-0.1, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
         _yawPid.set_gains(0.1, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
         _pitchPid.set_gains(0.1, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);
         _rollPid.set_gains(0.1, 0.0, 0.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), antiWindupStrategy);

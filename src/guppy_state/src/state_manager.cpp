@@ -94,6 +94,15 @@ class StateManager : public rclcpp::Node {
                 return;
             }
 
+            if (this->current_state_ == guppy_msgs::msg::State::NAV) {
+                system("killall prequal");
+            }
+
+            if (request->new_state.state == guppy_msgs::msg::State::HOLDING) {
+                auto request = std::make_shared<std_srvs::srv::Empty::Request>();
+                resetholdpose->async_send_request(request);
+            }
+
             // TODO switch logic should be handled here NOT in StateManager#publishState()
             
             response->success = this->publish_state(request->new_state.state);                                                                                 
@@ -127,8 +136,6 @@ class StateManager : public rclcpp::Node {
         }
 
         void handle_holding() {
-            auto request = std::make_shared<std_srvs::srv::Empty::Request>();
-            resetholdpose->async_send_request(request);
             this->cmd_vel_publisher_->publish(StateManager::zero_twist); // does this need to constantly publish? if not, just publish once upon transition to holding.
         }
 
@@ -148,6 +155,7 @@ class StateManager : public rclcpp::Node {
         }
 
         void handle_disabled() {
+            // system("killall prequal");
             this->publish_state(guppy_msgs::msg::State::DISABLED);
         }
 

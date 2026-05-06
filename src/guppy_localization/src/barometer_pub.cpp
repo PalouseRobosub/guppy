@@ -27,7 +27,14 @@ public:
   void callback(guppy_msgs::msg::CanFrame msg) {
     float depth = 0;
     memcpy(&depth, msg.data.data(), sizeof(float));
-    depth += 0.8;
+
+
+    if (!initialized) {
+      offset = depth;
+      initialized = true;
+    }
+
+    depth -= offset;
     depth *= -1;
     // RCLCPP_INFO(this->get_logger(), "depth: %f", depth);
 
@@ -54,6 +61,8 @@ public:
 private:
   rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr publisher_;
   rclcpp::Subscription<guppy_msgs::msg::CanFrame>::SharedPtr subscription_;
+  double offset = 0;
+  bool initialized = false;
 };
 
 int main(int argc, char * argv[]) {

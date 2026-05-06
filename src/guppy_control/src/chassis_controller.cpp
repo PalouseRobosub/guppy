@@ -99,9 +99,34 @@ bool ChassisController::control_loop(bool debug) {
   return success;
 }
 
-void ChassisController::reset_holding_pose() {
-  this->desired_orientation_state_ = this->current_orientation_state_;
-  this->desired_position_state_ = this->current_position_state_;
+void ChassisController::reset_holding_pose(guppy_msgs::srv::SetHoldPose::Request::SharedPtr request) {
+  if (request->type == request->guppy_msgs::srv::SetHoldPose::Request::RESET) {
+    this->desired_orientation_state_ = this->current_orientation_state_;
+    this->desired_position_state_ = this->current_position_state_;
+  }
+  
+  else {
+    auto ros_quat = request->pose.orientation;
+    auto ros_pos = request->pose.position;
+
+    Eigen::Quaterniond quat(ros_quat.w, ros_quat.x, ros_quat.y, ros_quat.z);
+    Eigen::Vector3d pos; pos << ros_pos.x, ros_pos.y, ros_pos.z;
+    
+    if (request->type == request->guppy_msgs::srv::SetHoldPose::Request::GLOBAL) {
+      this->desired_position_state_ = pos;
+      this->desired_orientation_state_ = quat;
+    }
+    
+    else if (request->type == request->guppy_msgs::srv::SetHoldPose::Request::RELATIVE) {
+      this->desired_orientation_state_ = this->current_orientation_state_ * quat;
+      this->desired_position_state_ = this->current_position_state_ + pos;
+    }
+    
+    else if (request->type == request->guppy_msgs::srv::SetHoldPose::Request::LOCAL) {
+      this->desired_orientation_state_ = this->current_orientation_state_ * quat;
+      this->desired_position_state_ = this->current_position_state_ + (this->current_orientation_state_.inverse() * pos);
+    }
+  }  
 }
 
 Eigen::Vector3d ChassisController::calculate_rotational_nudge(bool debug) {

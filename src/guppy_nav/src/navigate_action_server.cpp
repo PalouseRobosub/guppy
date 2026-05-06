@@ -209,8 +209,8 @@ private:
         const Eigen::Vector3d initialVelocity(initialState.twist.linear.x, initialState.twist.linear.y, initialState.twist.linear.z); // world frame
         const auto relativeFinalPosition = finalPosition - initialPosition; // vector between guppy's initial position (world) and target final position (world), position as if guppy were (0, 0, 0)
 
-        Trajectory3 trajectory(initialVelocity, Eigen::Vector3d(0.0, 0.0, 0.0), ATTACK, DECAY, goal->duration, relativeFinalPosition); // world frame velocities (will output target velocities in world frame)
-        OrientationSolver orientationSolver(initialOrientation, finalOrientation, goal->duration); // will output target angular velocities
+        Trajectory3 trajectory(initialVelocity, Eigen::Vector3d(0.0, 0.0, 0.0), ATTACK, DECAY, goal->timeout, relativeFinalPosition); // world frame velocities (will output target velocities in world frame)
+        OrientationSolver orientationSolver(initialOrientation, finalOrientation, goal->timeout); // will output target angular velocities
 
         rclcpp::Rate rate(1000.0 / TARGET_RATE_MS);
 
@@ -256,7 +256,7 @@ private:
             _commandVelocityPublisher->publish(commandVelocity);
             goalHandle->publish_feedback(feedback);
 
-            if (elapsed >= goal->duration) break;
+            if (elapsed >= goal->timeout) break;
 
             rate.sleep();
         }

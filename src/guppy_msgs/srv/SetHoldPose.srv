@@ -1,4 +1,4 @@
-# state constants
+# constants
 uint8 RESET     = 0
 uint8 GLOBAL    = 1
 uint8 LOCAL     = 2

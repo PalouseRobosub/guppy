@@ -1,14 +1,14 @@
 #!/bin/bash
 source ~/guppy/install/setup.bash
 
-Z=-1.5
+Z=-2.0
 START_TO_GATE=3
-GATE_TO_MARKER=10
+GATE_TO_MARKER=9
 Y_CHANGE=-1
 
-T_THERE=60
+T_THERE=40
 T_STRAFE=15
-T_BACK=60
+T_BACK=40
 
 
 TOTAL_X=$((START_TO_GATE + GATE_TO_MARKER))
@@ -23,7 +23,7 @@ echo done
 
 echo -n down...
 ros2 action send_goal --feedback /navigate guppy_msgs/action/Navigate \
-    "{pose: {position: {x: 0, y: 0.0, z: 0}, orientation: {w: 1.0, x: 0.0, y: 0.0, z: 0.0}}, local: false, timeout: 3}" >> /dev/null
+    "{pose: {position: {x: 0, y: 0.0, z: $Z}, orientation: {w: 1.0, x: 0.0, y: 0.0, z: 0.0}}, local: false, timeout: 3}" >> /dev/null
 echo done
 
 
@@ -39,6 +39,6 @@ echo done
 
 echo -n back from marker...
 ros2 action send_goal --feedback /navigate guppy_msgs/action/Navigate \
-    "{pose: {position: {x: 0, y: $Y_CHANGE, z: $Z}, orientation: {w: 1.0, x: 0.0, y: 0.0, z: 0.0}}, local: false, timeout: $T_BACK}" >> /dev/null
+    "{pose: {position: {x: 1.0, y: $Y_CHANGE, z: $Z}, orientation: {w: 1.0, x: 0.0, y: 0.0, z: 0.0}}, local: false, timeout: $T_BACK}" >> /dev/null
 echo done
 

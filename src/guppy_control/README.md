@@ -156,7 +156,7 @@ Not only does this station keeping allow us to hold our pose, but we also expose
 
 ### Thrust Allocation
 
-After all these individual components assemble into one large six-dimensional AUV wrench vector, we need to convert that into an eight-dimensional motor thrust vector. To do so, we first converted all motor positions into an 8 × 6 matrix of motor coefficients. This is done by taking their x, y, and z locations as well as their spherical angles φ and θ and calculating the cartesian coefficients of each motor. Next, we solve the following least squares problem:
+After all these individual components assemble into one large six-dimensional AUV wrench vector, we need to convert that into an eight-dimensional motor thrust vector. To do so, we first converted all motor positions into an 6 × 8 matrix of motor coefficients. This is done by taking their x, y, and z locations as well as their spherical angles φ and θ and calculating the cartesian coefficients of each motor. Next, we solve the following least squares problem:
 
 $$A\overset{\rightharpoonup}{x}=s$$
 

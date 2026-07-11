@@ -11,3 +11,9 @@
 [submodule "vendor/gncea"]
 	path = vendor/gncea
 	url = https://github.com/palouserobosub/gncea
+[submodule "vendor/behaviortree_cpp"]
+	path = vendor/behaviortree_cpp
+	url = https://github.com/BehaviorTree/BehaviorTree.CPP
+[submodule "vendor/behaviortree_cpp.ROS2"]
+	path = vendor/behaviortree_cpp.ROS2
+	url = https://github.com/BehaviorTree/BehaviorTree.ROS2

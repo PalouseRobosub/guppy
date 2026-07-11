@@ -14,6 +14,9 @@
 
   <exec_depend>control_toolbox</exec_depend>
 
+  <depend>behaviortree_cpp</depend>
+  <depend>behaviortree_ros2</depend>
+
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <test_depend>ament_lint_auto</test_depend>

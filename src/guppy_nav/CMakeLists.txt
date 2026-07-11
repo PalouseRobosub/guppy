@@ -22,6 +22,9 @@ find_package(Eigen3)
 
 find_package(control_toolbox REQUIRED)
 
+find_package(behaviortree_cpp REQUIRED)
+find_package(behaviortree_ros2 REQUIRED)
+
 add_library(action_server SHARED src/navigate_action_server.cpp)
 add_library(pose_setter SHARED src/pose_setter.cpp)
 
@@ -37,6 +40,8 @@ ament_target_dependencies(action_server rclcpp rclcpp_action rclcpp_components g
 ament_target_dependencies(pose_setter rclcpp rclcpp_action rclcpp_components guppy_msgs nav_msgs geometry_msgs Eigen3 control_toolbox)
 rclcpp_components_register_node(action_server PLUGIN "NavigateActionServer" EXECUTABLE navigate_action_server)
 rclcpp_components_register_node(pose_setter PLUGIN "PoseSetterServer" EXECUTABLE the_pose_setter)
+
+target_link_libraries(pose_setter behaviortree_cpp::behaviortree_cpp behaviortree_ros2::behaviortree_ros2)
 
 install(TARGETS
   action_server

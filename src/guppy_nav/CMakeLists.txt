@@ -27,7 +27,7 @@ find_package(behaviortree_ros2 REQUIRED)
 
 add_library(action_server SHARED src/navigate_action_server.cpp)
 add_library(pose_setter SHARED src/pose_setter.cpp)
-add_library(behavior_tree SHARED src/behavior_tree.cpp src/change_state_node.cpp)
+add_library(behavior_tree SHARED src/behavior_tree.cpp)
 
 #target_include_directories(action_server PRIVATE
 #  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -57,7 +57,7 @@ install(TARGETS
 
 install(DIRECTORY
   launch
-  
+
   DESTINATION share/${PROJECT_NAME}/
 )
 

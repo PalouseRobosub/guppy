@@ -1,10 +1,12 @@
+#pragma once
+
 #include <behaviortree_ros2/bt_service_node.hpp>
 #include <guppy_msgs/srv/change_state.hpp>
 
-class ChangeStateNode : public BT::RosServiceNode<guppy_msgs::srv::ChangeState>
+class ChangeStateBehavior : public BT::RosServiceNode<guppy_msgs::srv::ChangeState>
 {
 public:
-    ChangeStateNode(const std::string& name, const BT::NodeConfig& conf, const BT::RosNodeParams& params)
+    ChangeStateBehavior(const std::string& name, const BT::NodeConfig& conf, const BT::RosNodeParams& params)
     : RosServiceNode<guppy_msgs::srv::ChangeState>(name, conf, params)
     {}
 

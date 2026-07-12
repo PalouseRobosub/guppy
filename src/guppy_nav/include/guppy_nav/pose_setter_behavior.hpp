@@ -1,12 +1,14 @@
+#pragma once
+
 #include "guppy_msgs/action/navigate.hpp"
 
 #include <behaviortree_ros2/bt_action_node.hpp>
 
-class NavigateAction: public BT::RosActionNode<guppy_msgs::action::Navigate> {
+class NavigateBehavior: public BT::RosActionNode<guppy_msgs::action::Navigate> {
 public:
-    NavigateAction(const std::string& name, const BT::NodeConfig& conf, const BT::RosNodeParams& params) : BT::RosActionNode<guppy_msgs::action::Navigate>(name, conf, params) {}
+    NavigateBehavior(const std::string& name, const BT::NodeConfig& conf, const BT::RosNodeParams& params) : BT::RosActionNode<guppy_msgs::action::Navigate>(name, conf, params) {}
 
-    static BT::PortList providedPorts() {
+    static BT::PortsList providedPorts() {
         return providedBasicPorts({
             BT::InputPort<double>("x"), BT::InputPort<float>("y"), BT::InputPort<float>("z"),
             BT::InputPort<double>("qw"), BT::InputPort<double>("qw"), BT::InputPort<double>("qw"), BT::InputPort<double>("qw"),
@@ -14,7 +16,7 @@ public:
         });
     }
 
-    bool setGoal(BT::RosActionNode::Goal& goal) override {
+    bool setGoal(BT::RosActionNode<guppy_msgs::action::Navigate>::Goal& goal) override {
         getInput("x", goal.pose.position.x);
         getInput("y", goal.pose.position.y);
         getInput("z", goal.pose.position.z);
@@ -27,17 +29,17 @@ public:
         return true;
     }
 
-    BT::NodeStatus onResultReceived(const BT::WrappedResult& wrapped) override {
+    BT::NodeStatus onResultReceived(const WrappedResult& wrapped) override {
         // should do?
         return BT::NodeStatus::SUCCESS;
     }
 
-    virtual NodeStatus onFailure(BT::ActionNodeErrorCode error) override {
+    virtual BT::NodeStatus onFailure(BT::ActionNodeErrorCode error) override {
         RCLCPP_ERROR(logger(), "error: %d", error);
-        return NodeStatus::FAILURE;
+        return BT::NodeStatus::FAILURE;
     }
 
-    BT::NodeStatus onFeedback(const std::shared_ptr<const BT::Feedback> feedback) {
+    BT::NodeStatus onFeedback(const std::shared_ptr<const Feedback> feedback) {
         return BT::NodeStatus::RUNNING;
     }
 };

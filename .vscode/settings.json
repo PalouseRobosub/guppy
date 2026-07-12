@@ -29,5 +29,6 @@
         "unordered_map": "cpp",
         "valarray": "cpp",
         "vector": "cpp"
-    }
+    },
+    "cmake.ignoreCMakeListsMissing": true
 }

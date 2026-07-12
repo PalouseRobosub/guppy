@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+import os
+import sys
+
+states = {
+    "start": 0,
+    "startup": 0,
+    "holding": 1,
+    "hold": 1,
+    "nav": 2,
+    "navigation": 2,
+    "task": 3,
+    "teleop": 4,
+    "disable": 5,
+    "disabled": 5,
+    "fault": 6
+}
+
+if len(sys.argv) < 2:
+    print("usage: state <name>")
+else:
+    homepath = os.path.expanduser("~/guppy/install/setup.sh")
+    try:
+        os.system('''
+                    . <HP>;
+                    ros2 service call /change_state guppy_msgs/srv/ChangeState "{new_state:{state: <SN>}}"
+                    '''.replace("<HP>", homepath).replace("<SN>", str(states[sys.argv[1].strip().lower()])))
+    except KeyError:
+        print("invalid state")

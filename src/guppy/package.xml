@@ -15,7 +15,7 @@
   <exec_depend>guppy_localization</exec_depend>
   <exec_depend>guppy_moveit</exec_depend>
   <exec_depend>guppy_msgs</exec_depend>
-  <exec_depend>guppy_nav2</exec_depend>
+  <exec_depend>guppy_nav</exec_depend>
   <exec_depend>guppy_safety</exec_depend>
   <exec_depend>guppy_state</exec_depend>
   <exec_depend>guppy_tasks</exec_depend>

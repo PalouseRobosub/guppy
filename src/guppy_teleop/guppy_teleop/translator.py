@@ -72,16 +72,16 @@ class Translator(Node):
 def logitech_twist(controller_state):
     twist = Twist()
 
-    twist.linear.x = controller_state["axes"][4] # right stick vertical
-    twist.linear.y = controller_state["axes"][3] # right stick horizontal
-    twist.linear.z = -controller_state["axes"][1] # left stick vertical
-    twist.angular.y = float(controller_state["dpad"][1]) # pitch
+    twist.linear.x = -controller_state["axes"][4] if abs(controller_state["axes"][4]) > 0.05 else 0.0 # right stick vertical
+    twist.linear.y = -controller_state["axes"][3] if abs(controller_state["axes"][3]) > 0.05 else 0.0 # right stick horizontal
+    twist.linear.z = -controller_state["axes"][1] if abs(controller_state["axes"][1]) > 0.05 else 0.0 # left stick vertical
+    twist.angular.y = -float(controller_state["dpad"][1]) # pitch
     twist.angular.x = -float(controller_state["dpad"][0]) # roll
     yaw_r = controller_state["axes"][5] # right trigger
     yaw_l = controller_state["axes"][2] # left trigger
     yaw_r = (yaw_r + 1) / 2
     yaw_l = (yaw_l + 1) / 2 * (-1)
-    twist.angular.z = -(yaw_r + yaw_l)
+    twist.angular.z = (yaw_r + yaw_l)
 
     return twist
 

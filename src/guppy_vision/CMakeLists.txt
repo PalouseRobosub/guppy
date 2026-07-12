@@ -9,6 +9,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(image_transport REQUIRED)
 
 # Spinnaker paths
 set(SPINNAKER_INCLUDE_DIR /opt/spinnaker/include)
@@ -23,7 +24,7 @@ set_target_properties(Spinnaker::Spinnaker PROPERTIES
 )
 
 add_executable(camera_pub src/camera_pub.cpp)
-ament_target_dependencies(camera_pub rclcpp sensor_msgs)
+ament_target_dependencies(camera_pub rclcpp sensor_msgs image_transport)
 
 target_link_libraries(camera_pub
         Spinnaker::Spinnaker

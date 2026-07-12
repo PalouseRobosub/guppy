@@ -11,6 +11,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/fill_image.hpp"
 #include "sensor_msgs/msg/image.hpp"
+#include "image_transport/image_transport.hpp"
 
 typedef struct camInfo {
   std::string serial;
@@ -22,9 +23,9 @@ std::vector<CamInfo> cams = {
     {.serial = "14406637", .position = "rr"}, {.serial = "20188596", .position = "cl"}, {.serial = "20188587", .position = "cr"},
 };
 
-class CameraPublisher : public rclcpp::Node {
+class FlirPublisher : public rclcpp::Node {
  public:
-  CameraPublisher() : Node("camera_publisher") {
+  FlirPublisher() : Node("camera_publisher") {
     this->running_.store(true);
 
     this->system = Spinnaker::System::GetInstance();
@@ -41,12 +42,13 @@ class CameraPublisher : public rclcpp::Node {
           }
       }
       std::string topic = "/cam/" + pos + "/raw";
-      this->publishers_.push_back(this->create_publisher<sensor_msgs::msg::Image>(topic, 1));
-      this->threads_.emplace_back(&CameraPublisher::acquireFootage, this, i);
+      this->pubs_.push_back(image_transport::create_publisher(this, topic));
+      // this->publishers_.push_back(this->create_publisher<sensor_msgs::msg::Image>(topic, 1));
+      this->threads_.emplace_back(&FlirPublisher::acquireFootage, this, i);
     }
   }
 
-  ~CameraPublisher() {
+  ~FlirPublisher() {
     this->running_.store(false);
 
     for (auto& t : threads_) {
@@ -61,6 +63,7 @@ class CameraPublisher : public rclcpp::Node {
 
  private:
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr publisher_;
+  std::vector<image_transport::Publisher> pubs_;
 
   Spinnaker::SystemPtr system;
   Spinnaker::CameraList camList;
@@ -79,17 +82,18 @@ class CameraPublisher : public rclcpp::Node {
     while (this->running_) {
       Spinnaker::ImagePtr pImg = pCam->GetNextImage(1000);
       auto msg = std::make_unique<sensor_msgs::msg::Image>();
-      sensor_msgs::fillImage(*msg, "bayer_rggb8", pImg->GetHeight(), pImg->GetWidth(), pImg->GetStride(), pImg->GetData());
+      sensor_msgs::fillImage(*msg, sensor_msgs::image_encodings::BAYER_RGGB8, pImg->GetHeight(), pImg->GetWidth(), pImg->GetStride(), pImg->GetData());
       pImg->Release();
 
-      this->publishers_[camIndex]->publish(std::move(msg));
+      this->pubs_[camIndex].publish(*msg.get());
+      // this->publishers_[camIndex]->publish(std::move(msg));
     }
   }
 };
 
 int main(int argc, char* argv[]) {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<CameraPublisher>());
+  rclcpp::spin(std::make_shared<FlirPublisher>());
   rclcpp::shutdown();
   return 0;
 }

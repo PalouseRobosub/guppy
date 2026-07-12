@@ -27,6 +27,7 @@ find_package(behaviortree_ros2 REQUIRED)
 
 add_library(action_server SHARED src/navigate_action_server.cpp)
 add_library(pose_setter SHARED src/pose_setter.cpp)
+add_library(behavior_tree SHARED src/behavior_tree.cpp src/change_state_node.cpp)
 
 #target_include_directories(action_server PRIVATE
 #  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -38,10 +39,11 @@ include_directories(include)
 #add_executable(action_server src/navigate_action_server.cpp)
 ament_target_dependencies(action_server rclcpp rclcpp_action rclcpp_components guppy_msgs nav_msgs geometry_msgs Eigen3 control_toolbox)
 ament_target_dependencies(pose_setter rclcpp rclcpp_action rclcpp_components guppy_msgs nav_msgs geometry_msgs Eigen3 control_toolbox)
+ament_target_dependencies(behavior_tree guppy_msgs)
 rclcpp_components_register_node(action_server PLUGIN "NavigateActionServer" EXECUTABLE navigate_action_server)
 rclcpp_components_register_node(pose_setter PLUGIN "PoseSetterServer" EXECUTABLE the_pose_setter)
 
-target_link_libraries(pose_setter behaviortree_cpp::behaviortree_cpp behaviortree_ros2::behaviortree_ros2)
+target_link_libraries(behavior_tree behaviortree_cpp::behaviortree_cpp behaviortree_ros2::behaviortree_ros2)
 
 install(TARGETS
   action_server

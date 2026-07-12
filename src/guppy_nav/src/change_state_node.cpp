@@ -11,13 +11,15 @@ public:
     static BT::PortsList providedPorts()
     {
         return providedBasicPorts({
-            BT::InputPort<float>("state")
+            BT::InputPort<uint8_t>("state")
         });
     }
 
     bool setRequest(Request::SharedPtr& request) override
     {
-        getInput("state", request->new_state);
+        getInput("state", request->new_state.state);
+
+        RCLCPP_DEBUG(logger(), "Request to change State");
 
         return true;
     }

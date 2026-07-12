@@ -13,6 +13,8 @@
 #include "behaviortree_cpp/bt_factory.h"
 #include "guppy_msgs/msg/state.hpp"
 
+#define TICK_MS 20
+
 class NavigationBehaviorTree : public rclcpp::Node {
 public:
     NavigationBehaviorTree() : Node("navigation_behavior_tree") {
@@ -39,7 +41,7 @@ public:
             }
         };
 
-        _timer = this->create_wall_timer(std::chrono::milliseconds(20), tick);
+        _timer = this->create_wall_timer(std::chrono::milliseconds(TICK_MS), tick);
 
         auto state_quality = rclcpp::QoS(rclcpp::KeepLast(1)).reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE).durability(RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
         _subscription = this->create_subscription<guppy_msgs::msg::State>("state", state_quality, onState);

@@ -276,7 +276,7 @@ class LaneNavigator(Node):
                 self._goal_active = False
 
 
-    def alt_cb(self,msg: Altimeter):
+    def alt_cb(self,msg: Odometry):
         # z = float(msg.vertical_position)
         z = float(msg.pose.pose.position.z)
         self.depth_ = z if self.depth_incrases_down_ else -z

@@ -1,4 +1,5 @@
 #include <behaviortree_cpp/tree_node.h>
+#include <behaviortree_ros2/ros_node_params.hpp>
 #include <memory>
 
 #include <rclcpp/rclcpp.hpp>
@@ -9,11 +10,15 @@
 
 #include <guppy_nav/change_state_behavior.hpp>
 #include <guppy_nav/pose_setter_behavior.hpp>
+#include <guppy_nav/acquire_detection.hpp>
+#include <guppy_nav/face_detection_behavior.hpp>
 
 #include "behaviortree_cpp/bt_factory.h"
 #include "guppy_msgs/msg/state.hpp"
+#include "guppy_nav/face_detection_behavior.hpp"
 
 #define TICK_MS 20
+#define TREE_NAME "t-shape"
 
 class NavigationBehaviorTree : public rclcpp::Node {
 public:
@@ -22,13 +27,18 @@ public:
 
         _change_state_client = std::make_shared<rclcpp::Node>("chage_state_behavior_client");
         _navigation_client = std::make_shared<rclcpp::Node>("navigate_behavior_client");
+        _detection_subscriber = std::make_shared<rclcpp::Node>("detection_subscriber");
 
         BT::RosNodeParams stateParameters(_change_state_client, "change_state");
         BT::RosNodeParams navigateParameters(_navigation_client, "/navigate");
+        BT::RosNodeParams detectionParameters(_detection_subscriber, "/cam/test/detections");
+
         factory.registerNodeType<ChangeStateBehavior>("ChangeState", stateParameters);
         factory.registerNodeType<NavigateBehavior>("Navigate", navigateParameters);
+        factory.registerNodeType<FaceDetectionBehavior>("FaceDetection", navigateParameters);
+        factory.registerNodeType<AcquireDetection>("AcquireDetection", detectionParameters);
 
-        _tree = std::make_unique<BT::Tree>(factory.createTreeFromFile("./src/guppy_tasks/resource/prequal.xml"));
+        _tree = std::make_unique<BT::Tree>(factory.createTreeFromFile("./src/guppy_tasks/resource/" + std::string(TREE_NAME) + ".xml"));
 
         auto tick = [this]() {
             if (!_running) return;
@@ -54,6 +64,7 @@ private:
 
     std::shared_ptr<rclcpp::Node> _change_state_client;
     std::shared_ptr<rclcpp::Node> _navigation_client;
+    std::shared_ptr<rclcpp::Node> _detection_subscriber;
 
     rclcpp::Subscription<guppy_msgs::msg::State>::SharedPtr _subscription;
     rclcpp::TimerBase::SharedPtr _timer;

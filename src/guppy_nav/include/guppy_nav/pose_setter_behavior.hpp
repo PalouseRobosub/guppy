@@ -36,11 +36,15 @@ public:
     }
 
     virtual BT::NodeStatus onFailure(BT::ActionNodeErrorCode error) override {
-        RCLCPP_ERROR(logger(), "pose setter treenode error... %s", BT::toStr(error));
         bool continueOnTimeout = false;
         getInput("continueOnTimeout", continueOnTimeout);
-        if (continueOnTimeout) return BT::NodeStatus::SUCCESS;
-        else return BT::NodeStatus::FAILURE;
+        if (continueOnTimeout) {
+            RCLCPP_INFO(logger(), "navigate action aborted, continuing...");
+            return BT::NodeStatus::SUCCESS;
+        } else {
+            RCLCPP_ERROR(logger(), "pose setter treenode error... %s", BT::toStr(error));
+            return BT::NodeStatus::FAILURE;
+        }
     }
 
     BT::NodeStatus onFeedback(const std::shared_ptr<const Feedback> feedback) {

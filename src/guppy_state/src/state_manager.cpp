@@ -80,7 +80,13 @@ class StateManager : public rclcpp::Node {
             const std::shared_ptr<guppy_msgs::srv::ChangeState::Request> request,
             std::shared_ptr<guppy_msgs::srv::ChangeState::Response> response
         ) {
-            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "State transition request...");
+            RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "State transition request...");
+
+            if (request->new_state.state == this->current_state_) {
+                RCLCPP_ERROR(this->get_logger(), "Already in state!");
+                response->success = false;
+                return;
+            }
 
             if (!is_valid_state(request->new_state.state)) {
                 RCLCPP_ERROR(this->get_logger(), "Invalid state passed in transition service!");

@@ -46,7 +46,7 @@ class StateManager : public rclcpp::Node {
 
             static const geometry_msgs::msg::Twist zero_twist;
         }
-    
+
     private:
         void estopcallback(guppy_msgs::msg::CanFrame msg) {
             int is_estopped = 0;
@@ -80,8 +80,14 @@ class StateManager : public rclcpp::Node {
             const std::shared_ptr<guppy_msgs::srv::ChangeState::Request> request,
             std::shared_ptr<guppy_msgs::srv::ChangeState::Response> response
         ) {
-            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "State transition request...");   
-            
+            RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "State transition request...");
+
+            if (request->new_state.state == this->current_state_) {
+                RCLCPP_ERROR(this->get_logger(), "Already in state!");
+                response->success = false;
+                return;
+            }
+
             if (!is_valid_state(request->new_state.state)) {
                 RCLCPP_ERROR(this->get_logger(), "Invalid state passed in transition service!");
                 response->success = false;
@@ -94,20 +100,16 @@ class StateManager : public rclcpp::Node {
                 return;
             }
 
-            if (this->current_state_ == guppy_msgs::msg::State::NAV) {
-                system("killall prequal");
-            }
-
             if (request->new_state.state == guppy_msgs::msg::State::HOLDING) {
                 auto request = std::make_shared<std_srvs::srv::Empty::Request>();
                 resetholdpose->async_send_request(request);
             }
 
             // TODO switch logic should be handled here NOT in StateManager#publishState()
-            
-            response->success = this->publish_state(request->new_state.state);                                                                                 
+
+            response->success = this->publish_state(request->new_state.state);
         }
-        
+
         bool publish_state(uint8_t state) {
             auto message = guppy_msgs::msg::State();
             message.state = state;
@@ -162,7 +164,7 @@ class StateManager : public rclcpp::Node {
         void handle_fault() {
             // TODO
         }
-        
+
         uint8_t current_state_;
         rclcpp::Publisher<guppy_msgs::msg::State>::SharedPtr state_publisher_;
         rclcpp::Subscription<guppy_msgs::msg::CanFrame>::SharedPtr estopsubscription_;
@@ -182,7 +184,7 @@ class StateManager : public rclcpp::Node {
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_publisher_;
 
         bool was_estopped = false;
-    
+
     const geometry_msgs::msg::Twist zero_twist = []() {
         geometry_msgs::msg::Vector3 zero_vector;
         zero_vector.x = 0.0;
@@ -200,7 +202,7 @@ int main(int argc, char* argv[]) {
     rclcpp::init(argc, argv);
 
     auto publisher_node = std::make_shared<StateManager>();
-    
+
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "State transition server ready.");
 
     rclcpp::spin(publisher_node);

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
-    <!-- <node pkg="guppy_nav" exec="navigate_action_server"/> -->
-    <node pkg="guppy_nav" exec="the_pose_setter"/>
+    <!-- <node pkg="guppy_nav" exec="navigation_action_server"/> -->
+    <node pkg="guppy_nav" exec="pose_setter_server"/>
+    <node pkg="guppy_nav" exec="behavior_tree"/>
 </launch>

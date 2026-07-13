@@ -1,0 +1,5 @@
+async sequence
+  - search pattern, constantly moving
+  - wait 5 seconds, check if ayny images
+    - if images halt search and move toward
+    - if no images, repeat.

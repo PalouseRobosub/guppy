@@ -55,7 +55,7 @@ public:
                 execute(goalHandle);
             }}.detach();
         };
-        
+
         _actionServer = rclcpp_action::create_server<guppy_msgs::action::Navigate>(
             this,
             "/navigate",
@@ -107,7 +107,7 @@ private:
 
     struct Trajectory3 {
         Trajectory x, y, z;
-        
+
         explicit Trajectory3(const Eigen::Vector3d& startVelocity, const Eigen::Vector3d& endVelocity, double attack, double decay, double totalTime, const Eigen::Vector3d& targetPosition) :
         x(Trajectory(startVelocity.x(), endVelocity.x(), attack, decay, totalTime, targetPosition.x())),
         y(Trajectory(startVelocity.y(), endVelocity.y(), attack, decay, totalTime, targetPosition.y())),
@@ -200,7 +200,7 @@ private:
         Eigen::Quaterniond finalOrientation; // world
         if (goal->local) {
             finalPosition = initialPosition + initialOrientation.inverse() * goalPosition; // get final position in world based on guppy's position/orientation
-            finalOrientation = initialOrientation * goalOrientation; 
+            finalOrientation = initialOrientation * goalOrientation;
         } else {
             finalPosition = goalPosition;
             finalOrientation = goalOrientation;
@@ -224,7 +224,7 @@ private:
         auto clock = this->get_clock();
         rclcpp::Time start = clock->now();
         rclcpp::Time last = start;
-        
+
         auto feedback = std::make_shared<guppy_msgs::action::Navigate::Feedback>();
         auto result = std::make_shared<guppy_msgs::action::Navigate::Result>();
 

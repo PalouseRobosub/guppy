@@ -196,11 +196,14 @@ class LaneNavigator(Node):
         # self.create_subscription(
         #     Altimeter, "/altimeter", self.alt_cb, qos_profile_sensor_data
         # )
+        # self.create_subscription(
+        #     Odometry, "/odometry/filtered", self.alt_cb, qos_profile_sensor_data
+        # )
+        # self.create_subscription(
+        #     Imu, "/odometry/filtered", self.imu_cb, qos_profile_sensor_data
+        # )
         self.create_subscription(
-            Odometry, "/odometry/filtered", self.alt_cb, qos_profile_sensor_data
-        )
-        self.create_subscription(
-            Imu, "/odometry/filtered", self.imu_cb, qos_profile_sensor_data
+            Odometry, "/odometry/filtered", self.odom_cb, qos_profile_sensor_data
         )
 
         if self.publish_debug:
@@ -289,6 +292,20 @@ class LaneNavigator(Node):
         self.roll_rate_ = msg.angular_velocity.x
         self.pitch_rate_ = msg.angular_velocity.y
         self.yaw_rate_ = msg.angular_velocity.z
+        self.have_imu_ = True
+
+    #ODOM CALLBACK
+    def odom_cb(self, msg: Odometry):
+        z = float(msg.pose.pose.position.z)
+        self.depth_ = z if self.depth_incrases_down_ else -z
+        self.have_depth_ = True
+
+        q = msg.pose.pose.orientation
+        self.roll_, self.pitch_, self.yaw_ = quat_to_euler_xyz(q.x, q.y, q.z, q.w)
+
+        self.roll_rate_ = msg.twist.twist.angular.x
+        self.pitch_rate_ = msg.twist.twist.angular.y
+        self.yaw_rate_ = msg.twist.twist.angular.z
         self.have_imu_ = True
 
     def pole_centroids(self,mask):

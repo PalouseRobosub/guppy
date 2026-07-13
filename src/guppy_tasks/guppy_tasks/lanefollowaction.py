@@ -16,6 +16,7 @@ import threading
 from rclpy.action import ActionServer, CancelResponse, GoalResponse
 from rclpy.callback_groups import ReentrantCallbackGroup
 from guppy_msgs.action import LaneFollow
+from nav_msgs.msg import Odometry
 
 #MADE THIS FROM THE CPP VERSION, I NEED THE HARDWARE TOPICS TO SEE IF THIS WILL WORK IRL
 
@@ -186,17 +187,20 @@ class LaneNavigator(Node):
             cancel_callback=self.cancel_callback,
             callback_group = self._cb_group,
         )
-        self.cmd_pub_ = self.create_publisher(Twist, "/cmd_vel", 10)
+        self.cmd_pub_ = self.create_publisher(Twist, "/cmd_vel/task", 10)
         self.status_pub_ = self.create_publisher(Bool,"~/lane_found",10)
 
         self.create_subscription(
             Image, "/cube/image_raw", self.image_cb, qos_profile_sensor_data
         )
+        # self.create_subscription(
+        #     Altimeter, "/altimeter", self.alt_cb, qos_profile_sensor_data
+        # )
         self.create_subscription(
-            Altimeter, "/altimeter", self.alt_cb, qos_profile_sensor_data
+            Odometry, "/odometry/filtered", self.alt_cb, qos_profile_sensor_data
         )
         self.create_subscription(
-            Imu, "/imu", self.imu_cb, qos_profile_sensor_data
+            Imu, "/odometry/filtered", self.imu_cb, qos_profile_sensor_data
         )
 
         if self.publish_debug:
@@ -273,7 +277,8 @@ class LaneNavigator(Node):
 
 
     def alt_cb(self,msg: Altimeter):
-        z = float(msg.vertical_position)
+        # z = float(msg.vertical_position)
+        z = float(msg.pose.pose.position.z)
         self.depth_ = z if self.depth_incrases_down_ else -z
         self.have_depth_ = True
 

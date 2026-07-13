@@ -10,9 +10,10 @@ public:
 
     static BT::PortsList providedPorts() {
         return providedBasicPorts({
-            BT::InputPort<double>("x"), BT::InputPort<float>("y"), BT::InputPort<float>("z"),
-            BT::InputPort<double>("qw"), BT::InputPort<double>("qw"), BT::InputPort<double>("qw"), BT::InputPort<double>("qw"),
-            BT::InputPort<bool>("local"), BT::InputPort<double>("timeout")
+            BT::InputPort<double>("x"), BT::InputPort<double>("y"), BT::InputPort<double>("z"),
+            BT::InputPort<double>("qw"), BT::InputPort<double>("qx"), BT::InputPort<double>("qy"), BT::InputPort<double>("qz"),
+            BT::InputPort<bool>("local"), BT::InputPort<double>("timeout"),
+            BT::InputPort<bool>("continueOnTimeout")
         });
     }
 
@@ -35,8 +36,11 @@ public:
     }
 
     virtual BT::NodeStatus onFailure(BT::ActionNodeErrorCode error) override {
-        RCLCPP_ERROR(logger(), "error: %d", error);
-        return BT::NodeStatus::FAILURE;
+        RCLCPP_ERROR(logger(), "pose setter treenode error... %s", BT::toStr(error));
+        bool continueOnTimeout = false;
+        getInput("continueOnTimeout", continueOnTimeout);
+        if (continueOnTimeout) return BT::NodeStatus::SUCCESS;
+        else return BT::NodeStatus::FAILURE;
     }
 
     BT::NodeStatus onFeedback(const std::shared_ptr<const Feedback> feedback) {

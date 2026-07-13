@@ -50,7 +50,7 @@ public:
                 execute(goalHandle);
             }}.detach();
         };
-        
+
         _actionServer = rclcpp_action::create_server<guppy_msgs::action::Navigate>(
             this,
             "/navigate",
@@ -68,7 +68,7 @@ public:
         _current_pos = Eigen::Vector3d(msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z);
         _current_quat = Eigen::Quaterniond(msg->pose.pose.orientation.w, msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z);
     }
-    
+
     void stateCallback(guppy_msgs::msg::State::SharedPtr msg) {
         _state = msg->state;
     }
@@ -193,7 +193,7 @@ private:
 
         if (rclcpp::ok()) {
             result->pose = get_current_pose();
-            result->target_reached = true;\
+            result->target_reached = true;
             result->error = pose_from_vec_quat(error, qerror);
             goalHandle->succeed(result);
             return;

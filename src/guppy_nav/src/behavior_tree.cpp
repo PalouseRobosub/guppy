@@ -20,8 +20,11 @@ public:
     NavigationBehaviorTree() : Node("navigation_behavior_tree") {
         BT::BehaviorTreeFactory factory;
 
-        BT::RosNodeParams stateParameters(std::make_shared<rclcpp::Node>("chage_state_behavior_client"), "change_state");
-        BT::RosNodeParams navigateParameters(std::make_shared<rclcpp::Node>("navigate_behavior_client"), "/navigate");
+        _change_state_client = std::make_shared<rclcpp::Node>("chage_state_behavior_client");
+        _navigation_client = std::make_shared<rclcpp::Node>("navigate_behavior_client");
+
+        BT::RosNodeParams stateParameters(_change_state_client, "change_state");
+        BT::RosNodeParams navigateParameters(_navigation_client, "/navigate");
         factory.registerNodeType<ChangeStateBehavior>("ChangeState", stateParameters);
         factory.registerNodeType<NavigateBehavior>("Navigate", navigateParameters);
 
@@ -47,7 +50,10 @@ public:
         _subscription = this->create_subscription<guppy_msgs::msg::State>("state", state_quality, onState);
     }
 private:
-    std::unique_ptr<BT::Tree> _tree = nullptr;
+    std::unique_ptr<BT::Tree> _tree;
+
+    std::shared_ptr<rclcpp::Node> _change_state_client;
+    std::shared_ptr<rclcpp::Node> _navigation_client;
 
     rclcpp::Subscription<guppy_msgs::msg::State>::SharedPtr _subscription;
     rclcpp::TimerBase::SharedPtr _timer;

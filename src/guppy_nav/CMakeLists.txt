@@ -43,6 +43,13 @@ target_include_directories(behavior_tree PUBLIC
     $<INSTALL_INTERFACE:include>
 )
 
+#target_compile_definitions(navigate_action_server
+#    PRIVATE "GUPPY_NAV_BUILDING_DLL"
+#)
+target_compile_definitions(pose_setter
+    PRIVATE "GUPPY_NAV_BUILDING_DLL"
+)
+
 #ament_target_dependencies(navigate_action
 #    rclcpp rclcpp_action rclcpp_components guppy_msgs nav_msgs geometry_msgs Eigen3 control_toolbox
 #)
@@ -50,7 +57,7 @@ ament_target_dependencies(pose_setter
     rclcpp rclcpp_action rclcpp_components guppy_msgs nav_msgs geometry_msgs Eigen3 control_toolbox
 )
 ament_target_dependencies(behavior_tree
-    guppy_msgs
+    rclcpp guppy_msgs behaviortree_cpp behaviortree_ros2
 )
 
 target_link_libraries(behavior_tree
@@ -58,11 +65,11 @@ target_link_libraries(behavior_tree
 )
 
 #rclcpp_components_register_node(navigate_action
-#    PLUGIN "guppy_nav::NavigateActionServer"
+#    PLUGIN "NavigateActionServer"
 #    EXECUTABLE navigate_action_server
 #)
 rclcpp_components_register_node(pose_setter
-    PLUGIN "guppy_nav::PoseSetterServer"
+    PLUGIN "PoseSetterServer"
     EXECUTABLE pose_setter_server
 )
 
@@ -74,7 +81,7 @@ install(TARGETS
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
-  #DESTINATION lib/${PROJECT_NAME}
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 install(DIRECTORY

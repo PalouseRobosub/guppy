@@ -14,6 +14,8 @@
 #define CAMERA_MAX_ANGLE_YAW 1.57079632679
 #define CAMERA_MAX_ANGLE_PITCH 1.57079632679
 
+// https://www.desmos.com/calculator/ivz6gpks8n
+
 class FaceDetectionBehavior: public BT::RosActionNode<guppy_msgs::action::Navigate> {
 public:
     FaceDetectionBehavior(const std::string& name, const BT::NodeConfig& conf, const BT::RosNodeParams& params)

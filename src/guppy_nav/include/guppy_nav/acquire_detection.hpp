@@ -15,7 +15,7 @@ public:
 
     static BT::PortsList providedPorts() {
         return providedBasicPorts({
-            BT::InputPort<std::string>("name"),
+            BT::InputPort<std::string>("target"),
             BT::OutputPort<guppy_msgs::msg::CornerDetection>("detection")
         });
     }

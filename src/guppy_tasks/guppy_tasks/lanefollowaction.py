@@ -11,6 +11,11 @@ from sensor_msgs.msg import Image, Imu
 from ros_gz_interfaces.msg import Altimeter
 from std_msgs.msg import Bool
 from cv_bridge import CvBridge
+import time
+import threading
+from rclpy.action import ActionServer, CancelResponse, GoalResponse
+from rclpy.callback_groups import ReentrantCallbackGroup
+from guppy_msgs.action import LaneFollow
 
 #MADE THIS FROM THE CPP VERSION, I NEED THE HARDWARE TOPICS TO SEE IF THIS WILL WORK IRL
 
@@ -131,8 +136,17 @@ class LaneNavigator(Node):
         self.white_low_ = np.array(p("hsv_white_low").value, dtype=np.uint8)
         self.white_high_ = np.array(p("hsv_white_high").value, dtype=np.uint8)
 
+        # self.bridge_ = CvBridge()
+        # self.was_enabled_ = False
+
         self.bridge_ = CvBridge()
-        self.was_enabled_ = False
+
+        self._goal_active = False
+        self._was_active = False
+        self._goal_lock = threading.Lock()
+        self._current_lost_timeout = 2.0
+        self._last_lane_ok = False
+        self._last_x_center = 0.0
         
         self.image_ = None
         self.have_image_ = False
@@ -154,10 +168,25 @@ class LaneNavigator(Node):
         self.q_vel_ = 200.0
         self.r_meas_ = 400.0
 
+        # self.frame_count_ = 0
+        # self.prev_time_ = self.get_clock().now()
+
+        # self.cmd_pub_ = self.create_publisher(Twist,"/cmd_vel",10)
+
         self.frame_count_ = 0
         self.prev_time_ = self.get_clock().now()
-
-        self.cmd_pub_ = self.create_publisher(Twist,"/cmd_vel",10)
+        # self._cb_group = ReentrantCallbackGroup()
+        self._cb_group = ReentrantCallbackGroup()
+        self._action_server = ActionServer(
+            self,
+            LaneFollow,
+            "lane_follow",
+            execute_callback = self.execute_callback,
+            goal_callback = self.goal_callback,
+            cancel_callback=self.cancel_callback,
+            callback_group = self._cb_group,
+        )
+        self.cmd_pub_ = self.create_publisher(Twist, "/cmd_vel", 10)
         self.status_pub_ = self.create_publisher(Bool,"~/lane_found",10)
 
         self.create_subscription(
@@ -176,7 +205,8 @@ class LaneNavigator(Node):
             self.dbg_white_pub_ = self.create_publisher(Image, "/lane_debug/white_mask", 1)
             self.dbg_overlay_pub_ = self.create_publisher(Image, "/lane_debug/overlay", 1)
 
-        self.timer_ = self.create_timer(0.01,self.control_loop)
+        # self.timer_ = self.create_timer(0.01,self.control_loop)
+        self.timer_ = self.create_timer(0.01, self.control_loop, callback_group=self._cb_group)
 
         self.get_logger().info(
             f"lane_navigator_py running (100 Hz). "
@@ -189,6 +219,57 @@ class LaneNavigator(Node):
             self.have_image_ = True
         except Exception as e:
             self.get_logger().warn(f"cv_bridge conversion failed: {e}", throttle_duration_sec=2.0)
+
+    def goal_callback(self,goal_request):
+        with self._goal_lock:
+            if self._goal_active:
+                self.get_logger().warn("LaneFollow goal rejected: already active")
+                return GoalResponse.REJECT
+        return GoalResponse.ACCEPT
+            
+            
+    def cancel_callback(self,goal_handle):
+        self.get_logger().info("LaneFollow cancel requested")
+        return CancelResponse.ACCEPT
+    
+    async def execute_callback(self,goal_handle):
+        self._current_lost_timeout = goal_handle.request.lost_timeout
+        with self._goal_lock:
+            self._goal_active = True
+        
+        feedback = LaneFollow.Feedback()
+        result = LaneFollow.Result()
+        last_seen = time.monotonic() 
+        rate_hz = 10.0
+
+        try:
+            while rclpy.ok():
+                if goal_handle.is_cancel_requested:
+                    goal_handle.canceled()
+                    result.success = False
+                    result.message = "canceled"
+                    return result
+            
+                feedback.lane_found = self._last_lane_ok
+                feedback.x_center = self._last_x_center
+                feedback.depth = self.depth_
+                goal_handle.publish_feedback(feedback)
+                if self._last_lane_ok:
+                    last_seen = time.monotonic()
+                elif time.monotonic() - last_seen > self._current_lost_timeout:
+                    goal_handle.abort()
+                    result.success = False
+                    result.message = "lane lost past timeout"
+                    return result
+                
+                time.sleep(1.0 /rate_hz)
+            goal_handle.abort()
+            result.success = False
+            result.message = "rclpy shutdown"
+            return result
+        finally:
+            with self._goal_lock:
+                self._goal_active = False
 
 
     def alt_cb(self,msg: Altimeter):
@@ -398,13 +479,19 @@ class LaneNavigator(Node):
         self.dbg_overlay_pub_.publish(to_bgr(overlay))
 
     def control_loop(self):
-        enabled = self.get_parameter("enabled").value
-        if not enabled:
-            if self.was_enabled_:
+        # enabled = self.get_parameter("enabled").value
+        # if not enabled:
+        #     if self.was_enabled_:
+        #         self.cmd_pub_.publish(Twist())
+        #         self.was_enabled_ = False
+        #     return
+        # self.was_enabled_ = True
+        if not self._goal_active:
+            if self._was_active:
                 self.cmd_pub_.publish(Twist())
-                self.was_enabled_ = False
+                self._was_active = False
             return
-        self.was_enabled_ = True
+        self._was_active = True
 
         #UNCOMMENT THIS WHEN YOU HAVE IMU/DEPTH SENSOR/ALTIMETER (STILL USES GAZEBO TOPICS)
         # if not (self.have_image_ and self.have_depth_ and self.have_imu_):
@@ -438,7 +525,11 @@ class LaneNavigator(Node):
         roll_cmd = clampd(roll_cmd, -self.max_att_cmd_, self.max_att_cmd_)
         pitch_cmd = clampd(pitch_cmd, -self.max_att_cmd_, self.max_att_cmd_)
 
+        # lane_ok, x_center, lane_theta, red_mask, white_mask, overlay = self.detect_lane(self.image_)
         lane_ok, x_center, lane_theta, red_mask, white_mask, overlay = self.detect_lane(self.image_)
+        self._last_lane_ok = lane_ok
+        self._last_x_center = x_center if lane_ok else self._last_x_center
+
 
         if lane_ok:
             if not self.kf_inited:
@@ -486,10 +577,21 @@ class LaneNavigator(Node):
                 f"err_px={error_px:+.1f} theta={lane_theta:+.3f} depth={self.depth_:.2f}"
             )
 def main(args =None):
-    rclpy.init(args=args)
+    # rclpy.init(args=args)
+    # node = LaneNavigator()
+    # try:
+    #     rclpy.spin(node)
+    # except KeyboardInterrupt:
+    #     pass
+    # finally:
+    #     node.destroy_node()
+    #     rclpy.shutdown()
+    rclpy.init(args = args)
     node = LaneNavigator()
+    executor = rclpy.executors.MultiThreadedExecutor()
+    executor.add_node(node)
     try:
-        rclpy.spin(node)
+        executor.spin()
     except KeyboardInterrupt:
         pass
     finally:

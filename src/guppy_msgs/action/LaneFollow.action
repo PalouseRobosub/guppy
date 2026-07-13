@@ -1,0 +1,8 @@
+float64 lost_timeout
+---
+bool success
+string message
+---
+bool lane_found
+float64 x_center
+float64 depth

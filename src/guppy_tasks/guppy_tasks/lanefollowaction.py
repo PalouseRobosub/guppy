@@ -406,7 +406,12 @@ class LaneNavigator(Node):
             return
         self.was_enabled_ = True
 
-        if not (self.have_image_ and self.have_depth_ and self.have_imu_):
+        #UNCOMMENT THIS WHEN YOU HAVE IMU/DEPTH SENSOR/ALTIMETER (STILL USES GAZEBO TOPICS)
+        # if not (self.have_image_ and self.have_depth_ and self.have_imu_):
+        #     return
+
+        #SET IT TO THIS WHEN TESTING WITH ONLY CAMERA/WEBCAM
+        if not self.have_image_:
             return
     
         now = self.get_clock().now()
@@ -423,8 +428,10 @@ class LaneNavigator(Node):
         derivative_depth = (depth_error - self.prev_depth_error_) / dt
         self.prev_depth_error_ = depth_error
 
-        heave = (self.kp_depth_ * depth_error + self.ki_depth * self.integral_depth_ + self.kd_depth * derivative_depth)
-        heave = clampd(heave, -self.max_heave_cmd, self.max_heave_cmd)
+        # heave = (self.kp_depth_ * depth_error + self.ki_depth * self.integral_depth_ + self.kd_depth * derivative_depth)
+        # heave = clampd(heave, -self.max_heave_cmd, self.max_heave_cmd)
+        heave = (self.kp_depth_ * depth_error + self.ki_depth_ * self.integral_depth_ + self.kd_depth_ * derivative_depth)
+        heave = clampd(heave, -self.max_heave_cmd_, self.max_heave_cmd_)
 
         roll_cmd = self.kp_roll_ * (0.0 - self.roll_)+ self.kd_roll_ * (0.0 - self.roll_rate_)
         pitch_cmd = self.kp_pitch * (0.0 - self.pitch_) + self.kd_pitch * (0.0 - self.pitch_rate_)

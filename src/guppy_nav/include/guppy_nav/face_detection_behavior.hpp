@@ -23,7 +23,7 @@ public:
 
     static BT::PortsList providedPorts() {
         return providedBasicPorts({
-            BT::InputPort<double>("detection"),
+            BT::InputPort<guppy_msgs::msg::CornerDetection>("detection"),
             BT::InputPort<double>("timeout"), BT::InputPort<bool>("continueOnTimeout")
         });
     }

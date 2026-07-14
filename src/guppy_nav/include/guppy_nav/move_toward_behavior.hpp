@@ -8,36 +8,28 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-#define CAMERA_RES_X 1920
-#define CAMERA_RES_Y 1080
-
-#define CAMERA_MAX_ANGLE_YAW 1.57079632679
-#define CAMERA_MAX_ANGLE_PITCH 1.57079632679
-
-// https://www.desmos.com/calculator/ivz6gpks8n
-
 class MoveTowardBehavior : public BT::RosActionNode<guppy_msgs::action::Navigate> {
  public:
   MoveTowardBehavior(const std::string& name, const BT::NodeConfig& conf, const BT::RosNodeParams& params) : BT::RosActionNode<guppy_msgs::action::Navigate>(name, conf, params) {}
 
   static BT::PortsList providedPorts() {
-    return providedBasicPorts({BT::InputPort<guppy_msgs::msg::cornerdetection>("detection"), BT::InputPort<double>("timeout"), BT::InputPort<bool>("continueOnTimeout")});
+    return providedBasicPorts({BT::InputPort<guppy_msgs::msg::CornerDetection>("detection"), BT::InputPort<double>("timeout"), BT::InputPort<bool>("continueOnTimeout")});
   }
 
   bool setGoal(BT::RosActionNode<guppy_msgs::action::Navigate>::Goal& goal) override {
     guppy_msgs::msg::CornerDetection detection;
     getInput("detection", detection);
 
-    if (detection.size() < 2)
+    if (detection.corners.size() < 2)
       return false;
 
     double diagonal_size = 0.0;
-    int i = 1;
-    for (auto corner1 : detection.corners) {
-      for (auto corner2 : detection.corners.begin() + i) {
+    for (int i = 0; i < detection.corners.size(); i++) {
+      for (int j = i + 1; j < detection.corners.size(); j++) {
+        auto corner1 = detection.corners[i];
+        auto corner2 = detection.corners[j];
         diagonal_size = max(sqrt(pow(corner2.x - corner1.x, 2) + pow(corner2.y - corner1.y, 2)), diagonal_size);
       }
-      i++;
     }
 
     constexpr double maintain_distance = 0.25;  // arbitrary value

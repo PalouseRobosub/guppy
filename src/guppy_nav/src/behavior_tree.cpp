@@ -18,7 +18,7 @@
 #include "guppy_nav/face_detection_behavior.hpp"
 
 #define TICK_MS 20
-#define TREE_NAME "spin-test"
+#define TREE_NAME "practice-run"
 
 class NavigationBehaviorTree : public rclcpp::Node {
 public:

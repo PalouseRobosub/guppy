@@ -40,17 +40,14 @@ class MoveTowardBehavior : public BT::RosActionNode<guppy_msgs::action::Navigate
       i++;
     }
 
-    constexpr double threshold = 400;       // arbitrary value
-    constexpr double fov_per_pixel = 0.08;  // made up number, not calculated from anything
+    constexpr double maintain_distance = 0.25;  // arbitrary value
+    constexpr double scale = 0.1;               // scaling from pixel units to meters
+    constexpr double fov_per_pixel = 0.08;      // made up number, not calculated from anything
 
     double angle = fov_per_pixel * diagonal_size / 2;
-    double distance = (diagonal_size / 2) / tan(angle / 180 * PI);
+    double distance = (diagonal_size / 2) / tan(angle / 180 * PI) * scale;
 
-    // TODO: NOW THAT WE HAVE DISTANCE, MOVE WHERE WE SHOULD BE TO LESS THAN THE THRESHOLD
-    //
-    // Guppy move forward (x)
-    // goal.pose.position.x = distance - (some amount)
-    goal.pose.position.x = distance - threshold;
+    goal.pose.position.x = distance > maintain_distance ? distance - maintain_distance : 0.0;
     // then set everything else to zero?
     goal.pose.position.y = goal.pose.position.z = 0.0;
     auto roll = pitch = yaw = 0.0;

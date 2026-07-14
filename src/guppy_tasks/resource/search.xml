@@ -2,9 +2,9 @@
 	<BehaviorTree ID="SearchTask">
 	    <Fallback>
 			<Sequence>
-                <AquireDetection target="any" detection="{detection}"/>
-                <FaceDetection detection="detection"/>
-                <MoveToward detection="detection"/>
+                <AcquireDetection target="any" detection="{detection}"/>
+                <FaceDetection detection="{detection}"/>
+                <MoveToward detection="{detection}"/>
                 <ChangeState state="1"/>
             </Sequence>
             <ChangeState state="5"/>

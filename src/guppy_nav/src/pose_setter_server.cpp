@@ -1,5 +1,4 @@
 #include <memory>
-#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -13,13 +12,11 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-#include "guppy_nav/trajectory.hpp"
-
 #include "guppy_msgs/action/navigate.hpp"
 #include "guppy_msgs/msg/state.hpp"
 #include "guppy_msgs/srv/set_hold_pose.hpp"
+
 #include "geometry_msgs/msg/pose.hpp"
-#include "geometry_msgs/msg/twist.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 
 #define SETPOINTS_EVERY 0.3 // meters

@@ -11,7 +11,7 @@
 #include <guppy_nav/change_state_behavior.hpp>
 #include <guppy_nav/pose_setter_behavior.hpp>
 #include <guppy_nav/acquire_detection.hpp>
-#include <guppy_nav/face_detection_behavior.hpp>
+#include <guppy_nav/face_image_behavior.hpp>
 
 #include "behaviortree_cpp/bt_factory.h"
 #include "guppy_msgs/msg/state.hpp"
@@ -36,7 +36,7 @@ public:
 
         factory.registerNodeType<ChangeStateBehavior>("ChangeState", stateParameters);
         factory.registerNodeType<NavigateBehavior>("Navigate", navigateParameters);
-        factory.registerNodeType<FaceDetectionBehavior>("FaceDetection", navigateParameters);
+        factory.registerNodeType<FaceImageBehavior>("FaceImage", navigateParameters);
         factory.registerNodeType<MoveTowardBehavior>("MoveToward", navigateParameters);
         factory.registerNodeType<AcquireDetection>("AcquireDetection", detectionParameters);
 

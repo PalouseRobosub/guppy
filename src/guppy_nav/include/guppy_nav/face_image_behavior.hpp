@@ -16,9 +16,9 @@
 
 // https://www.desmos.com/calculator/ivz6gpks8n
 
-class FaceDetectionBehavior: public BT::RosActionNode<guppy_msgs::action::Navigate> {
+class FaceImageBehavior: public BT::RosActionNode<guppy_msgs::action::Navigate> {
 public:
-    FaceDetectionBehavior(const std::string& name, const BT::NodeConfig& conf, const BT::RosNodeParams& params)
+    FaceImageBehavior(const std::string& name, const BT::NodeConfig& conf, const BT::RosNodeParams& params)
     : BT::RosActionNode<guppy_msgs::action::Navigate>(name, conf, params) {}
 
     static BT::PortsList providedPorts() {
@@ -34,12 +34,12 @@ public:
 
         auto x = 0.0, y = 0.0;
         for (auto corner : detection.corners) x += corner.x, y += corner.y;
-
         auto size = detection.corners.size();
         x /= size, y /= size;
 
-        auto roll = 0.0, pitch = CAMERA_MAX_ANGLE_PITCH * (y / CAMERA_RES_Y),
-            yaw = CAMERA_MAX_ANGLE_YAW * (x / CAMERA_RES_X);
+        auto roll = 0.0;
+        auto pitch = CAMERA_MAX_ANGLE_PITCH * (x - CAMERA_RES_X / 2.0) / (CAMERA_RES_X / 2.0);
+        auto yaw = CAMERA_MAX_ANGLE_YAW * (y - CAMERA_RES_Y / 2.0) / (CAMERA_RES_Y / 2.0);
         Eigen::Quaterniond q = Eigen::AngleAxisd(roll, Eigen::Vector3d::UnitX())
             * Eigen::AngleAxisd(pitch, Eigen::Vector3d::UnitY())
             * Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ());

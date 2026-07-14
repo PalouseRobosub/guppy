@@ -44,9 +44,9 @@ class MoveTowardBehavior : public BT::RosActionNode<guppy_msgs::action::Navigate
     double angle = fov_per_pixel * diagonal_size / 2;
     double distance = (diagonal_size / 2) / tan(angle / 180 * M_PI) * scale;
 
-    goal.pose.position.x = distance > maintain_distance ? distance - maintain_distance : 0.0;
+    goal.pose.position.y = distance > maintain_distance ? distance - maintain_distance : 0.0;
     // then set everything else to zero?
-    goal.pose.position.y = goal.pose.position.z = 0.0;
+    goal.pose.position.x = goal.pose.position.z = 0.0;
     double roll = 0.0;
     double pitch = 0.0;
     double yaw = 0.0;

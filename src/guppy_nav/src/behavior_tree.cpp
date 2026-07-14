@@ -16,9 +16,10 @@
 #include "behaviortree_cpp/bt_factory.h"
 #include "guppy_msgs/msg/state.hpp"
 #include "guppy_nav/face_detection_behavior.hpp"
+#include "guppy_nav/move_toward_behavior.hpp"
 
 #define TICK_MS 20
-#define TREE_NAME "t-shape"
+#define TREE_NAME "search"
 
 class NavigationBehaviorTree : public rclcpp::Node {
 public:
@@ -31,11 +32,12 @@ public:
 
         BT::RosNodeParams stateParameters(_change_state_client, "change_state");
         BT::RosNodeParams navigateParameters(_navigation_client, "/navigate");
-        BT::RosNodeParams detectionParameters(_detection_subscriber, "/cam/test/detections");
+        BT::RosNodeParams detectionParameters(_detection_subscriber, "/cam/d/detections");
 
         factory.registerNodeType<ChangeStateBehavior>("ChangeState", stateParameters);
         factory.registerNodeType<NavigateBehavior>("Navigate", navigateParameters);
         factory.registerNodeType<FaceDetectionBehavior>("FaceDetection", navigateParameters);
+        factory.registerNodeType<MoveTowardBehavior>("MoveToward", navigateParameters);
         factory.registerNodeType<AcquireDetection>("AcquireDetection", detectionParameters);
 
         _tree = std::make_unique<BT::Tree>(factory.createTreeFromFile("./src/guppy_tasks/resource/" + std::string(TREE_NAME) + ".xml"));

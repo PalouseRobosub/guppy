@@ -1,9 +1,12 @@
 <root BTCPP_format="4">
-	<BehaviorTree ID="PrequalTask">
+	<BehaviorTree ID="SearchTask">
 	    <Fallback>
-    		<Sequence>
-    			<Navigate x="0.0"  y="0.0"  z="-2.0" qw="1.0" qx="0.0" qy="0.0" qz="0.0" local="false" timeout="3" continueOnTimeout="true"/>
-    		</Sequence>
+			<Sequence>
+                <AquireDetection target="any" detection="{detection}"/>
+                <FaceDetection detection="detection"/>
+                <MoveToward detection="detection"/>
+                <ChangeState state="1"/>
+            </Sequence>
             <ChangeState state="5"/>
         </Fallback>
 	</BehaviorTree>

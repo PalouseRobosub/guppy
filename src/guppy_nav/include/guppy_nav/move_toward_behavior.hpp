@@ -34,13 +34,15 @@ class MoveTowardBehavior : public BT::RosActionNode<guppy_msgs::action::Navigate
         diagonal_size = std::max(sqrt(pow(corner2.x - corner1.x, 2) + pow(corner2.y - corner1.y, 2)), diagonal_size);
       }
     }
+    if (diagonal_size == 0.0)
+      return false;
 
     constexpr double maintain_distance = 0.25;  // arbitrary value
     constexpr double scale = 0.1;               // scaling from pixel units to meters
     constexpr double fov_per_pixel = 0.08;      // made up number, not calculated from anything
 
     double angle = fov_per_pixel * diagonal_size / 2;
-    double distance = (diagonal_size / 2) / tan(angle / 180 * 3.1415) * scale;
+    double distance = (diagonal_size / 2) / tan(angle / 180 * M_PI) * scale;
 
     goal.pose.position.x = distance > maintain_distance ? distance - maintain_distance : 0.0;
     // then set everything else to zero?

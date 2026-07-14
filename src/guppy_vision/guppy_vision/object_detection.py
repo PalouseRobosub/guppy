@@ -30,24 +30,23 @@ class ObjectDetection(Node):
         l = CornerDetectionList()
 
         if results[0].masks is not None:
-            det = CornerDetection()
-            json = results[0].to_json()
-            for i in results[0].masks.xy:
-                contour = i.astype(np.float32)
+            json = jsonlib.loads(results[0].to_json())
+            for i in range(len(results[0].masks.xy)):
+                det = CornerDetection()
+                contour = results[0].masks.xy[i].astype(np.float32)
 
                 rect = cv.minAreaRect(contour)
                 box = cv.boxPoints(rect)
-                box = np.int32(box)
+                box = np.int32(box).tolist()
 
                 for j in box:
                     point = Point2D()
-                    point.x = j[0]
-                    point.y = j[1]
+                    point.x = float(j[0])
+                    point.y = float(j[1])
                     det.corners.append(point)
-
-                det = CornerDetection()
-                det.confidence = 0.99 #jsonlib.loads(json)[i]["confidence"]
-                det.name = "buoy" #jsonlib.loads(json)[i]["name"]
+                
+                det.confidence = json[i]["confidence"]
+                det.name = json[i]["name"]
                 det.square = True
 
                 points = [

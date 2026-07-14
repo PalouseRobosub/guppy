@@ -17,8 +17,11 @@
 #include "guppy_msgs/msg/state.hpp"
 #include "guppy_nav/face_detection_behavior.hpp"
 
+#include <guppy_nav/lane_follow_behavior.hpp>
+
 #define TICK_MS 20
-#define TREE_NAME "t-shape"
+// #define TREE_NAME "t-shape"
+#define TREE_NAME "LaneFollow" //I CHANGE THIS BACK TO WHATEVVER I GUESS
 
 class NavigationBehaviorTree : public rclcpp::Node {
 public:
@@ -28,15 +31,18 @@ public:
         _change_state_client = std::make_shared<rclcpp::Node>("chage_state_behavior_client");
         _navigation_client = std::make_shared<rclcpp::Node>("navigate_behavior_client");
         _detection_subscriber = std::make_shared<rclcpp::Node>("detection_subscriber");
+        _lane_follow_client = std::make_shared<rclcpp::Node>("lane_follow_behavior_client");
 
         BT::RosNodeParams stateParameters(_change_state_client, "change_state");
         BT::RosNodeParams navigateParameters(_navigation_client, "/navigate");
         BT::RosNodeParams detectionParameters(_detection_subscriber, "/cam/test/detections");
+        BT::RosNodeParams laneFollowParameters(_lane_follow_client, "/lane_follow");
 
         factory.registerNodeType<ChangeStateBehavior>("ChangeState", stateParameters);
         factory.registerNodeType<NavigateBehavior>("Navigate", navigateParameters);
         factory.registerNodeType<FaceDetectionBehavior>("FaceDetection", navigateParameters);
         factory.registerNodeType<AcquireDetection>("AcquireDetection", detectionParameters);
+        factory.registerNodeType<LaneFollowBehavior>("LaneFollow", laneFollowParameters);
 
         _tree = std::make_unique<BT::Tree>(factory.createTreeFromFile("./src/guppy_tasks/resource/" + std::string(TREE_NAME) + ".xml"));
 
@@ -65,6 +71,7 @@ private:
     std::shared_ptr<rclcpp::Node> _change_state_client;
     std::shared_ptr<rclcpp::Node> _navigation_client;
     std::shared_ptr<rclcpp::Node> _detection_subscriber;
+    std::shared_ptr<rclcpp::Node> _lane_follow_client;
 
     rclcpp::Subscription<guppy_msgs::msg::State>::SharedPtr _subscription;
     rclcpp::TimerBase::SharedPtr _timer;

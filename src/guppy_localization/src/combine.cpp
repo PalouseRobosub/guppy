@@ -1,8 +1,10 @@
 #include "rclcpp/rclcpp.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
+#include "geometry_msgs/msg/point.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 #include "tf2_ros/transform_broadcaster.hpp"
+#include "std_srvs/srv/empty.hpp"
 
 
 
@@ -17,6 +19,22 @@ public:
     odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("/odometry/filtered", 10);
     tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 
+    initial_pose.x = 0.0;
+    initial_pose.y = 0.0;
+    initial_pose.z = 0.0;
+
+    reset_service = this->create_service<std_srvs::srv::Empty>("reset_odom", [&](const std::shared_ptr<std_srvs::srv::Empty::Request> request, std::shared_ptr<std_srvs::srv::Empty::Response> response) {
+      initial_pose.x = odom.pose.pose.position.x;
+      initial_pose.y = odom.pose.pose.position.y;
+      initial_pose.z = odom.pose.pose.position.z;
+      initial_orientation = Eigen::Quaterniond(
+        odom.pose.pose.orientation.w,
+        odom.pose.pose.orientation.x,
+        odom.pose.pose.orientation.y,
+        odom.pose.pose.orientation.z
+      );
+    }, 10);
+
     geometry_msgs::msg::TransformStamped msg;
     msg.header.frame_id = "map";
     msg.header.stamp = this->get_clock()->now();
@@ -29,7 +47,7 @@ public:
   }
 
 void baro_callback(geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg) {
-    odom.pose.pose.position.z = msg->pose.pose.position.z;
+    odom.pose.pose.position.z = msg->pose.pose.position.z - initial_pose.z;
 
     odom_pub_->publish(odom);
 
@@ -47,8 +65,8 @@ void baro_callback(geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg)
     position = quat * position;
     twist = quat * twist;
 
-    odom.pose.pose.position.x = position[0];
-    odom.pose.pose.position.y = position[1];
+    odom.pose.pose.position.x = position[0] - initial_pose.x;
+    odom.pose.pose.position.y = position[1] - initial_pose.y;
     // odom.pose.pose.position.z = position[2];
 
     double rx = 0.2;
@@ -124,7 +142,10 @@ private:
   nav_msgs::msg::Odometry odom;
 
   Eigen::Quaterniond initial_orientation;
+  geometry_msgs::msg::Point initial_pose;
   bool has_initial = false;
+
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_service;
 
 };
 

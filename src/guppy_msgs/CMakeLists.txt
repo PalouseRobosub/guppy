@@ -29,6 +29,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/TransformList.msg"
 
   "action/Navigate.action"
+  "action/LaneFollow.action"
   
   DEPENDENCIES builtin_interfaces
   DEPENDENCIES geometry_msgs

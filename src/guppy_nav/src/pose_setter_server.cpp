@@ -169,7 +169,7 @@ private:
                 abs(error.x()) <= tolerance_list[setpoint_index] &&
                 abs(error.y()) <= tolerance_list[setpoint_index] &&
                 abs(error.z()) <= tolerance_list[setpoint_index] &&
-                abs(qangle) <= M_PI / 18 // 10 degrees
+                abs(qangle) <= M_PI / 36 // 10 degrees
             ) {
                 setpoint_index++;
                 if (setpoint_index == n_steps) {

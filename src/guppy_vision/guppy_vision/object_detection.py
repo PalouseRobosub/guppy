@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+import json as jsonlib
 import rclpy
 from rclpy.node import Node
 from ultralytics import YOLO
@@ -15,11 +17,11 @@ class ObjectDetection(Node):
         super().__init__('object_detection')
 
         # Model generously provided by OSU-UWRT
-        self.model = YOLO("resource/ffc_rs_26.pt")
+        self.model = YOLO("/home/robosub/guppy/src/guppy_vision/resource/ffc_rs_26.pt")
         self.bridge = CvBridge()
 
-        self.sub = self.create_subscription(Image, 'cam/d', 10, self.callback, qos_profile_sensor_data)
-        self.pub = self.create_publisher(CornerDetectionList, "/cam/d/detections", 10)
+        self.sub = self.create_subscription(Image, 'cam/test', self.callback, qos_profile_sensor_data)
+        self.pub = self.create_publisher(CornerDetectionList, "/cam/test/detections", 10)
 
     def callback(self, msg):
         frame = self.bridge.imgmsg_to_cv2(msg)
@@ -28,6 +30,7 @@ class ObjectDetection(Node):
         l = CornerDetectionList()
 
         if results[0].masks is not None:
+            det = CornerDetection()
             json = results[0].to_json()
             for i in results[0].masks.xy:
                 contour = i.astype(np.float32)
@@ -43,8 +46,8 @@ class ObjectDetection(Node):
                     det.corners.append(point)
 
                 det = CornerDetection()
-                det.confidence = json[i].confidence
-                det.name = json[i].name
+                det.confidence = 0.99 #jsonlib.loads(json)[i]["confidence"]
+                det.name = "buoy" #jsonlib.loads(json)[i]["name"]
                 det.square = True
 
                 points = [
@@ -63,7 +66,7 @@ class ObjectDetection(Node):
 
                 l.detections.append(det)
 
-        l.header = frame.header
+        l.header = msg.header
         self.pub.publish(l)    
             
 

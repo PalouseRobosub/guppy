@@ -2,9 +2,8 @@
     <BehaviorTree ID="LaneCourse">
         <Fallback>
             <Sequence>
-                <LaneFollow lost_timeout="2.0">
-                    <ChangeState state ="1"/>
-                </LaneFollow>
+                <LaneFollow lost_timeout="2.0"/>
+                <ChangeState state="1"/>
             </Sequence>
             <ChangeState state="5"/>
         </Fallback>

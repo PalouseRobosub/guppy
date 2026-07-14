@@ -20,7 +20,8 @@
 #include <guppy_nav/lane_follow_behavior.hpp>
 
 #define TICK_MS 20
-#define TREE_NAME "t-shape"
+// #define TREE_NAME "t-shape"
+#define TREE_NAME "LaneFollow" //I CHANGE THIS BACK TO WHATEVVER I GUESS
 
 class NavigationBehaviorTree : public rclcpp::Node {
 public:

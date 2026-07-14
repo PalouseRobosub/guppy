@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 
 #include "guppy_msgs/action/navigate.hpp"
@@ -39,7 +40,7 @@ class MoveTowardBehavior : public BT::RosActionNode<guppy_msgs::action::Navigate
     constexpr double fov_per_pixel = 0.08;      // made up number, not calculated from anything
 
     double angle = fov_per_pixel * diagonal_size / 2;
-    double distance = (diagonal_size / 2) / tan(angle / 180 * PI) * scale;
+    double distance = (diagonal_size / 2) / tan(angle / 180 * 3.1415) * scale;
 
     goal.pose.position.x = distance > maintain_distance ? distance - maintain_distance : 0.0;
     // then set everything else to zero?

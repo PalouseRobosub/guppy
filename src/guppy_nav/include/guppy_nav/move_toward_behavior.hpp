@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 #include "guppy_msgs/action/navigate.hpp"
 #include "guppy_msgs/msg/corner_detection.hpp"
 
@@ -42,7 +44,9 @@ class MoveTowardBehavior : public BT::RosActionNode<guppy_msgs::action::Navigate
     goal.pose.position.x = distance > maintain_distance ? distance - maintain_distance : 0.0;
     // then set everything else to zero?
     goal.pose.position.y = goal.pose.position.z = 0.0;
-    auto roll = pitch = yaw = 0.0;
+    double roll = 0.0;
+    double pitch = 0.0;
+    double yaw = 0.0;
 
     Eigen::Quaterniond q = Eigen::AngleAxisd(roll, Eigen::Vector3d::UnitX()) * Eigen::AngleAxisd(pitch, Eigen::Vector3d::UnitY()) * Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ());
 

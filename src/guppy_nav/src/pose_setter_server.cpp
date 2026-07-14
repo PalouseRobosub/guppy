@@ -1,7 +1,6 @@
+#include <cmath>
 #include <memory>
-#include <mutex>
 #include <thread>
-#include <vector>
 
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/executors/multi_threaded_executor.hpp>
@@ -13,13 +12,11 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-#include "guppy_nav/trajectory.hpp"
-
 #include "guppy_msgs/action/navigate.hpp"
 #include "guppy_msgs/msg/state.hpp"
 #include "guppy_msgs/srv/set_hold_pose.hpp"
+
 #include "geometry_msgs/msg/pose.hpp"
-#include "geometry_msgs/msg/twist.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 
 #define SETPOINTS_EVERY 0.3 // meters
@@ -165,10 +162,14 @@ private:
             error = pos_list[setpoint_index] - _current_pos;
             qerror = Eigen::Quaterniond(1.0, 0.0, 0.0, 0.0);
 
+            auto qdistance = _current_quat.inverse() * quat_list[setpoint_index];
+            auto qangle = 2 * atan2(qdistance.vec().norm(), qdistance.w());
+
             if (
                 abs(error.x()) <= tolerance_list[setpoint_index] &&
                 abs(error.y()) <= tolerance_list[setpoint_index] &&
-                abs(error.z()) <= tolerance_list[setpoint_index]
+                abs(error.z()) <= tolerance_list[setpoint_index] &&
+                abs(qangle) <= M_PI / 18 // 10 degrees
             ) {
                 setpoint_index++;
                 if (setpoint_index == n_steps) {

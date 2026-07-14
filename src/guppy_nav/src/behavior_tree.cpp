@@ -70,6 +70,7 @@ private:
     std::shared_ptr<rclcpp::Node> _change_state_client;
     std::shared_ptr<rclcpp::Node> _navigation_client;
     std::shared_ptr<rclcpp::Node> _detection_subscriber;
+    std::shared_ptr<rclcpp::Node> _lane_follow_client;
 
     rclcpp::Subscription<guppy_msgs::msg::State>::SharedPtr _subscription;
     rclcpp::TimerBase::SharedPtr _timer;

@@ -31,7 +31,7 @@ class MoveTowardBehavior : public BT::RosActionNode<guppy_msgs::action::Navigate
       for (int j = i + 1; j < detection.corners.size(); j++) {
         auto corner1 = detection.corners[i];
         auto corner2 = detection.corners[j];
-        diagonal_size = max(sqrt(pow(corner2.x - corner1.x, 2) + pow(corner2.y - corner1.y, 2)), diagonal_size);
+        diagonal_size = std::max(sqrt(pow(corner2.x - corner1.x, 2) + pow(corner2.y - corner1.y, 2)), diagonal_size);
       }
     }
 

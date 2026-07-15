@@ -46,7 +46,6 @@ class StateManager : public rclcpp::Node {
 
             static const geometry_msgs::msg::Twist zero_twist;
         }
-
     private:
         void estopcallback(guppy_msgs::msg::CanFrame msg) {
             int is_estopped = 0;
@@ -92,12 +91,12 @@ class StateManager : public rclcpp::Node {
             const std::shared_ptr<guppy_msgs::srv::ChangeState::Request> request,
             std::shared_ptr<guppy_msgs::srv::ChangeState::Response> response
         ) {
-            RCLCPP_DEBUG(get_logger(), "State transition to %s requested.", to_string(request->new_state.state).c_str());
+            RCLCPP_INFO(get_logger(), "State transition to %s requested.", to_string(request->new_state.state).c_str());
 
             auto new_state = request->new_state.state;
 
             if (new_state == this->current_state_) {
-                RCLCPP_ERROR(this->get_logger(), "Already in state %s!", to_string(current_state_).c_str());
+                RCLCPP_WARN(this->get_logger(), "Already in state %s!", to_string(current_state_).c_str());
                 response->success = false;
                 return;
             }
@@ -109,7 +108,7 @@ class StateManager : public rclcpp::Node {
             }
 
             if (this->current_state_ == guppy_msgs::msg::State::FAULT) {
-                RCLCPP_ERROR(this->get_logger(), "You can't exit the FAULT state!");
+                RCLCPP_WARN(this->get_logger(), "You can't exit the FAULT state!");
                 response->success = false;
                 return;
             }
@@ -223,10 +222,7 @@ int main(int argc, char* argv[]) {
 
     auto publisher_node = std::make_shared<StateManager>();
 
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "State transition server ready.");
-
     rclcpp::spin(publisher_node);
-
 
     rclcpp::shutdown();
 

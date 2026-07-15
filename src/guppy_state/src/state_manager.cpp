@@ -62,13 +62,13 @@ class StateManager : public rclcpp::Node {
 
         static std::string to_string(uint8_t state) {
             switch (state) {
-                case guppy_msgs::msg::State::STARTUP:  "STARTUP";  break;
-                case guppy_msgs::msg::State::HOLDING:  "HOLDING";  break;
-                case guppy_msgs::msg::State::NAV:      "NAV";      break;
-                case guppy_msgs::msg::State::TASK:     "TASK";     break;
-                case guppy_msgs::msg::State::TELEOP:   "TELEOP";   break;
-                case guppy_msgs::msg::State::DISABLED: "DISABLED"; break;
-                case guppy_msgs::msg::State::FAULT:    "FAULT";    break;
+                case guppy_msgs::msg::State::STARTUP:  return "STARTUP";  break;
+                case guppy_msgs::msg::State::HOLDING:  return "HOLDING";  break;
+                case guppy_msgs::msg::State::NAV:      return "NAV";      break;
+                case guppy_msgs::msg::State::TASK:     return "TASK";     break;
+                case guppy_msgs::msg::State::TELEOP:   return "TELEOP";   break;
+                case guppy_msgs::msg::State::DISABLED: return "DISABLED"; break;
+                case guppy_msgs::msg::State::FAULT:    return  "FAULT";    break;
             }
         }
 
@@ -126,7 +126,7 @@ class StateManager : public rclcpp::Node {
             response->success = this->publish_state(new_state);
 
             if (response->success) RCLCPP_INFO(this->get_logger(), "Transitioning state from %s -> %s.", to_string(stale_state).c_str(), to_string(new_state).c_str());
-            RCLCPP_ERROR(get_logger(), "Failed to publish state transition from %s -> %s.", to_string(stale_state).c_str(), to_string(new_state).c_str());
+            else RCLCPP_ERROR(get_logger(), "Failed to publish state transition from %s -> %s.", to_string(stale_state).c_str(), to_string(new_state).c_str());
         }
 
         bool publish_state(uint8_t state) {
@@ -140,13 +140,13 @@ class StateManager : public rclcpp::Node {
 
         void on_timer() {
             switch (this->current_state_) {
-                case guppy_msgs::msg::State::STARTUP:    this->handle_startup();     break;
-                case guppy_msgs::msg::State::HOLDING:    this->handle_holding();     break;
-                case guppy_msgs::msg::State::NAV:        this->handle_nav();         break;
-                case guppy_msgs::msg::State::TASK:       this->handle_task();        break;
-                case guppy_msgs::msg::State::TELEOP:     this->handle_teleop();      break;
-                case guppy_msgs::msg::State::DISABLED:   this->handle_disabled();    break;
-                case guppy_msgs::msg::State::FAULT:      this->handle_fault();       break;
+                case guppy_msgs::msg::State::STARTUP:  this->handle_startup();  break;
+                case guppy_msgs::msg::State::HOLDING:  this->handle_holding();  break;
+                case guppy_msgs::msg::State::NAV:      this->handle_nav();      break;
+                case guppy_msgs::msg::State::TASK:     this->handle_task();     break;
+                case guppy_msgs::msg::State::TELEOP:   this->handle_teleop();   break;
+                case guppy_msgs::msg::State::DISABLED: this->handle_disabled(); break;
+                case guppy_msgs::msg::State::FAULT:    this->handle_fault();    break;
             }
         }
 

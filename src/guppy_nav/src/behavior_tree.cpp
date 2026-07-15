@@ -58,6 +58,8 @@ public:
 
         auto state_quality = rclcpp::QoS(rclcpp::KeepLast(1)).reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE).durability(RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
         _subscription = this->create_subscription<guppy_msgs::msg::State>("state", state_quality, onState);
+
+        RCLCPP_INFO(get_logger(), "Behavior tree %s initialized with %lu registered nodes.", TREE_NAME, factory.builders().size());
     }
 private:
     std::unique_ptr<BT::Tree> _tree;

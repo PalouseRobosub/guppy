@@ -61,6 +61,18 @@ class StateManager : public rclcpp::Node {
             // }
         }
 
+        static std::string to_string(uint8_t state) {
+            switch (state) {
+                case guppy_msgs::msg::State::STARTUP:  "STARTUP";  break;
+                case guppy_msgs::msg::State::HOLDING:  "HOLDING";  break;
+                case guppy_msgs::msg::State::NAV:      "NAV";      break;
+                case guppy_msgs::msg::State::TASK:     "TASK";     break;
+                case guppy_msgs::msg::State::TELEOP:   "TELEOP";   break;
+                case guppy_msgs::msg::State::DISABLED: "DISABLED"; break;
+                case guppy_msgs::msg::State::FAULT:    "FAULT";    break;
+            }
+        }
+
          bool is_valid_state(uint8_t state) {
             switch (state) {
                 case guppy_msgs::msg::State::STARTUP:
@@ -80,34 +92,42 @@ class StateManager : public rclcpp::Node {
             const std::shared_ptr<guppy_msgs::srv::ChangeState::Request> request,
             std::shared_ptr<guppy_msgs::srv::ChangeState::Response> response
         ) {
-            RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "State transition request...");
+            RCLCPP_DEBUG(get_logger(), "State transition to %s requested.", to_string(request->new_state.state).c_str());
 
-            if (request->new_state.state == this->current_state_) {
-                RCLCPP_ERROR(this->get_logger(), "Already in state!");
+            auto new_state = request->new_state.state;
+
+            if (new_state == this->current_state_) {
+                RCLCPP_ERROR(this->get_logger(), "Already in state %s!", to_string(current_state_).c_str());
                 response->success = false;
                 return;
             }
 
-            if (!is_valid_state(request->new_state.state)) {
+            if (!is_valid_state(new_state)) {
                 RCLCPP_ERROR(this->get_logger(), "Invalid state passed in transition service!");
                 response->success = false;
                 return;
             }
 
             if (this->current_state_ == guppy_msgs::msg::State::FAULT) {
-                RCLCPP_ERROR(this->get_logger(), "You can't exit the fault state!"); // TODO fix loggers!
+                RCLCPP_ERROR(this->get_logger(), "You can't exit the FAULT state!");
                 response->success = false;
                 return;
             }
 
-            if (request->new_state.state == guppy_msgs::msg::State::HOLDING) {
+            if (new_state == guppy_msgs::msg::State::HOLDING) {
+                RCLCPP_ERROR(this->get_logger(), "Resting pose for holding.");
                 auto request = std::make_shared<std_srvs::srv::Empty::Request>();
                 resetholdpose->async_send_request(request);
             }
 
             // TODO switch logic should be handled here NOT in StateManager#publishState()
 
-            response->success = this->publish_state(request->new_state.state);
+            auto stale_state = current_state_;
+
+            response->success = this->publish_state(new_state);
+
+            if (response->success) RCLCPP_INFO(this->get_logger(), "Transitioning state from %s -> %s.", to_string(stale_state).c_str(), to_string(new_state).c_str());
+            RCLCPP_ERROR(get_logger(), "Failed to publish state transition from %s -> %s.", to_string(stale_state).c_str(), to_string(new_state).c_str());
         }
 
         bool publish_state(uint8_t state) {

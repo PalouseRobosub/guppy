@@ -24,25 +24,26 @@
 class PoseSetterServer : public rclcpp::Node {
 public:
     explicit PoseSetterServer(const rclcpp::NodeOptions& options = rclcpp::NodeOptions()) : Node("pose_setter", options) {
-        auto handleGoal = [this](const rclcpp_action::GoalUUID& _, std::shared_ptr<const guppy_msgs::action::Navigate::Goal> goal) {
-            RCLCPP_INFO(this->get_logger(), "goal request with pose and relative set to %d", goal->local); //goal->pose
+        auto handleGoal = [this](const rclcpp_action::GoalUUID& id, std::shared_ptr<const guppy_msgs::action::Navigate::Goal> goal) {
+            RCLCPP_INFO(this->get_logger(), "Goal %s requested at (%.2lf, %.1lf, %lf)(%.2lf, %.2lf, %.2lf, %.2lf) %s with %lf timeout.", rclcpp_action::to_string(id).c_str(), goal->pose.position.x, goal->pose.position.y, goal->pose.position.z, goal->pose.orientation.w, goal->pose.orientation.x, goal->pose.orientation.y, goal->pose.orientation.z, goal->local ? "LOCAL" : "ABSOLUTE", goal->timeout);
 
             if (_state == guppy_msgs::msg::State::NAV) {
                 _cancel = false;
                 return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
             }
 
-            RCLCPP_INFO(this->get_logger(), "rejecting request because not in nav"); //goal->pose
+            RCLCPP_INFO(this->get_logger(), "Rejecting request because state not NAV."); //goal->pose
             return rclcpp_action::GoalResponse::REJECT;
         };
 
         auto handleCancel = [this](const std::shared_ptr<rclcpp_action::ServerGoalHandle<guppy_msgs::action::Navigate>> goalHandle) {
-            RCLCPP_INFO(this->get_logger(), "request to cancel goal");
+            RCLCPP_INFO(this->get_logger(), "Request to cancel goal %s.", rclcpp_action::to_string(goalHandle->get_goal_id()).c_str());
             this->_cancel = true;
             return rclcpp_action::CancelResponse::ACCEPT;
         };
 
         auto handleAccepted = [this](const std::shared_ptr<rclcpp_action::ServerGoalHandle<guppy_msgs::action::Navigate>> goalHandle) {
+            RCLCPP_INFO(this->get_logger(), "Accepted goal %s.", rclcpp_action::to_string(goalHandle->get_goal_id()).c_str());
             std::thread{[this, goalHandle]() {
                 execute(goalHandle);
             }}.detach();

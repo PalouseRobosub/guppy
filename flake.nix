@@ -69,6 +69,10 @@
                 # rviz
                 rviz2
 
+                # vision
+                image-transport
+                compressed-image-transport
+
                 # foxglove
                 foxglove-bridge
                 

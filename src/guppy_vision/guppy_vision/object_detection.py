@@ -4,13 +4,13 @@ import json as jsonlib
 import cv2 as cv
 import numpy as np
 import rclpy
+import supervision as sv
 from cv_bridge import CvBridge
 from geometry_msgs.msg import Point
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image
 from ultralytics import YOLO
-import supervision as sv
 from vision_msgs.msg import Point2D
 
 from guppy_msgs.msg import CornerDetection, CornerDetectionList

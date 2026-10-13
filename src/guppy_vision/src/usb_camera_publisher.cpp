@@ -8,28 +8,33 @@
 #include <image_transport/publisher.hpp>
 #include <memory>
 #include <rclcpp/node.hpp>
+#include <string>
 
 using namespace std::chrono_literals;
 
-class WebcamPublisher : public rclcpp::Node {
+class USBCameraPublisher : public rclcpp::Node {
   public:
-    static std::shared_ptr<WebcamPublisher> create() {
-        auto node = std::make_shared<WebcamPublisher>();
+    static std::shared_ptr<USBCameraPublisher> create() {
+        auto node = std::make_shared<USBCameraPublisher>();
         node->post_init();
         return node;
     }
 
-    WebcamPublisher() : Node("webcam_pub") {
-        camera.open(0);
+    USBCameraPublisher() : Node("usb_camera_publisher") {
+        this->declare_parameter("camera_index", 0);
+        this->declare_parameter("topic_name", "testing");
+        int idx = this->get_parameter("camera_index").as_int();
+        camera.open(idx);
+        std::string topic = this->get_parameter("topic_name").as_string();
         info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>(
-            "/cam/test/camera_info", 1
+            std::string("/cam/") + topic + "/camera_info", 1
         );
         timer_ = this->create_wall_timer(
-            50ms, std::bind(&WebcamPublisher::timer_callback, this)
+            50ms, std::bind(&USBCameraPublisher::timer_callback, this)
         );
     }
 
-    ~WebcamPublisher() {
+    ~USBCameraPublisher() {
         // ...
     }
 
@@ -38,8 +43,9 @@ class WebcamPublisher : public rclcpp::Node {
         it_ = std::make_unique<image_transport::ImageTransport>(
             shared_from_this()
         );
+        std::string topic = this->get_parameter("topic_name").as_string();
         image_pub_ = it_->advertise(
-            "/cam/test", rclcpp::SensorDataQoS().get_rmw_qos_profile()
+            "/cam/" + topic, rclcpp::SensorDataQoS().get_rmw_qos_profile()
         );
     }
 
@@ -88,7 +94,7 @@ class WebcamPublisher : public rclcpp::Node {
 int main(int argc, char* argv[]) {
     rclcpp::init(argc, argv);
 
-    auto node = WebcamPublisher::create();
+    auto node = USBCameraPublisher::create();
 
     rclcpp::spin(node);
 

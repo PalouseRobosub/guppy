@@ -44,7 +44,7 @@ class USBCameraPublisher : public rclcpp::Node {
             shared_from_this()
         );
         std::string topic = this->get_parameter("topic_name").as_string();
-        image_pub_ = it_->advertise(
+        image_pub_        = it_->advertise(
             "/cam/" + topic, rclcpp::SensorDataQoS().get_rmw_qos_profile()
         );
     }
